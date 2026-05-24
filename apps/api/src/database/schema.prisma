@@ -1,0 +1,469 @@
+// ============================================
+// HAYYAMED AI — DATABASE SCHEMA
+// PostgreSQL via Prisma ORM
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// TENANTS / ORGANIZATIONS (Multi-tenant)
+// ============================================
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  logo        String?
+  website     String?
+  industry    String?
+  country     String   @default("QA")
+  city        String?
+  timezone    String   @default("Asia/Qatar")
+  currency    String   @default("QAR")
+  plan        Plan     @default(STARTER)
+  planExpiry  DateTime?
+  isActive    Boolean  @default(true)
+  isAgency    Boolean  @default(false)
+  parentOrgId String?
+
+  // White-label
+  brandName     String?
+  brandColor    String?
+  customDomain  String?
+
+  // Relations
+  parentOrg     Organization?   @relation("AgencyClients", fields: [parentOrgId], references: [id])
+  clientOrgs    Organization[]  @relation("AgencyClients")
+  users         User[]
+  channels      Channel[]
+  contacts      Contact[]
+  conversations Conversation[]
+  campaigns     Campaign[]
+  workflows     Workflow[]
+  chatbots      Chatbot[]
+  invoices      Invoice[]
+  settings      OrgSettings?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("organizations")
+}
+
+enum Plan {
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+model OrgSettings {
+  id             String       @id @default(uuid())
+  orgId          String       @unique
+  org            Organization @relation(fields: [orgId], references: [id])
+  aiEnabled      Boolean      @default(true)
+  aiModel        String       @default("gpt-4o")
+  workingHours   Json?
+  autoReply      Boolean      @default(true)
+  autoReplyMsg   String?
+  language       String       @default("ar")
+  rtlEnabled     Boolean      @default(true)
+  emailNotifs    Boolean      @default(true)
+  pushNotifs     Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("org_settings")
+}
+
+// ============================================
+// USERS & AUTH
+// ============================================
+model User {
+  id           String   @id @default(uuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id])
+  email        String   @unique
+  phone        String?
+  name         String
+  avatar       String?
+  role         UserRole @default(AGENT)
+  isActive     Boolean  @default(true)
+  lastSeen     DateTime?
+
+  // Auth
+  password     String?
+  googleId     String?  @unique
+  twoFASecret  String?
+  twoFAEnabled Boolean  @default(false)
+  refreshToken String?
+
+  // Relations
+  assignedConversations Conversation[] @relation("AssignedAgent")
+  messages              Message[]
+  notes                 Note[]
+  activities            Activity[]
+  notifications         Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  AGENCY_ADMIN
+  ADMIN
+  MANAGER
+  AGENT
+  VIEWER
+}
+
+// ============================================
+// CHANNELS (WhatsApp, Instagram, etc.)
+// ============================================
+model Channel {
+  id            String      @id @default(uuid())
+  orgId         String
+  org           Organization @relation(fields: [orgId], references: [id])
+  type          ChannelType
+  name          String
+  identifier    String      // phone number / page id / username
+  accessToken   String?
+  webhookSecret String?
+  isActive      Boolean     @default(true)
+  isVerified    Boolean     @default(false)
+  metadata      Json?       // tier level, daily limit, etc.
+
+  conversations Conversation[]
+  campaigns     Campaign[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("channels")
+}
+
+enum ChannelType {
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  TELEGRAM
+  EMAIL
+  SMS
+  LIVE_CHAT
+}
+
+// ============================================
+// CONTACTS / LEADS
+// ============================================
+model Contact {
+  id          String   @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  phone       String?
+  email       String?
+  avatar      String?
+  source      String?   // instagram_ad, whatsapp, referral, website
+  campaignId  String?
+  status      LeadStatus @default(NEW)
+  stage       String?   // pipeline stage
+  score       Int        @default(0)
+  value       Decimal?   @db.Decimal(10, 2)
+  currency    String     @default("QAR")
+  tags        String[]
+  language    String     @default("ar")
+  country     String     @default("QA")
+  city        String?
+  notes       String?
+  metadata    Json?      // social handles, custom fields
+
+  // Relations
+  conversations Conversation[]
+  activities    Activity[]
+  notes_rel     Note[]         @relation("ContactNotes")
+  campaigns     CampaignContact[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFYING
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+  UNQUALIFIED
+}
+
+// ============================================
+// CONVERSATIONS & MESSAGES
+// ============================================
+model Conversation {
+  id           String   @id @default(uuid())
+  orgId        String
+  org          Organization  @relation(fields: [orgId], references: [id])
+  channelId    String
+  channel      Channel       @relation(fields: [channelId], references: [id])
+  contactId    String?
+  contact      Contact?      @relation(fields: [contactId], references: [id])
+  assigneeId   String?
+  assignee     User?         @relation("AssignedAgent", fields: [assigneeId], references: [id])
+
+  status       ConvStatus    @default(OPEN)
+  priority     Priority      @default(NORMAL)
+  subject      String?
+  externalId   String?       // channel's conversation id
+  lastMessage  String?
+  lastMsgAt    DateTime?
+  isRead       Boolean       @default(false)
+  tags         String[]
+  metadata     Json?
+
+  messages     Message[]
+  notes        Note[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("conversations")
+}
+
+enum ConvStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  SNOOZED
+  SPAM
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String?     // null = customer
+  sender         User?       @relation(fields: [senderId], references: [id])
+  type           MsgType     @default(TEXT)
+  content        String?
+  mediaUrl       String?
+  mediaType      String?
+  isFromBot      Boolean     @default(false)
+  isAI           Boolean     @default(false)
+  externalId     String?
+  status         MsgStatus   @default(SENT)
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+
+  @@map("messages")
+}
+
+enum MsgType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  LOCATION
+  STICKER
+  TEMPLATE
+}
+
+enum MsgStatus {
+  SENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model Note {
+  id             String       @id @default(uuid())
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  contactId      String?
+  contact        Contact?     @relation("ContactNotes", fields: [contactId], references: [id])
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id])
+  content        String
+  createdAt      DateTime     @default(now())
+
+  @@map("notes")
+}
+
+// ============================================
+// CAMPAIGNS
+// ============================================
+model Campaign {
+  id          String         @id @default(uuid())
+  orgId       String
+  org         Organization   @relation(fields: [orgId], references: [id])
+  channelId   String?
+  channel     Channel?       @relation(fields: [channelId], references: [id])
+  name        String
+  type        CampaignType   @default(BROADCAST)
+  status      CampaignStatus @default(DRAFT)
+  message     String
+  mediaUrl    String?
+  templateId  String?
+  scheduledAt DateTime?
+  sentAt      DateTime?
+
+  // Stats
+  totalRecipients Int @default(0)
+  sent            Int @default(0)
+  delivered       Int @default(0)
+  read            Int @default(0)
+  replied         Int @default(0)
+  converted       Int @default(0)
+
+  contacts    CampaignContact[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("campaigns")
+}
+
+enum CampaignType {
+  BROADCAST
+  SEQUENCE
+  DRIP
+  TRIGGERED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+model CampaignContact {
+  id         String   @id @default(uuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id])
+  status     String   @default("pending")
+  sentAt     DateTime?
+  readAt     DateTime?
+  repliedAt  DateTime?
+
+  @@unique([campaignId, contactId])
+  @@map("campaign_contacts")
+}
+
+// ============================================
+// CHATBOT FLOWS
+// ============================================
+model Chatbot {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  channelType ChannelType
+  isActive    Boolean      @default(false)
+  flow        Json         // Visual flow nodes & edges
+  triggers    Json?        // keywords, conditions
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("chatbots")
+}
+
+// ============================================
+// WORKFLOWS / AUTOMATION
+// ============================================
+model Workflow {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  trigger     String       // new_lead, keyword, time_based, etc.
+  conditions  Json?
+  actions     Json         // steps to execute
+  isActive    Boolean      @default(true)
+  runCount    Int          @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("workflows")
+}
+
+// ============================================
+// ACTIVITIES / AUDIT LOG
+// ============================================
+model Activity {
+  id        String   @id @default(uuid())
+  orgId     String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
+  type      String   // lead_created, message_sent, stage_changed, etc.
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@map("activities")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// ============================================
+// BILLING / INVOICES
+// ============================================
+model Invoice {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  amount      Decimal      @db.Decimal(10, 2)
+  currency    String       @default("QAR")
+  status      String       @default("paid")
+  stripeId    String?
+  description String?
+  paidAt      DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@map("invoices")
+}
