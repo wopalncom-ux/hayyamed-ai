@@ -21,11 +21,35 @@ export default function Inbox() {
   const [messages, setMessages] = useState(initialMessages)
   const [input, setInput] = useState('')
   const [search, setSearch] = useState('')
+  const [aiMode, setAiMode] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return
-    setMessages([...messages, { id: messages.length+1, from:'agent', text:input, time:'Now' }])
+    const userMsg = { id: messages.length+1, from:'agent', text:input, time:'Now' }
+    const updatedMessages = [...messages, userMsg]
+    setMessages(updatedMessages)
     setInput('')
+
+    if (aiMode) {
+      setAiLoading(true)
+      try {
+        const history = messages.map(m => ({
+          role: m.from === 'agent' ? 'assistant' : 'user',
+          content: m.text
+        }))
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: input, history })
+        })
+        const data = await res.json()
+        setMessages(prev => [...prev, { id: prev.length+1, from:'ai', text:data.reply, time:'Now' }])
+      } catch {
+        setMessages(prev => [...prev, { id: prev.length+1, from:'ai', text:'Sorry, AI is not available right now.', time:'Now' }])
+      }
+      setAiLoading(false)
+    }
   }
 
   return (
@@ -43,8 +67,11 @@ export default function Inbox() {
           <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⊞</a>
           <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>💬</a>
           <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>👥</a>
-          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
+          <a href="/reports" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
+          <a href="/campaigns" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📣</a>
           <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
+          <a href="/notifications" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🔔</a>
+          <a href="/agency" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🏢</a>
           <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
         </div>
 
@@ -78,7 +105,9 @@ export default function Inbox() {
               <div style={{fontSize:'11px', color:'#7a8fa6'}}>{selected.phone} · WhatsApp</div>
             </div>
             <div style={{marginLeft:'auto', display:'flex', gap:'8px'}}>
-              <button style={{padding:'6px 12px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontSize:'11px', cursor:'pointer'}}>🤖 AI Mode</button>
+              <button onClick={() => setAiMode(!aiMode)} style={{padding:'6px 12px', background: aiMode ? '#00e5a0' : 'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color: aiMode ? '#07090f' : '#00e5a0', fontSize:'11px', cursor:'pointer', fontWeight: aiMode ? '700' : '400'}}>
+                🤖 {aiMode ? 'AI ON' : 'AI Mode'}
+              </button>
               <button style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>Profile</button>
             </div>
           </div>
@@ -97,12 +126,27 @@ export default function Inbox() {
                 </div>
               </div>
             ))}
+            {aiLoading && (
+              <div style={{display:'flex', gap:'8px', alignItems:'flex-end'}}>
+                <div style={{width:'24px', height:'24px', borderRadius:'50%', background:'#a78bfa', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:'700', color:'#07090f'}}>AI</div>
+                <div style={{padding:'9px 13px', borderRadius:'2px 12px 12px 12px', background:'rgba(167,139,250,.08)', border:'1px solid rgba(167,139,250,.2)', fontSize:'12px', color:'#a78bfa'}}>
+                  Thinking...
+                </div>
+              </div>
+            )}
           </div>
 
           <div style={{padding:'12px 18px', borderTop:'1px solid #1a2235', background:'#0c0f1a'}}>
+            {aiMode && (
+              <div style={{padding:'8px 12px', background:'rgba(167,139,250,.06)', border:'1px solid rgba(167,139,250,.2)', borderRadius:'4px', marginBottom:'8px', fontSize:'11px', color:'#a78bfa'}}>
+                🤖 AI Mode is ON — AI will automatically reply to messages
+              </div>
+            )}
             <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
               <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key==='Enter' && sendMessage()} placeholder="Type a message..." style={{flex:1, background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
-              <button onClick={sendMessage} style={{height:'40px', padding:'0 18px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Send</button>
+              <button onClick={sendMessage} disabled={aiLoading} style={{height:'40px', padding:'0 18px', background: aiLoading ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'6px', color: aiLoading ? '#7a8fa6' : '#07090f', fontWeight:'700', fontSize:'12px', cursor: aiLoading ? 'not-allowed' : 'pointer'}}>
+                {aiLoading ? '...' : 'Send'}
+              </button>
             </div>
           </div>
         </div>
