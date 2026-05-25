@@ -25,7 +25,6 @@ export default function Contacts() {
   return (
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
-      {/* Topbar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
         <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
         <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
@@ -34,44 +33,32 @@ export default function Contacts() {
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
 
-        {/* Sidebar */}
         <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          {['⊞','💬','👥','📊','🤖','⚙️'].map((icon, i) => (
-            <div key={i} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background: i===2 ? 'rgba(0,229,160,.1)' : 'none', fontSize:'18px'}}>
-              {icon}
-            </div>
-          ))}
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⊞</a>
+          <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>💬</a>
+          <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>👥</a>
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
+          <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
+          <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
         </div>
 
-        {/* Main Content */}
         <div style={{flex:1, display:'flex', overflow:'hidden'}}>
-
-          {/* Contacts Table */}
           <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
-
-            {/* Toolbar */}
             <div style={{padding:'12px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a', display:'flex', alignItems:'center', gap:'10px'}}>
               <div style={{fontWeight:'700', fontSize:'15px'}}>Contacts <span style={{color:'#3d4f63', fontSize:'12px', fontWeight:'400'}}>{contacts.length} total</span></div>
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search contacts..."
-                style={{marginLeft:'auto', width:'220px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'7px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}
-              />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search contacts..." style={{marginLeft:'auto', width:'220px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'7px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
               <button style={{padding:'7px 14px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>+ Add Contact</button>
             </div>
 
-            {/* Table Header */}
             <div style={{display:'grid', gridTemplateColumns:'2fr 1.5fr 1fr 1fr 1fr 1fr', padding:'10px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
               {['NAME','PHONE','STATUS','VALUE','CHANNEL','TAGS'].map(h => (
                 <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', fontWeight:'700'}}>{h}</div>
               ))}
             </div>
 
-            {/* Table Rows */}
             <div style={{flex:1, overflowY:'auto'}}>
               {filtered.map(c => (
-                <div key={c.id} onClick={() => setSelected(c)} style={{display:'grid', gridTemplateColumns:'2fr 1.5fr 1fr 1fr 1fr 1fr', padding:'12px 18px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', alignItems:'center', transition:'all .2s'}}>
+                <div key={c.id} onClick={() => setSelected(c)} style={{display:'grid', gridTemplateColumns:'2fr 1.5fr 1fr 1fr 1fr 1fr', padding:'12px 18px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', alignItems:'center'}}>
                   <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                     <div style={{width:'32px', height:'32px', borderRadius:'50%', background:c.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700', color:'#07090f', flexShrink:0}}>{c.avatar}</div>
                     <div>
@@ -93,7 +80,6 @@ export default function Contacts() {
             </div>
           </div>
 
-          {/* Contact Detail Panel */}
           {selected && (
             <div style={{width:'260px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', padding:'20px', overflowY:'auto', flexShrink:0}}>
               <div style={{textAlign:'center', marginBottom:'16px'}}>

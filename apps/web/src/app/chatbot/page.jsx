@@ -19,13 +19,12 @@ const nodeTypes = [
 ]
 
 export default function Chatbot() {
-  const [nodes, setNodes] = useState(initialNodes)
+  const [nodes] = useState(initialNodes)
   const [selected, setSelected] = useState(nodes[0])
 
   return (
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
-      {/* Topbar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
         <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
         <div style={{fontSize:'12px', color:'#7a8fa6'}}>/ Chatbot Builder</div>
@@ -37,30 +36,26 @@ export default function Chatbot() {
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
 
-        {/* Sidebar Nav */}
         <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          {['⊞','💬','👥','📊','🤖','⚙️'].map((icon, i) => (
-            <div key={i} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background: i===4 ? 'rgba(0,229,160,.1)' : 'none', fontSize:'18px'}}>
-              {icon}
-            </div>
-          ))}
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⊞</a>
+          <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>💬</a>
+          <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>👥</a>
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
+          <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>🤖</a>
+          <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
         </div>
 
-        {/* Node Panel */}
         <div style={{width:'200px', borderRight:'1px solid #1a2235', background:'#0c0f1a', padding:'14px', overflowY:'auto', flexShrink:0}}>
           <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'12px'}}>DRAG NODES</div>
           {nodeTypes.map(n => (
-            <div key={n.type} style={{padding:'9px 12px', border:'1px solid #1a2235', borderRadius:'4px', marginBottom:'7px', cursor:'grab', fontSize:'11px', color:'#7a8fa6', display:'flex', alignItems:'center', gap:'8px', background:'#111622', transition:'all .2s'}}>
+            <div key={n.type} style={{padding:'9px 12px', border:'1px solid #1a2235', borderRadius:'4px', marginBottom:'7px', cursor:'grab', fontSize:'11px', color:'#7a8fa6', display:'flex', alignItems:'center', gap:'8px', background:'#111622'}}>
               <span style={{fontSize:'14px'}}>{n.icon}</span>
               <span>{n.label}</span>
             </div>
           ))}
         </div>
 
-        {/* Canvas */}
         <div style={{flex:1, position:'relative', overflow:'hidden', background:'#07090f', backgroundImage:'radial-gradient(circle, #1a2235 1px, transparent 1px)', backgroundSize:'24px 24px'}}>
-          
-          {/* SVG Arrows */}
           <svg style={{position:'absolute', top:0, left:0, width:'100%', height:'100%', pointerEvents:'none'}}>
             <defs>
               <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
@@ -74,9 +69,8 @@ export default function Chatbot() {
             <line x1="720" y1="230" x2="800" y2="160" stroke="#1a2235" strokeWidth="2" markerEnd="url(#arrow)"/>
           </svg>
 
-          {/* Nodes */}
           {nodes.map(n => (
-            <div key={n.id} onClick={() => setSelected(n)} style={{position:'absolute', left:n.x, top:n.y, background:'#0f1520', border:`1px solid ${selected?.id===n.id ? n.color : '#1a2235'}`, borderRadius:'4px', padding:'12px 16px', minWidth:'160px', cursor:'pointer', boxShadow: selected?.id===n.id ? `0 0 0 2px ${n.color}30` : 'none', transition:'all .2s'}}>
+            <div key={n.id} onClick={() => setSelected(n)} style={{position:'absolute', left:n.x, top:n.y, background:'#0f1520', border:`1px solid ${selected?.id===n.id ? n.color : '#1a2235'}`, borderRadius:'4px', padding:'12px 16px', minWidth:'160px', cursor:'pointer', boxShadow: selected?.id===n.id ? `0 0 0 2px ${n.color}30` : 'none'}}>
               <div style={{display:'flex', alignItems:'center', gap:'7px', marginBottom:'6px'}}>
                 <div style={{width:'8px', height:'8px', borderRadius:'50%', background:n.color, flexShrink:0}}></div>
                 <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px', textTransform:'uppercase'}}>{n.type}</div>
@@ -87,7 +81,6 @@ export default function Chatbot() {
           ))}
         </div>
 
-        {/* Properties Panel */}
         <div style={{width:'240px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', padding:'16px', overflowY:'auto', flexShrink:0}}>
           <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'14px'}}>NODE PROPERTIES</div>
           {selected && (
@@ -95,10 +88,6 @@ export default function Chatbot() {
               <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px'}}>
                 <div style={{width:'10px', height:'10px', borderRadius:'50%', background:selected.color}}></div>
                 <div style={{fontSize:'12px', fontWeight:'600'}}>{selected.title}</div>
-              </div>
-              <div style={{marginBottom:'12px'}}>
-                <div style={{fontSize:'10px', color:'#3d4f63', marginBottom:'6px'}}>NODE TYPE</div>
-                <div style={{fontSize:'12px', color:'#7a8fa6', textTransform:'uppercase'}}>{selected.type}</div>
               </div>
               <div style={{marginBottom:'12px'}}>
                 <div style={{fontSize:'10px', color:'#3d4f63', marginBottom:'6px'}}>TITLE</div>

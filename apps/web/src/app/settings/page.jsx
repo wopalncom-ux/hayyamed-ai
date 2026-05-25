@@ -22,7 +22,6 @@ export default function Settings() {
   return (
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
-      {/* Topbar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
         <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
         <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
@@ -31,30 +30,27 @@ export default function Settings() {
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
 
-        {/* Sidebar Nav */}
         <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          {['⊞','💬','👥','📊','🤖','⚙️'].map((icon, i) => (
-            <div key={i} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background: i===5 ? 'rgba(0,229,160,.1)' : 'none', fontSize:'18px'}}>
-              {icon}
-            </div>
-          ))}
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⊞</a>
+          <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>💬</a>
+          <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>👥</a>
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
+          <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
+          <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
         </div>
 
-        {/* Settings Layout */}
         <div style={{flex:1, display:'flex', overflow:'hidden'}}>
 
-          {/* Settings Tabs */}
           <div style={{width:'200px', borderRight:'1px solid #1a2235', background:'#0c0f1a', padding:'20px 0', flexShrink:0}}>
             <div style={{padding:'0 16px', fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'12px'}}>SETTINGS</div>
             {tabs.map(t => (
-              <div key={t.id} onClick={() => setActiveTab(t.id)} style={{padding:'10px 16px', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px', background: activeTab===t.id ? '#0f1520' : 'none', borderLeft: activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent', transition:'all .2s'}}>
+              <div key={t.id} onClick={() => setActiveTab(t.id)} style={{padding:'10px 16px', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px', background: activeTab===t.id ? '#0f1520' : 'none', borderLeft: activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent'}}>
                 <span style={{fontSize:'15px'}}>{t.icon}</span>
                 <span style={{fontSize:'12px', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6'}}>{t.label}</span>
               </div>
             ))}
           </div>
 
-          {/* Settings Content */}
           <div style={{flex:1, overflowY:'auto', padding:'30px'}}>
 
             {activeTab === 'profile' && (
@@ -93,11 +89,6 @@ export default function Settings() {
                 <div style={{fontWeight:'800', fontSize:'18px', marginBottom:'6px'}}>WhatsApp Integration</div>
                 <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'24px'}}>Connect your WhatsApp Business account</div>
                 <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px', marginBottom:'16px'}}>
-                  <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px', padding:'14px', background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px'}}>
-                    <div style={{width:'10px', height:'10px', borderRadius:'50%', background:'#00e5a0'}}></div>
-                    <div style={{fontSize:'12px', color:'#00e5a0', fontWeight:'600'}}>WhatsApp Connected</div>
-                    <div style={{marginLeft:'auto', fontSize:'11px', color:'#7a8fa6'}}>+974 5555 0000</div>
-                  </div>
                   {[
                     {label:'WhatsApp Business ID', value:'1234567890'},
                     {label:'Phone Number ID', value:'0987654321'},
@@ -133,8 +124,8 @@ export default function Settings() {
                     </div>
                   ))}
                   <div style={{marginBottom:'16px'}}>
-                    <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'6px'}}>AI Personality / Instructions</div>
-                    <textarea rows={4} defaultValue="You are a helpful assistant for Hayyamed AI. Always be polite and professional. Respond in the same language as the customer." style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none', resize:'vertical'}}/>
+                    <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'6px'}}>AI Personality</div>
+                    <textarea rows={4} defaultValue="You are a helpful assistant for Hayyamed AI. Always be polite and professional." style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none', resize:'vertical'}}/>
                   </div>
                 </div>
                 <button onClick={save} style={{padding:'10px 24px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
@@ -145,8 +136,8 @@ export default function Settings() {
 
             {activeTab === 'billing' && (
               <div style={{maxWidth:'560px'}}>
-                <div style={{fontWeight:'800', fontSize:'18px', marginBottom:'6px'}}>Billing & Subscription</div>
-                <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'24px'}}>Manage your plan and payments</div>
+                <div style={{fontWeight:'800', fontSize:'18px', marginBottom:'6px'}}>Billing</div>
+                <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'24px'}}>Manage your plan</div>
                 <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px', marginBottom:'16px'}}>
                   <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'20px'}}>
                     <div>
@@ -178,7 +169,7 @@ export default function Settings() {
             {activeTab === 'team' && (
               <div style={{maxWidth:'560px'}}>
                 <div style={{fontWeight:'800', fontSize:'18px', marginBottom:'6px'}}>Team Members</div>
-                <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'24px'}}>Manage your team access</div>
+                <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'24px'}}>Manage your team</div>
                 {[
                   {name:'Abbas Al Masri', email:'wopalncom@gmail.com', role:'Owner', color:'#00e5a0'},
                   {name:'Sara Ahmed', email:'sara@hayyamed.ai', role:'Admin', color:'#3b82f6'},
@@ -203,13 +194,13 @@ export default function Settings() {
                 <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'24px'}}>Keep your account secure</div>
                 <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px', marginBottom:'16px'}}>
                   {[
-                    {label:'Current Password', type:'password'},
-                    {label:'New Password', type:'password'},
-                    {label:'Confirm Password', type:'password'},
+                    {label:'Current Password'},
+                    {label:'New Password'},
+                    {label:'Confirm Password'},
                   ].map(f => (
                     <div key={f.label} style={{marginBottom:'16px'}}>
                       <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'6px'}}>{f.label}</div>
-                      <input type={f.type} style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
+                      <input type="password" style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
                     </div>
                   ))}
                 </div>

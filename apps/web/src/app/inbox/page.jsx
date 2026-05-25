@@ -30,8 +30,7 @@ export default function Inbox() {
 
   return (
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
-      
-      {/* Topbar */}
+
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
         <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
         <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
@@ -40,25 +39,19 @@ export default function Inbox() {
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
 
-        {/* Sidebar */}
         <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          {['⊞','💬','👥','📊','🤖','⚙️'].map((icon, i) => (
-            <div key={i} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background: i===1 ? 'rgba(0,229,160,.1)' : 'none', fontSize:'18px'}}>
-              {icon}
-            </div>
-          ))}
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⊞</a>
+          <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>💬</a>
+          <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>👥</a>
+          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
+          <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
+          <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
         </div>
 
-        {/* Contact List */}
         <div style={{width:'280px', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', flexShrink:0}}>
           <div style={{padding:'12px', borderBottom:'1px solid #1a2235'}}>
             <div style={{fontWeight:'700', marginBottom:'10px'}}>Inbox <span style={{color:'#00e5a0', fontSize:'12px'}}>6 unread</span></div>
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search conversations..."
-              style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}
-            />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations..." style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
           </div>
           <div style={{overflowY:'auto', flex:1}}>
             {contacts.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).map(c => (
@@ -77,10 +70,7 @@ export default function Inbox() {
           </div>
         </div>
 
-        {/* Chat Area */}
         <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
-          
-          {/* Chat Header */}
           <div style={{padding:'12px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a', display:'flex', alignItems:'center', gap:'12px'}}>
             <div style={{width:'36px', height:'36px', borderRadius:'50%', background:selected.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700'}}>{selected.avatar}</div>
             <div>
@@ -93,7 +83,6 @@ export default function Inbox() {
             </div>
           </div>
 
-          {/* Messages */}
           <div style={{flex:1, overflowY:'auto', padding:'18px', display:'flex', flexDirection:'column', gap:'12px'}}>
             {messages.map(m => (
               <div key={m.id} style={{display:'flex', flexDirection: m.from==='agent' ? 'row-reverse' : 'row', gap:'8px', alignItems:'flex-end'}}>
@@ -110,20 +99,12 @@ export default function Inbox() {
             ))}
           </div>
 
-          {/* Input */}
           <div style={{padding:'12px 18px', borderTop:'1px solid #1a2235', background:'#0c0f1a'}}>
             <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key==='Enter' && sendMessage()}
-                placeholder="Type a message..."
-                style={{flex:1, background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}
-              />
+              <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key==='Enter' && sendMessage()} placeholder="Type a message..." style={{flex:1, background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
               <button onClick={sendMessage} style={{height:'40px', padding:'0 18px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Send</button>
             </div>
           </div>
-
         </div>
       </div>
     </div>
