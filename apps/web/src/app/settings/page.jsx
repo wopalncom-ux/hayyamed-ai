@@ -81,6 +81,22 @@ export default function Settings() {
                 <button onClick={save} style={{padding:'10px 24px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
                   {saved ? '✅ Saved!' : 'Save Changes'}
                 </button>
+                <button onClick={async () => {
+  const res = await fetch('/api/notify', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      type: 'Test Notification',
+      name: 'Abbas Al Masri',
+      phone: '+974 5555 0000',
+      message: 'This is a test notification from Hayyamed AI!'
+    })
+  })
+  const data = await res.json()
+  alert(data.success ? 'Email sent successfully!' : 'Email failed - check API key')
+}} style={{padding:'10px 24px', background:'#3b82f6', border:'none', borderRadius:'4px', color:'white', fontWeight:'700', fontSize:'12px', cursor:'pointer', marginLeft:'10px'}}>
+  📧 Test Email
+</button>
               </div>
             )}
 
