@@ -34,8 +34,14 @@ const translations = {
 
 export default function Dashboard() {
   const [lang, setLang] = useState('en')
+  const [showMenu, setShowMenu] = useState(false)
   const t = translations[lang]
   const isAr = lang === 'ar'
+
+  const logout = () => {
+    localStorage.removeItem('hayyamed_auth')
+    window.location.href = '/login'
+  }
 
   return (
     <div style={{background:'#07090f', color:'#e2e8f0', minHeight:'100vh', fontFamily:'sans-serif', direction: isAr ? 'rtl' : 'ltr'}}>
@@ -47,7 +53,19 @@ export default function Dashboard() {
           <button onClick={() => setLang('ar')} style={{padding:'4px 10px', background: lang==='ar' ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: lang==='ar' ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: lang==='ar' ? '700' : '400'}}>عربي</button>
         </div>
         <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
-        <div style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700'}}>A</div>
+
+        {/* Avatar with logout */}
+        <div style={{position:'relative'}}>
+          <div onClick={() => setShowMenu(!showMenu)} style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700', cursor:'pointer'}}>A</div>
+          {showMenu && (
+            <div style={{position:'absolute', top:'38px', right:'0', background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', minWidth:'160px', zIndex:100, padding:'8px'}}>
+              <div style={{padding:'8px 12px', fontSize:'12px', color:'#7a8fa6', borderBottom:'1px solid #1a2235', marginBottom:'4px'}}>Abbas Al Masri</div>
+              <a href="/settings" style={{display:'block', padding:'8px 12px', fontSize:'12px', color:'#e2e8f0', textDecoration:'none', borderRadius:'3px'}}>⚙️ Settings</a>
+              <a href="/profile" style={{display:'block', padding:'8px 12px', fontSize:'12px', color:'#e2e8f0', textDecoration:'none', borderRadius:'3px'}}>👤 Profile</a>
+              <div onClick={logout} style={{padding:'8px 12px', fontSize:'12px', color:'#ef4444', cursor:'pointer', borderTop:'1px solid #1a2235', marginTop:'4px', borderRadius:'3px'}}>🚪 Logout</div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div style={{display:'flex', height:'calc(100vh - 52px)'}}>
@@ -61,6 +79,7 @@ export default function Dashboard() {
           <a href="/campaigns" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📣</a>
           <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
           <a href="/agency" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🏢</a>
+          <a href="/notifications" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🔔</a>
           <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
         </div>
 
