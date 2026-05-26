@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(docker --version 2>&1)",
+      "Bash(npm install *)",
+      "Bash(npm view *)",
+      "Bash(npx prisma *)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/hayyamed\" npx prisma migrate dev --name init)",
+      "Bash(docker exec *)",
+      "PowerShell(docker exec hayyamed-postgres psql -U postgres -d hayyamed -c \"\\\\du\" 2>&1)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/hayyamed\" npm run db:seed)",
+      "Bash(pkill -f \"node src/main.js\")",
+      "Bash(pkill -f \"node dist/main\")",
+      "Bash(cat /tmp/api.log | tail -30)",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://localhost:4000/api/v1/reports/dashboard -H \"x-org-id: e228e9fb-53f6-42a4-b6bd-201eace467a4\")",
+      "Bash(pkill -f \"ts-node.*main.ts\")",
+      "PowerShell(Get-Content \"C:\\\\tmp\\\\api.log\" -Encoding UTF8 | Where-Object { $_ -match \"error|Error|WARN|fail\" } | Select-Object -Last 20)",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(git push *)",
+      "Bash(ssh root@178.105.250.129 \"cd /root/hayyamed-ai && git pull origin master && docker compose up -d --build web 2>&1 | tail -20\")"
+    ]
+  }
+}

@@ -21,7 +21,7 @@ import { JwtService } from '@nestjs/jwt'
   namespace: '/ws',
 })
 export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server
+  @WebSocketServer() server!: Server
   private readonly logger = new Logger(RealtimeGateway.name)
   private connectedUsers = new Map<string, string>() // userId -> socketId
 

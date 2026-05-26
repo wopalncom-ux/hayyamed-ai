@@ -4,6 +4,7 @@
 // ============================================
 
 import { Module } from '@nestjs/common'
+import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { BullModule } from '@nestjs/bull'
@@ -19,7 +20,7 @@ import { WhatsAppModule } from './modules/whatsapp/whatsapp.module'
 import { AIModule } from './modules/ai/ai.module'
 import { BillingModule } from './modules/billing/billing.module'
 import { DatabaseModule } from './database/database.module'
-import { WebSocketGateway } from './common/gateways/websocket.gateway'
+import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { WebSocketGateway } from './common/gateways/websocket.gateway'
 
     // Core
     DatabaseModule,
+    JwtModule.register({ secret: process.env.JWT_SECRET || 'dev', signOptions: { expiresIn: '15m' } }),
     AuthModule,
     UsersModule,
     ConversationsModule,
@@ -50,6 +52,6 @@ import { WebSocketGateway } from './common/gateways/websocket.gateway'
     AIModule,
     BillingModule,
   ],
-  providers: [WebSocketGateway],
+  providers: [RealtimeGateway],
 })
 export class AppModule {}

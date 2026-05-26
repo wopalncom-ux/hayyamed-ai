@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:4000/api/v1/reports/dashboard -H 'x-org-id: e228e9fb-53f6-42a4-b6bd-201eace467a4')",
+      "Bash(curl -s http://localhost:4000/api/v1/contacts?limit=2 -H 'x-org-id: e228e9fb-53f6-42a4-b6bd-201eace467a4')",
+      "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@hayyamed.ai\",\"password\":\"hayyamed2024\"}')",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -I http://localhost:4000/api/v1/auth/login -X OPTIONS -H 'Origin: http://localhost:3000' -H 'Access-Control-Request-Method: POST')",
+      "Bash(npx next *)"
+    ]
+  }
+}
