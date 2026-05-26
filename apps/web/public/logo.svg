@@ -1,0 +1,21 @@
+<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="120" height="40" fill="none"/>
+  
+  <!-- Logo placeholder with gradient -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00e5a0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Circle background -->
+  <circle cx="20" cy="20" r="18" fill="url(#logoGradient)"/>
+  
+  <!-- Letter H -->
+  <text x="20" y="28" font-size="24" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial, sans-serif">H</text>
+  
+  <!-- Text -->
+  <text x="45" y="25" font-size="16" font-weight="800" fill="#e2e8f0" font-family="Arial, sans-serif">Hayyamed</text>
+</svg>

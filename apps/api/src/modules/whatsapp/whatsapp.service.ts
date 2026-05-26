@@ -5,7 +5,7 @@
 
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import { PrismaService } from '../../database/prisma.service'
 import { firstValueFrom } from 'rxjs'
 
@@ -16,7 +16,6 @@ export class WhatsAppService {
 
   constructor(
     private prisma: PrismaService,
-    private http: HttpService,
     private config: ConfigService,
   ) {}
 
@@ -242,19 +241,15 @@ export class WhatsAppService {
   // ─── GET BUSINESS PROFILE ────────────────
   async getBusinessProfile(phoneNumberId: string, token: string) {
     const url = `${this.baseUrl}/${phoneNumberId}/whatsapp_business_profile`
-    const { data } = await firstValueFrom(
-      this.http.get(url, { headers: { Authorization: `Bearer ${token}` } })
-    )
-    return data
+    const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } })
+    return res.data
   }
 
   // ─── GET TEMPLATES ───────────────────────
   async getTemplates(businessId: string, token: string) {
     const url = `${this.baseUrl}/${businessId}/message_templates`
-    const { data } = await firstValueFrom(
-      this.http.get(url, { headers: { Authorization: `Bearer ${token}` } })
-    )
-    return data
+    const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } })
+    return res.data
   }
 
   // ─── VERIFY WEBHOOK ──────────────────────
@@ -267,17 +262,15 @@ export class WhatsAppService {
   // ─── HTTP HELPER ─────────────────────────
   private async send(url: string, payload: any, token: string) {
     try {
-      const { data } = await firstValueFrom(
-        this.http.post(url, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          }
-        })
-      )
-      return data
-    } catch (err) {
-      this.logger.error(`WhatsApp API error: ${err.response?.data?.error?.message}`)
+      const res = await axios.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      })
+      return res.data
+    } catch (err: any) {
+      this.logger.error(`WhatsApp API error: ${err?.response?.data?.error?.message}`)
       throw err
     }
   }

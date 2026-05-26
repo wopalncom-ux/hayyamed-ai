@@ -3,7 +3,7 @@
 // apps/api/src/modules/ai/ai.service.ts
 // ============================================
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import OpenAI from 'openai'
 import { PrismaService } from '../../database/prisma.service'
@@ -11,13 +11,25 @@ import { PrismaService } from '../../database/prisma.service'
 @Injectable()
 export class AIService {
   private readonly logger = new Logger(AIService.name)
-  private openai: OpenAI
+  private openai?: OpenAI
 
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
   ) {
-    this.openai = new OpenAI({ apiKey: config.get('OPENAI_API_KEY') })
+    const apiKey = this.config.get('OPENAI_API_KEY')
+    if (apiKey) {
+      this.openai = new OpenAI({ apiKey })
+    } else {
+      this.logger.warn('OPENAI_API_KEY not set; AI features will be disabled.')
+    }
+  }
+
+  private ensureOpenAI(): OpenAI {
+    if (!this.openai) {
+      throw new ServiceUnavailableException('OpenAI API key is not configured')
+    }
+    return this.openai
   }
 
   // ─── GENERATE AI REPLY ───────────────────
@@ -68,11 +80,12 @@ Important rules:
       content: m.content || '',
     })).filter(m => m.content)
 
-    const response = await this.openai.chat.completions.create({
+    const openai = this.ensureOpenAI()
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...chatMessages,
+        ...(chatMessages as any),
       ],
       max_tokens: 300,
       temperature: 0.7,
@@ -124,7 +137,8 @@ Return JSON only:
 }
 `
 
-    const response = await this.openai.chat.completions.create({
+    const openai = this.ensureOpenAI()
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 300,
@@ -158,7 +172,8 @@ Return JSON:
   "topics": ["<topic1>", "<topic2>"]
 }
 `
-    const response = await this.openai.chat.completions.create({
+    const openai = this.ensureOpenAI()
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 150,
@@ -182,7 +197,8 @@ Keep it under 300 characters for WhatsApp.
 Include 1-2 relevant emojis.
 End with a clear call to action.
 `
-    const response = await this.openai.chat.completions.create({
+    const openai = this.ensureOpenAI()
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -205,7 +221,8 @@ Return JSON array of exactly 3 insights:
 ["<insight 1>", "<insight 2>", "<insight 3>"]
 Each insight should be specific and actionable (1-2 sentences).
 `
-    const response = await this.openai.chat.completions.create({
+    const openai = this.ensureOpenAI()
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 300,
@@ -222,7 +239,8 @@ Each insight should be specific and actionable (1-2 sentences).
 
   // ─── TRANSLATE MESSAGE ───────────────────
   async translate(text: string, targetLang: 'ar' | 'en'): Promise<string> {
-    const response = await this.openai.chat.completions.create({
+    const openai = this.ensureOpenAI()
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{
         role: 'user',
