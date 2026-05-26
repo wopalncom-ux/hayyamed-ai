@@ -20,6 +20,7 @@ export default function Login() {
     try {
       const data = await api.login(em, pw)
       const demoMatch = DEMO_USERS.find(u => u.email === em)
+      const role = data.user?.role || demoMatch?.role || 'manager'
       localStorage.setItem('hayyamed_auth', JSON.stringify({
         email: em, loggedIn: true,
         accessToken:  data.accessToken,
@@ -27,9 +28,9 @@ export default function Login() {
         orgId:    data.org?.id  || demoMatch?.orgId,
         userId:   data.user?.id,
         userName: data.user?.name || demoMatch?.name,
-        role:     data.user?.role || demoMatch?.role || 'manager',
+        role,
       }))
-      window.location.href = '/dashboard'
+      window.location.href = role === 'client' ? '/client' : '/dashboard'
       return
     } catch {}
 
@@ -40,7 +41,7 @@ export default function Login() {
         email: em, loggedIn: true,
         orgId: user.orgId, userName: user.name, role: user.role,
       }))
-      window.location.href = '/dashboard'
+      window.location.href = user.role === 'client' ? '/client' : '/dashboard'
     } else {
       setError('Invalid email or password')
       setLoading(false)

@@ -72,6 +72,8 @@ export default function Agency() {
     name:'', price:'', margin:'25', color:'#00e5a0', desc:'', active:true,
     features:[''], conditions:[''],
   })
+  const [showClientSettings, setShowClientSettings] = useState(false)
+  const [settingsForm, setSettingsForm] = useState({})
 
   useEffect(() => {
     const { role } = getAuth()
@@ -165,6 +167,17 @@ export default function Agency() {
   }
   const deletePkg = (id) => { setPackages(prev => prev.filter(p => p.id !== id)); saveMsg('Package deleted') }
   const togglePkg = (id) => setPackages(prev => prev.map(p => p.id === id ? { ...p, active: !p.active } : p))
+
+  const openClientSettings = () => {
+    setSettingsForm({ name: selected.name, type: selected.type, plan: selected.plan, status: selected.status, wa: selected.wa, notes: selected.notes, logo: selected.logo })
+    setShowClientSettings(true)
+  }
+  const saveClientSettings = () => {
+    setClients(prev => prev.map(c => c.id === selected.id ? { ...c, ...settingsForm } : c))
+    setSelected(prev => ({ ...prev, ...settingsForm }))
+    setShowClientSettings(false)
+    saveMsg(`${settingsForm.name} settings saved`)
+  }
 
   const updatePkgList = (field, idx, val) => {
     setPkgForm(prev => {
@@ -398,9 +411,9 @@ export default function Agency() {
                   </div>
 
                   <div style={{display:'flex', flexDirection:'column', gap:'7px'}}>
-                    <button style={btn({background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', width:'100%', padding:'9px'})}>💬 Open Inbox</button>
-                    <button style={btn({background:'#111622', color:'#7a8fa6', width:'100%', padding:'9px', border:'1px solid #1e2d42'})}>📊 View Reports</button>
-                    <button style={btn({background:'#111622', color:'#7a8fa6', width:'100%', padding:'9px', border:'1px solid #1e2d42'})}>⚙️ Client Settings</button>
+                    <button onClick={() => window.location.href = '/inbox'} style={btn({background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', width:'100%', padding:'9px'})}>💬 Open Inbox</button>
+                    <button onClick={() => window.location.href = '/reports'} style={btn({background:'#111622', color:'#e2e8f0', width:'100%', padding:'9px', border:'1px solid #1e2d42'})}>📊 View Reports</button>
+                    <button onClick={openClientSettings} style={btn({background:'#111622', color:'#e2e8f0', width:'100%', padding:'9px', border:'1px solid #1e2d42'})}>⚙️ Client Settings</button>
                   </div>
                 </div>
               )}
@@ -749,6 +762,73 @@ export default function Agency() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          MODAL: Client Settings
+      ══════════════════════════════════════════════════════════════════════ */}
+      {showClientSettings && selected && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,.75)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center'}}>
+          <div style={{background:'#0f1520', border:'1px solid #1e2d42', padding:'32px', borderRadius:'12px', width:'500px', boxShadow:'0 24px 80px rgba(0,0,0,.6)'}}>
+            <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px'}}>
+              <div style={{width:'44px', height:'44px', borderRadius:'10px', background:selected.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px'}}>{settingsForm.logo}</div>
+              <div>
+                <div style={{fontWeight:'800', fontSize:'16px'}}>Client Settings</div>
+                <div style={{fontSize:'11px', color:'#7a8fa6', marginTop:'2px'}}>{selected.name}</div>
+              </div>
+              <button onClick={() => setShowClientSettings(false)} style={{marginLeft:'auto', background:'none', border:'none', color:'#7a8fa6', fontSize:'20px', cursor:'pointer', lineHeight:1}}>✕</button>
+            </div>
+
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px', marginBottom:'16px'}}>
+              <div>
+                <label style={lbl}>COMPANY NAME</label>
+                <input value={settingsForm.name || ''} onChange={e => setSettingsForm(p => ({...p, name: e.target.value}))} style={inp}/>
+              </div>
+              <div>
+                <label style={lbl}>BUSINESS TYPE</label>
+                <input value={settingsForm.type || ''} onChange={e => setSettingsForm(p => ({...p, type: e.target.value}))} style={inp}/>
+              </div>
+            </div>
+
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'14px', marginBottom:'16px'}}>
+              <div>
+                <label style={lbl}>PLAN</label>
+                <select value={settingsForm.plan || 'Growth'} onChange={e => setSettingsForm(p => ({...p, plan: e.target.value}))} style={{...inp, cursor:'pointer'}}>
+                  {Object.keys(PLAN_MARGINS).map(k => <option key={k} value={k}>{k}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>ACCOUNT STATUS</label>
+                <select value={settingsForm.status || 'good'} onChange={e => setSettingsForm(p => ({...p, status: e.target.value}))} style={{...inp, cursor:'pointer'}}>
+                  <option value="good">Active</option>
+                  <option value="warn">Warning</option>
+                  <option value="alert">Needs Attention</option>
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>WHATSAPP</label>
+                <select value={settingsForm.wa || 'Connected'} onChange={e => setSettingsForm(p => ({...p, wa: e.target.value}))} style={{...inp, cursor:'pointer'}}>
+                  <option value="Connected">Connected</option>
+                  <option value="Warning">Warning</option>
+                  <option value="Disconnected">Disconnected</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{marginBottom:'24px'}}>
+              <label style={lbl}>INTERNAL NOTES</label>
+              <textarea value={settingsForm.notes || ''} onChange={e => setSettingsForm(p => ({...p, notes: e.target.value}))}
+                placeholder="Internal notes about this client..."
+                rows={3}
+                style={{...inp, resize:'vertical', fontFamily:'inherit'}}/>
+            </div>
+
+            <div style={{display:'flex', gap:'10px'}}>
+              <button onClick={() => setShowClientSettings(false)} style={btn({flex:1, background:'#111622', color:'#7a8fa6', border:'1px solid #1e2d42', padding:'11px'})}>Cancel</button>
+              <button onClick={saveClientSettings} style={btn({flex:2, background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'11px'})}>✓ Save Changes</button>
             </div>
           </div>
         </div>

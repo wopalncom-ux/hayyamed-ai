@@ -1,0 +1,292 @@
+'use client'
+import { useState, useEffect } from 'react'
+import { getAuth } from '@/lib/auth'
+
+const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'10px', padding:'20px' }
+
+const recentConversations = [
+  { name:'Ahmed Al Rashid',  phone:'+974 5501 2345', msg:'Hi, I need to book an appointment for tomorrow', time:'2 min ago',  tag:'New Lead',  tagColor:'#3b82f6' },
+  { name:'Fatima Hassan',    phone:'+974 5512 8876', msg:'Thank you for the follow-up, see you Thursday!', time:'18 min ago', tag:'Booked',     tagColor:'#00e5a0' },
+  { name:'Mohammed Al Ali',  phone:'+974 5598 3341', msg:'What are the clinic hours on Friday?',           time:'45 min ago', tag:'Inquiry',    tagColor:'#f97316' },
+  { name:'Sara Khalid',      phone:'+974 5567 9912', msg:'Can I reschedule my appointment to next week?',  time:'1 hr ago',   tag:'Follow-up',  tagColor:'#a78bfa' },
+  { name:'Omar Abdullah',    phone:'+974 5523 7765', msg:'The AI assistant was very helpful, thank you!',  time:'2 hr ago',   tag:'Satisfied',  tagColor:'#00e5a0' },
+]
+
+const activeCampaigns = [
+  { name:'Ramadan Health Check', channel:'WhatsApp', sent:890,  leads:67, bookings:28, status:'Active',   color:'#00e5a0' },
+  { name:'Summer Wellness',      channel:'WhatsApp', sent:1240, leads:95, bookings:41, status:'Active',   color:'#00e5a0' },
+  { name:'New Patient Offer',    channel:'WhatsApp', sent:456,  leads:32, bookings:14, status:'Paused',   color:'#fbbf24' },
+]
+
+const weeklyData = [42, 67, 55, 88, 74, 38, 92]
+const weekDays   = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const maxVal     = Math.max(...weeklyData)
+
+export default function ClientPortal() {
+  const [auth, setAuth] = useState({})
+  const [showAiPanel, setShowAiPanel] = useState(false)
+  const [aiMsg, setAiMsg] = useState('')
+  const [aiChat, setAiChat] = useState([
+    { from:'ai', text:"Hello! I'm your AI assistant for Elite Medical Center. How can I help you today?" }
+  ])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
+
+  useEffect(() => { setAuth(getAuth()) }, [])
+
+  const sendAiMsg = async () => {
+    if (!aiMsg.trim()) return
+    const userMsg = aiMsg.trim()
+    setAiChat(p => [...p, { from:'user', text: userMsg }])
+    setAiMsg('')
+    setAiLoading(true)
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ message: userMsg, context:'client-portal' }),
+      })
+      const data = await res.json()
+      setAiChat(p => [...p, { from:'ai', text: data.reply || data.message || 'I can help you with insights about your account.' }])
+    } catch {
+      setAiChat(p => [...p, { from:'ai', text:'I can help you analyze your clinic performance, review campaign results, and suggest improvements for patient engagement.' }])
+    }
+    setAiLoading(false)
+  }
+
+  const logout = () => {
+    localStorage.removeItem('hayyamed_auth')
+    window.location.href = '/login'
+  }
+
+  const orgName = auth.userName || 'Elite Medical Center'
+
+  return (
+    <div style={{background:'#07090f', color:'#e2e8f0', minHeight:'100vh', fontFamily:'Inter, sans-serif'}}>
+
+      {/* ── Top bar ──────────────────────────────────────────────────────────── */}
+      <div style={{background:'#0c0f1a', borderBottom:'1px solid #1e2d42', padding:'0 24px', height:'56px', display:'flex', alignItems:'center', gap:'14px', position:'sticky', top:0, zIndex:50}}>
+        <div style={{fontWeight:'900', fontSize:'17px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
+        <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Client Portal</div>
+        <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'12px'}}>
+          <div style={{fontSize:'12px', color:'#7a8fa6'}}>
+            Welcome, <strong style={{color:'#e2e8f0'}}>{orgName}</strong>
+          </div>
+          <div style={{width:'1px', height:'20px', background:'#1e2d42'}}></div>
+          <button onClick={logout}
+            style={{background:'rgba(239,68,68,.1)', border:'1px solid rgba(239,68,68,.25)', borderRadius:'6px', color:'#ef4444', fontSize:'11px', fontWeight:'700', padding:'5px 12px', cursor:'pointer'}}>
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      <div style={{maxWidth:'1200px', margin:'0 auto', padding:'28px 24px'}}>
+
+        {/* ── Welcome ──────────────────────────────────────────────────────── */}
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'28px'}}>
+          <div>
+            <div style={{fontSize:'26px', fontWeight:'900', marginBottom:'6px'}}>
+              🏥 {orgName}
+            </div>
+            <div style={{fontSize:'13px', color:'#7a8fa6', display:'flex', alignItems:'center', gap:'8px'}}>
+              <span style={{width:'8px', height:'8px', borderRadius:'50%', background:'#00e5a0', display:'inline-block'}}></span>
+              WhatsApp Connected · Enterprise Plan · AI Score: 94%
+            </div>
+          </div>
+          <button onClick={() => setShowAiPanel(true)}
+            style={{background:'linear-gradient(135deg,#00e5a0,#00c98a)', border:'none', borderRadius:'10px', color:'#07090f', fontWeight:'800', fontSize:'13px', padding:'12px 20px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px'}}>
+            🤖 Ask AI Assistant
+          </button>
+        </div>
+
+        {/* ── KPI cards ──────────────────────────────────────────────────── */}
+        <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'14px', marginBottom:'24px'}}>
+          {[
+            { label:'TOTAL MESSAGES',   value:'3,420',  sub:'This month',       color:'#00e5a0', icon:'💬', trend:'+12%' },
+            { label:'ACTIVE CONTACTS',  value:'1,247',  sub:'In your database', color:'#3b82f6', icon:'👥', trend:'+8%'  },
+            { label:'AI RESPONSE RATE', value:'94%',    sub:'Automated replies',color:'#a78bfa', icon:'🤖', trend:'+3%'  },
+            { label:'LEADS THIS MONTH', value:'162',    sub:'New inquiries',    color:'#f97316', icon:'🎯', trend:'+18%' },
+          ].map(k => (
+            <div key={k.label} style={{...card, borderTop:`2px solid ${k.color}`}}>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'12px'}}>
+                <div style={{fontSize:'20px'}}>{k.icon}</div>
+                <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background:k.color+'15', color:k.color, fontWeight:'700'}}>{k.trend}</span>
+              </div>
+              <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1.5px', marginBottom:'6px'}}>{k.label}</div>
+              <div style={{fontSize:'26px', fontWeight:'900', color:k.color, marginBottom:'3px'}}>{k.value}</div>
+              <div style={{fontSize:'11px', color:'#7a8fa6'}}>{k.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Tabs ──────────────────────────────────────────────────────── */}
+        <div style={{borderBottom:'1px solid #1e2d42', marginBottom:'24px', display:'flex', gap:'4px'}}>
+          {[
+            { id:'overview',   label:'Overview' },
+            { id:'campaigns',  label:'Campaigns' },
+            { id:'inbox',      label:'Recent Messages' },
+          ].map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              style={{padding:'12px 18px', background:'none', border:'none', borderBottom: activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', fontSize:'13px', fontWeight: activeTab===t.id ? '700' : '400', cursor:'pointer', transition:'all .15s'}}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            TAB: OVERVIEW
+        ══════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'overview' && (
+          <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:'20px'}}>
+
+            {/* Weekly chart */}
+            <div style={card}>
+              <div style={{fontWeight:'800', fontSize:'14px', marginBottom:'4px'}}>Daily Messages — This Week</div>
+              <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'20px'}}>Conversations handled by your WhatsApp AI</div>
+              <div style={{display:'flex', alignItems:'flex-end', gap:'10px', height:'130px'}}>
+                {weeklyData.map((v, i) => (
+                  <div key={i} style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'6px', height:'100%', justifyContent:'flex-end'}}>
+                    <div style={{fontSize:'10px', color:'#00e5a0', fontWeight:'700'}}>{v}</div>
+                    <div style={{width:'100%', background:'#00e5a0', borderRadius:'4px 4px 0 0', height:`${(v/maxVal)*100}%`, minHeight:'4px', opacity: i === 6 ? 1 : 0.6}}></div>
+                    <div style={{fontSize:'10px', color:'#3d4f63'}}>{weekDays[i]}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right column */}
+            <div style={{display:'flex', flexDirection:'column', gap:'14px'}}>
+
+              {/* Subscription */}
+              <div style={{...card, borderTop:'2px solid #a78bfa'}}>
+                <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1.5px', marginBottom:'10px'}}>YOUR SUBSCRIPTION</div>
+                <div style={{fontSize:'20px', fontWeight:'900', color:'#a78bfa', marginBottom:'4px'}}>Enterprise</div>
+                <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'12px'}}>Unlimited messages · Unlimited contacts</div>
+                <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                  {['Unlimited AI responses', 'Unlimited team members', 'Dedicated account manager', 'Priority support'].map(f => (
+                    <div key={f} style={{fontSize:'11px', color:'#7a8fa6', display:'flex', alignItems:'center', gap:'7px'}}>
+                      <span style={{color:'#a78bfa'}}>✓</span> {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick stats */}
+              <div style={card}>
+                <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1.5px', marginBottom:'12px'}}>TODAY AT A GLANCE</div>
+                {[
+                  { label:'Messages sent',   value:'47',  color:'#00e5a0' },
+                  { label:'AI handled',      value:'44',  color:'#a78bfa' },
+                  { label:'New leads',       value:'8',   color:'#3b82f6' },
+                  { label:'Appointments',    value:'3',   color:'#f97316' },
+                ].map(s => (
+                  <div key={s.label} style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
+                    <div style={{fontSize:'12px', color:'#7a8fa6'}}>{s.label}</div>
+                    <div style={{fontSize:'14px', fontWeight:'900', color:s.color}}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            TAB: CAMPAIGNS
+        ══════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'campaigns' && (
+          <div style={{display:'flex', flexDirection:'column', gap:'14px'}}>
+            {activeCampaigns.map((c, i) => (
+              <div key={i} style={{...card, display:'flex', alignItems:'center', gap:'20px'}}>
+                <div style={{width:'44px', height:'44px', borderRadius:'10px', background:c.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0}}>📣</div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:'800', fontSize:'14px', marginBottom:'4px'}}>{c.name}</div>
+                  <div style={{fontSize:'11px', color:'#7a8fa6'}}>{c.channel} · <span style={{color: c.status==='Active' ? '#00e5a0' : '#fbbf24', fontWeight:'700'}}>{c.status}</span></div>
+                </div>
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'20px', textAlign:'center'}}>
+                  {[
+                    { label:'SENT',     value: c.sent.toLocaleString(), color:'#e2e8f0' },
+                    { label:'LEADS',    value: c.leads,                  color:'#3b82f6' },
+                    { label:'BOOKINGS', value: c.bookings,               color:'#00e5a0' },
+                  ].map(s => (
+                    <div key={s.label}>
+                      <div style={{fontSize:'17px', fontWeight:'900', color:s.color}}>{s.value}</div>
+                      <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            TAB: INBOX
+        ══════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'inbox' && (
+          <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+            {recentConversations.map((c, i) => (
+              <div key={i} style={{...card, display:'flex', alignItems:'center', gap:'16px', cursor:'pointer', transition:'border-color .15s'}}
+                onMouseEnter={e => e.currentTarget.style.borderColor='#2e4060'}
+                onMouseLeave={e => e.currentTarget.style.borderColor='#1e2d42'}>
+                <div style={{width:'42px', height:'42px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'14px', fontWeight:'800', flexShrink:0}}>
+                  {c.name.split(' ').map(n=>n[0]).join('').slice(0,2)}
+                </div>
+                <div style={{flex:1, minWidth:0}}>
+                  <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px'}}>
+                    <div style={{fontWeight:'700', fontSize:'13px'}}>{c.name}</div>
+                    <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background:c.tagColor+'18', color:c.tagColor, fontWeight:'700'}}>{c.tag}</span>
+                  </div>
+                  <div style={{fontSize:'12px', color:'#7a8fa6', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{c.msg}</div>
+                </div>
+                <div style={{textAlign:'right', flexShrink:0}}>
+                  <div style={{fontSize:'11px', color:'#3d4f63'}}>{c.time}</div>
+                  <div style={{fontSize:'10px', color:'#3d4f63', marginTop:'2px'}}>{c.phone}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+
+      {/* ── AI Chat Panel ──────────────────────────────────────────────────── */}
+      {showAiPanel && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,.75)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}}>
+          <div style={{background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'14px', width:'520px', height:'560px', display:'flex', flexDirection:'column', boxShadow:'0 24px 80px rgba(0,0,0,.6)'}}>
+            <div style={{padding:'20px 24px', borderBottom:'1px solid #1e2d42', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <div>
+                <div style={{fontWeight:'800', fontSize:'15px'}}>🤖 AI Assistant</div>
+                <div style={{fontSize:'11px', color:'#7a8fa6', marginTop:'2px'}}>Ask about your clinic performance</div>
+              </div>
+              <button onClick={() => setShowAiPanel(false)} style={{background:'none', border:'none', color:'#7a8fa6', fontSize:'20px', cursor:'pointer', lineHeight:1}}>✕</button>
+            </div>
+            <div style={{flex:1, overflowY:'auto', padding:'20px', display:'flex', flexDirection:'column', gap:'12px'}}>
+              {aiChat.map((m, i) => (
+                <div key={i} style={{display:'flex', justifyContent: m.from==='user' ? 'flex-end' : 'flex-start'}}>
+                  <div style={{maxWidth:'80%', padding:'10px 14px', borderRadius: m.from==='user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px', background: m.from==='user' ? 'linear-gradient(135deg,#00e5a0,#00c98a)' : '#111622', color: m.from==='user' ? '#07090f' : '#e2e8f0', fontSize:'12px', lineHeight:'1.5', border: m.from==='ai' ? '1px solid #1e2d42' : 'none'}}>
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+              {aiLoading && (
+                <div style={{display:'flex', justifyContent:'flex-start'}}>
+                  <div style={{padding:'10px 14px', borderRadius:'12px 12px 12px 2px', background:'#111622', border:'1px solid #1e2d42', fontSize:'12px', color:'#7a8fa6'}}>Thinking…</div>
+                </div>
+              )}
+            </div>
+            <div style={{padding:'16px', borderTop:'1px solid #1e2d42', display:'flex', gap:'10px'}}>
+              <input value={aiMsg} onChange={e => setAiMsg(e.target.value)} onKeyDown={e => e.key==='Enter' && !aiLoading && sendAiMsg()}
+                placeholder="Ask about your performance, campaigns, leads…"
+                style={{flex:1, background:'#111622', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
+              <button onClick={sendAiMsg} disabled={aiLoading}
+                style={{background: aiLoading ? '#1a2235' : 'linear-gradient(135deg,#00e5a0,#00c98a)', border:'none', borderRadius:'8px', color: aiLoading ? '#7a8fa6' : '#07090f', fontWeight:'800', fontSize:'12px', padding:'10px 18px', cursor: aiLoading ? 'not-allowed' : 'pointer'}}>
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  )
+}
