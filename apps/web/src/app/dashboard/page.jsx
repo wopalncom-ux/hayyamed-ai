@@ -1,5 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '@/lib/api'
+import { getAuth, ROLE_LABELS, canSee } from '@/lib/auth'
 
 const weekData = {
   labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -28,13 +30,24 @@ const channelIcons = { WhatsApp:'💬', Instagram:'📸', Facebook:'👤', Teleg
 const maxVal = Math.max(...weekData.messages)
 
 export default function Dashboard() {
-  const [lang, setLang] = useState('en')
   const [showMenu, setShowMenu] = useState(false)
   const [period, setPeriod] = useState('week')
   const [metric, setMetric] = useState('messages')
   const [aiAdvice, setAiAdvice] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [showAiPanel, setShowAiPanel] = useState(false)
+  const [stats, setStats] = useState(null)
+  const [auth, setAuth] = useState({})
+
+  useEffect(() => {
+    api.getDashboard().then(data => setStats(data)).catch(() => {})
+    setAuth(getAuth())
+  }, [])
+
+  const role      = auth.role || 'owner'
+  const userName  = auth.userName || 'Abbas Al Masri'
+  const userInit  = userName.split(' ').map(n=>n[0]).join('').slice(0,2)
+  const roleInfo  = ROLE_LABELS[role] || ROLE_LABELS.owner
 
   const logout = () => {
     localStorage.removeItem('hayyamed_auth')
@@ -89,22 +102,25 @@ export default function Dashboard() {
   const chartMax = Math.max(...chartData)
 
   return (
-    <div style={{background:'#07090f', color:'#e2e8f0', minHeight:'100vh', fontFamily:'sans-serif', direction: lang==='ar' ? 'rtl' : 'ltr'}}>
+    <div style={{background:'#07090f', color:'#e2e8f0', minHeight:'100vh', fontFamily:'sans-serif'}}>
 
       {/* Topbar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'12px', position:'sticky', top:0, zIndex:50}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
-        <div style={{display:'flex', gap:'4px', marginLeft:'auto'}}>
-          <button onClick={() => setLang('en')} style={{padding:'3px 8px', background: lang==='en' ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'3px', color: lang==='en' ? '#07090f' : '#7a8fa6', fontSize:'10px', cursor:'pointer'}}>EN</button>
-          <button onClick={() => setLang('ar')} style={{padding:'3px 8px', background: lang==='ar' ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'3px', color: lang==='ar' ? '#07090f' : '#7a8fa6', fontSize:'10px', cursor:'pointer'}}>عربي</button>
-        </div>
-        <button onClick={() => getAiAdvice('Give me a quick summary of my business performance and top 3 recommendations')} style={{padding:'6px 12px', background:'rgba(167,139,250,.1)', border:'1px solid rgba(167,139,250,.3)', borderRadius:'4px', color:'#a78bfa', fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>🤖 AI Advisor</button>
+        <img src="/logo.svg" alt="Hayyamed" style={{height:'40px', width:'auto'}} />
+        <div style={{marginLeft:'auto'}}/>
+        <span style={{fontSize:'10px', padding:'4px 10px', background:`${roleInfo.color}15`, border:`1px solid ${roleInfo.color}40`, borderRadius:'4px', color:roleInfo.color, fontWeight:'700'}}>{roleInfo.label}</span>
+        <button onClick={() => getAiAdvice('Give me a quick summary of my business performance and top 3 recommendations')} style={{padding:'8px 18px', background:'linear-gradient(135deg,rgba(167,139,250,.25),rgba(167,139,250,.12))', border:'1px solid rgba(167,139,250,.5)', borderRadius:'6px', color:'#c4b5fd', fontSize:'12px', cursor:'pointer', fontWeight:'700', letterSpacing:'.3px', display:'flex', alignItems:'center', gap:'7px', boxShadow:'0 0 20px rgba(167,139,250,.15)'}}>
+          <span style={{fontSize:'18px'}}>🤖</span> AI Advisor
+        </button>
         <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
         <div style={{position:'relative'}}>
-          <div onClick={() => setShowMenu(!showMenu)} style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700', cursor:'pointer'}}>A</div>
+          <div onClick={() => setShowMenu(!showMenu)} style={{width:'32px', height:'32px', borderRadius:'50%', background:`linear-gradient(135deg,${roleInfo.color},${roleInfo.color}99)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'800', cursor:'pointer', color:'#07090f'}}>{userInit}</div>
           {showMenu && (
-            <div style={{position:'absolute', top:'38px', right:'0', background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', minWidth:'160px', zIndex:100, padding:'8px'}}>
-              <div style={{padding:'8px 12px', fontSize:'12px', color:'#7a8fa6', borderBottom:'1px solid #1a2235', marginBottom:'4px'}}>Abbas Al Masri</div>
+            <div style={{position:'absolute', top:'40px', right:'0', background:'#0f1520', border:'1px solid #1a2235', borderRadius:'8px', minWidth:'180px', zIndex:100, padding:'8px', boxShadow:'0 12px 40px rgba(0,0,0,.5)'}}>
+              <div style={{padding:'10px 12px', borderBottom:'1px solid #1a2235', marginBottom:'4px'}}>
+                <div style={{fontSize:'12px', fontWeight:'700', color:'#e2e8f0'}}>{userName}</div>
+                <div style={{fontSize:'10px', color:roleInfo.color, fontWeight:'600', marginTop:'2px'}}>{roleInfo.label}</div>
+              </div>
               <a href="/settings" style={{display:'block', padding:'8px 12px', fontSize:'12px', color:'#e2e8f0', textDecoration:'none'}}>⚙️ Settings</a>
               <a href="/profile" style={{display:'block', padding:'8px 12px', fontSize:'12px', color:'#e2e8f0', textDecoration:'none'}}>👤 Profile</a>
               <div onClick={logout} style={{padding:'8px 12px', fontSize:'12px', color:'#ef4444', cursor:'pointer', borderTop:'1px solid #1a2235', marginTop:'4px'}}>🚪 Logout</div>
@@ -117,16 +133,21 @@ export default function Dashboard() {
 
         {/* Sidebar */}
         <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>⊞</a>
-          <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>💬</a>
-          <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>👥</a>
-          <a href="/analytics" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📈</a>
-          <a href="/reports" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
-          <a href="/campaigns" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📣</a>
-          <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
-          <a href="/agency" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🏢</a>
-          <a href="/notifications" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🔔</a>
-          <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
+          {[
+            {h:'/dashboard',    icon:'⊞', page:'dashboard',    active:true},
+            {h:'/inbox',        icon:'💬', page:'inbox'},
+            {h:'/contacts',     icon:'👥', page:'contacts'},
+            {h:'/analytics',    icon:'📈', page:'analytics'},
+            {h:'/reports',      icon:'📊', page:'reports'},
+            {h:'/campaigns',    icon:'📣', page:'campaigns'},
+            {h:'/chatbot',      icon:'🤖', page:'chatbot'},
+            {h:'/notifications',icon:'🔔', page:'notifications'},
+            {h:'/agency',       icon:'🏢', page:'agency'},
+            {h:'/integrations', icon:'🔌', page:'integrations'},
+            {h:'/settings',     icon:'⚙️', page:'settings'},
+          ].filter(n => canSee(n.page) || n.page === 'dashboard').map(n => (
+            <a key={n.h} href={n.h} title={n.page} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none', background: n.active ? 'rgba(0,229,160,.1)' : 'transparent'}}>{n.icon}</a>
+          ))}
         </div>
 
         {/* Main Content */}
@@ -135,8 +156,8 @@ export default function Dashboard() {
           {/* Header */}
           <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
             <div>
-              <div style={{fontWeight:'800', fontSize:'20px'}}>{lang==='ar' ? 'لوحة التحكم' : 'Dashboard'}</div>
-              <div style={{fontSize:'12px', color:'#7a8fa6', marginTop:'3px'}}>{lang==='ar' ? 'مرحباً بعودتك' : 'Welcome back — here is your business overview'}</div>
+              <div style={{fontWeight:'800', fontSize:'20px'}}>Dashboard</div>
+              <div style={{fontSize:'12px', color:'#7a8fa6', marginTop:'3px'}}>Welcome back — here is your business overview</div>
             </div>
             <div style={{display:'flex', gap:'6px'}}>
               {['today','week','month'].map(p => (
@@ -150,11 +171,11 @@ export default function Dashboard() {
           {/* KPI Cards */}
           <div style={{display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'10px'}}>
             {[
-              {label:'MESSAGES', value:'1,130', change:'+18%', color:'#00e5a0', icon:'💬'},
-              {label:'LEADS', value:'425', change:'+24%', color:'#3b82f6', icon:'👤'},
-              {label:'BOOKINGS', value:'121', change:'+31%', color:'#a78bfa', icon:'📅'},
+              {label:'MESSAGES', value: stats ? stats.totalConvs.toLocaleString() : '1,130', change:'+18%', color:'#00e5a0', icon:'💬'},
+              {label:'LEADS', value: stats ? stats.totalLeads.toLocaleString() : '425', change:'+24%', color:'#3b82f6', icon:'👤'},
+              {label:'BOOKINGS', value: stats ? stats.booked.toLocaleString() : '121', change:'+31%', color:'#a78bfa', icon:'📅'},
               {label:'AI RATE', value:'94%', change:'+3%', color:'#f97316', icon:'🤖'},
-              {label:'CONVERSION', value:'16%', change:'+2%', color:'#fbbf24', icon:'📈'},
+              {label:'CONVERSION', value: stats ? stats.conversionRate + '%' : '16%', change:'+2%', color:'#fbbf24', icon:'📈'},
             ].map((kpi, i) => (
               <div key={i} style={{background:'#0f1520', border:'1px solid #1a2235', padding:'14px', borderTop:`2px solid ${kpi.color}`}}>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>

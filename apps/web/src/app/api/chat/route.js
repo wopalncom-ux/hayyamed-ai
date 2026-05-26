@@ -43,20 +43,34 @@ export async function POST(request) {
     const body = await request.json()
     const message = body.message
     const history = body.history || []
+    const orgId = body.orgId || null
+
+    let knowledgeContext = ''
+    if (orgId) {
+      try {
+        const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+        const kbRes = await fetch(`${BASE}/api/v1/chatbots/knowledge/active`, {
+          headers: { 'x-org-id': orgId }
+        })
+        if (kbRes.ok) {
+          const kb = await kbRes.json()
+          if (kb) knowledgeContext = `\n\nKNOWLEDGE BASE (use this to answer client questions accurately):\n${kb}`
+        }
+      } catch {}
+    }
+
+    const systemPrompt = BUSINESS_CONTEXT + knowledgeContext
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer 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',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages: [
-          {
-            role: 'system',
-            content: BUSINESS_CONTEXT
-          },
+          { role: 'system', content: systemPrompt },
           ...history,
           { role: 'user', content: message }
         ],

@@ -1,4 +1,5 @@
 'use client'
+import NavSidebar from '@/components/NavSidebar'
 import { useState } from 'react'
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -15,7 +16,6 @@ const channels = [
 ]
 
 const maxMsg = Math.max(...messages)
-const maxRev = Math.max(...revenue)
 
 export default function Analytics() {
   const [period, setPeriod] = useState('7days')
@@ -35,17 +35,7 @@ export default function Analytics() {
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
 
-        <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⊞</a>
-          <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>💬</a>
-          <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>👥</a>
-          <a href="/analytics" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>📈</a>
-          <a href="/reports" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
-          <a href="/campaigns" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📣</a>
-          <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
-          <a href="/agency" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🏢</a>
-          <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
-        </div>
+        <NavSidebar current="analytics" />
 
         <div style={{flex:1, overflowY:'auto', padding:'24px', display:'flex', flexDirection:'column', gap:'20px'}}>
 
@@ -97,7 +87,7 @@ export default function Analytics() {
               {chartData.map((val, i) => (
                 <div key={i} style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', height:'100%', justifyContent:'flex-end', gap:'6px'}}>
                   <div style={{fontSize:'9px', color:'#3d4f63'}}>{val}</div>
-                  <div style={{width:'100%', borderRadius:'3px 3px 0 0', background:`linear-gradient(180deg, #00e5a0, #00b37e)`, height:`${(val/maxVal)*100}%`, minHeight:'4px', transition:'height .3s'}}></div>
+                  <div style={{width:'100%', borderRadius:'3px 3px 0 0', background:'linear-gradient(180deg, #00e5a0, #00b37e)', height:`${(val/maxVal)*100}%`, minHeight:'4px', transition:'height .3s'}}></div>
                   <div style={{fontSize:'9px', color:'#3d4f63'}}>{days[i]}</div>
                 </div>
               ))}
@@ -122,7 +112,7 @@ export default function Analytics() {
               ))}
             </div>
 
-            {/* Top Performing Days */}
+            {/* Daily Message Volume */}
             <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px'}}>
               <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>Daily Message Volume</div>
               {days.map((day, i) => (

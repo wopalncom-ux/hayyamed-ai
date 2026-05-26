@@ -1,13 +1,15 @@
 'use client'
+import NavSidebar from '@/components/NavSidebar'
 import { useState } from 'react'
 
 const initialContacts = [
-  { id:1, name:'Ahmed Al Rashid', phone:'+974 5551 2345', email:'ahmed@company.qa', status:'Hot Lead', channel:'WhatsApp', avatar:'AR', color:'#00e5a0', tags:['VIP','Qatar'], services:['Dental Checkup','Whitening'], source:'WhatsApp', score:9, lastContact:'2 min ago', followUp:'2024-06-20', notes:'Very interested in dental package' },
-  { id:2, name:'Fatima Hassan', phone:'+974 5552 3456', email:'fatima@gmail.com', status:'Customer', channel:'Instagram', avatar:'FH', color:'#3b82f6', tags:['Retail'], services:['Consultation'], source:'Instagram', score:7, lastContact:'15 min ago', followUp:'', notes:'' },
-  { id:3, name:'Mohammed Al Ali', phone:'+974 5553 4567', email:'m.ali@business.qa', status:'Cold Lead', channel:'WhatsApp', avatar:'MA', color:'#a78bfa', tags:['Enterprise'], services:['Surgery','Follow Up'], source:'WhatsApp', score:4, lastContact:'1 hour ago', followUp:'2024-06-25', notes:'Needs follow up next week' },
-  { id:4, name:'Sara Al Kuwari', phone:'+974 5554 5678', email:'sara@email.com', status:'Hot Lead', channel:'Facebook', avatar:'SK', color:'#f97316', tags:['SME'], services:['Checkup'], source:'Facebook', score:8, lastContact:'2 hours ago', followUp:'', notes:'' },
-  { id:5, name:'Khalid Al Thani', phone:'+974 5555 6789', email:'khalid@corp.qa', status:'Customer', channel:'WhatsApp', avatar:'KT', color:'#ef4444', tags:['VIP','Enterprise'], services:['Dental Checkup','Surgery'], source:'WhatsApp', score:6, lastContact:'3 hours ago', followUp:'', notes:'' },
-  { id:6, name:'Mariam Al Dosari', phone:'+974 5556 7890', email:'mariam@gmail.com', status:'Prospect', channel:'Telegram', avatar:'MD', color:'#fbbf24', tags:['Retail'], services:['Consultation'], source:'Telegram', score:5, lastContact:'5 hours ago', followUp:'2024-06-22', notes:'' },
+  { id:1, name:'Abbas Al Masri',  phone:'+974 5551 2345', email:'abbas@company.qa',    status:'Hot Lead', channel:'WhatsApp',  avatar:'AA', color:'#00e5a0', tags:['VIP','Qatar'],     services:['Dental Checkup','Whitening'], source:'WhatsApp',  score:9, lastContact:'2 min ago',   followUp:'2024-06-20', notes:'Very interested in dental package' },
+  { id:2, name:'Khaled Ahmad',    phone:'+974 5552 3456', email:'khaled@gmail.com',    status:'Customer', channel:'Instagram', avatar:'KA', color:'#3b82f6', tags:['Retail'],           services:['Consultation'],               source:'Instagram', score:7, lastContact:'15 min ago',  followUp:'', notes:'' },
+  { id:3, name:'Cecilia Talal',   phone:'+974 5553 4567', email:'cecilia@business.qa', status:'Cold Lead', channel:'WhatsApp',  avatar:'CT', color:'#a78bfa', tags:['Enterprise'],       services:['Surgery','Follow Up'],        source:'WhatsApp',  score:4, lastContact:'1 hour ago',  followUp:'2024-06-25', notes:'Needs follow up next week' },
+  { id:4, name:'Thomas Thompson', phone:'+974 5554 5678', email:'thomas@email.com',    status:'Hot Lead', channel:'Facebook',  avatar:'TT', color:'#f97316', tags:['SME'],              services:['Checkup'],                    source:'Facebook',  score:8, lastContact:'2 hours ago', followUp:'', notes:'' },
+  { id:5, name:'Sara Kayan',      phone:'+974 5555 6789', email:'sara@corp.qa',        status:'Customer', channel:'WhatsApp',  avatar:'SK', color:'#ef4444', tags:['VIP','Enterprise'], services:['Dental Checkup','Surgery'],   source:'WhatsApp',  score:6, lastContact:'3 hours ago', followUp:'', notes:'' },
+  { id:6, name:'Ali Aluka',       phone:'+974 5556 7890', email:'ali@gmail.com',       status:'Prospect', channel:'Telegram',  avatar:'AL', color:'#fbbf24', tags:['Retail'],           services:['Consultation'],               source:'Telegram',  score:5, lastContact:'5 hours ago', followUp:'2024-06-22', notes:'' },
+  { id:7, name:'Ahmad Singa',     phone:'+974 5557 8901', email:'ahmad@singa.qa',      status:'New Lead', channel:'Instagram', avatar:'AS', color:'#06b6d4', tags:['Qatar'],            services:['Consultation'],               source:'Instagram', score:3, lastContact:'Yesterday',   followUp:'', notes:'' },
 ]
 
 const statusColors = { 'Hot Lead':'#ef4444', 'Customer':'#00e5a0', 'Cold Lead':'#3b82f6', 'Prospect':'#f97316' }
@@ -148,18 +150,7 @@ export default function Contacts() {
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
 
-        <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          <a href="/dashboard" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⊞</a>
-          <a href="/inbox" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>💬</a>
-          <a href="/contacts" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,229,160,.1)', fontSize:'18px', textDecoration:'none'}}>👥</a>
-          <a href="/analytics" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📈</a>
-          <a href="/reports" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📊</a>
-          <a href="/campaigns" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>📣</a>
-          <a href="/chatbot" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🤖</a>
-          <a href="/agency" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🏢</a>
-          <a href="/notifications" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>🔔</a>
-          <a href="/settings" style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none'}}>⚙️</a>
-        </div>
+        <NavSidebar current="contacts" />
 
         <div style={{flex:1, display:'flex', overflow:'hidden'}}>
           <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
