@@ -1,27 +1,59 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import NavSidebar from '@/components/NavSidebar'
+import { api } from '@/lib/api'
 
-const notifications = [
-  { id:1, type:'message',  title:'New WhatsApp message',         body:'Abbas Al Masri sent a message: "Hello, I need help with..."', time:'2 min ago',   read:false, color:'#00e5a0', icon:'💬' },
-  { id:2, type:'lead',     title:'New lead captured',            body:'Ahmad Singa filled the contact form from Instagram',          time:'15 min ago',  read:false, color:'#3b82f6', icon:'👤' },
-  { id:3, type:'campaign', title:'Campaign completed',           body:'Ramadan 2024 campaign sent to 1,234 contacts successfully',  time:'1 hour ago',  read:false, color:'#a78bfa', icon:'📣' },
-  { id:4, type:'ai',       title:'AI handled 12 conversations',  body:'Your AI assistant automatically replied to 12 customers',    time:'2 hours ago', read:true,  color:'#f97316', icon:'🤖' },
-  { id:5, type:'payment',  title:'New subscription payment',     body:'Thomas Thompson upgraded to Growth plan — QAR 599',          time:'3 hours ago', read:true,  color:'#00e5a0', icon:'💳' },
-  { id:6, type:'message',  title:'New WhatsApp message',         body:'Khaled Ahmad: "When will my order arrive?"',                 time:'4 hours ago', read:true,  color:'#00e5a0', icon:'💬' },
-  { id:7, type:'alert',    title:'WhatsApp API rate limit warning',body:'You have used 80% of your monthly message quota',          time:'5 hours ago', read:true,  color:'#ef4444', icon:'⚠️' },
-  { id:8, type:'lead',     title:'New lead from Facebook',       body:'Cecilia Talal clicked your Facebook ad and submitted a form',time:'Yesterday',   read:true,  color:'#3b82f6', icon:'👤' },
-]
+const TYPE_META = {
+  message:  { color:'#00e5a0', icon:'💬' },
+  lead:     { color:'#3b82f6', icon:'👤' },
+  campaign: { color:'#a78bfa', icon:'📣' },
+  ai:       { color:'#f97316', icon:'🤖' },
+  payment:  { color:'#00e5a0', icon:'💳' },
+  alert:    { color:'#ef4444', icon:'⚠️' },
+  booking:  { color:'#06b6d4', icon:'📅' },
+  system:   { color:'#64748b', icon:'ℹ️' },
+}
+
+const toUiNotif = (n) => ({
+  id:    n.id,
+  type:  n.type?.toLowerCase() || 'system',
+  title: n.title || 'Notification',
+  body:  n.body || n.message || '',
+  time:  n.createdAt ? new Date(n.createdAt).toLocaleString('en-GB', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' }) : '',
+  read:  !!n.readAt,
+  color: TYPE_META[n.type?.toLowerCase()]?.color || '#64748b',
+  icon:  TYPE_META[n.type?.toLowerCase()]?.icon  || 'ℹ️',
+})
 
 export default function Notifications() {
-  const [notifs, setNotifs] = useState(notifications)
-  const [filter, setFilter] = useState('all')
+  const [notifs,  setNotifs]  = useState([])
+  const [filter,  setFilter]  = useState('all')
+  const [loading, setLoading] = useState(true)
 
-  const markAllRead = () => setNotifs(notifs.map(n => ({...n, read:true})))
-  const markRead    = (id) => setNotifs(notifs.map(n => n.id===id ? {...n, read:true} : n))
+  useEffect(() => {
+    api.getNotifications({ limit: 50 })
+      .then(data => {
+        const list = Array.isArray(data) ? data : data?.data || []
+        setNotifs(list.map(toUiNotif))
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
-  const filtered    = filter==='all' ? notifs : filter==='unread' ? notifs.filter(n=>!n.read) : notifs.filter(n=>n.type===filter)
-  const unreadCount = notifs.filter(n=>!n.read).length
+  const markRead = async (id) => {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    try { await api.markNotificationRead(id) } catch {}
+  }
+
+  const markAllRead = async () => {
+    setNotifs(prev => prev.map(n => ({ ...n, read: true })))
+    try { await api.markAllNotificationsRead() } catch {}
+  }
+
+  const filtered    = filter === 'all'    ? notifs
+                    : filter === 'unread' ? notifs.filter(n => !n.read)
+                    : notifs.filter(n => n.type === filter)
+  const unreadCount = notifs.filter(n => !n.read).length
 
   return (
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
@@ -31,17 +63,15 @@ export default function Notifications() {
         <div style={{fontSize:'12px', color:'#7a8fa6'}}>/  Notifications</div>
         {unreadCount > 0 && <div style={{fontSize:'10px', padding:'3px 8px', background:'rgba(239,68,68,.15)', border:'1px solid rgba(239,68,68,.3)', borderRadius:'10px', color:'#ef4444', fontWeight:'700'}}>{unreadCount} unread</div>}
         <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
-        <div style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700'}}>A</div>
       </div>
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
-
         <NavSidebar current="notifications" />
 
         <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
 
           {/* Filter bar */}
-          <div style={{padding:'12px 20px', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', gap:'8px', background:'#0c0f1a', flexShrink:0}}>
+          <div style={{padding:'12px 20px', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', gap:'8px', background:'#0c0f1a', flexShrink:0, flexWrap:'wrap'}}>
             {['all','unread','message','lead','campaign','ai','alert','payment'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
                 style={{padding:'5px 12px', background: filter===f ? '#00e5a0' : '#111622', border:'1px solid', borderColor: filter===f ? '#00e5a0' : '#1a2235', borderRadius:'4px', color: filter===f ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: filter===f ? '700' : '400', textTransform:'capitalize'}}>
@@ -49,7 +79,8 @@ export default function Notifications() {
               </button>
             ))}
             <div style={{marginLeft:'auto'}}>
-              <button onClick={markAllRead} style={{padding:'5px 14px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>
+              <button onClick={markAllRead}
+                style={{padding:'5px 14px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>
                 Mark all read
               </button>
             </div>
@@ -57,7 +88,9 @@ export default function Notifications() {
 
           {/* Notifications list */}
           <div style={{flex:1, overflowY:'auto', padding:'16px'}}>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div style={{textAlign:'center', padding:'60px', color:'#3d4f63', fontSize:'12px'}}>Loading notifications…</div>
+            ) : filtered.length === 0 ? (
               <div style={{textAlign:'center', padding:'60px', color:'#3d4f63'}}>
                 <div style={{fontSize:'32px', marginBottom:'12px'}}>🔔</div>
                 <div style={{fontSize:'14px'}}>No notifications</div>

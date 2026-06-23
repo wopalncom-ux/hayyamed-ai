@@ -30,6 +30,7 @@ export default function Login() {
         userName: data.user?.name || demoMatch?.name,
         role,
       }))
+      document.cookie = 'hayyamed_session=1; path=/; max-age=604800; SameSite=Strict'
       window.location.href = role === 'client' ? '/client' : '/dashboard'
       return
     } catch {}
@@ -41,6 +42,7 @@ export default function Login() {
         email: em, loggedIn: true,
         orgId: user.orgId, userName: user.name, role: user.role,
       }))
+      document.cookie = 'hayyamed_session=1; path=/; max-age=604800; SameSite=Strict'
       window.location.href = user.role === 'client' ? '/client' : '/dashboard'
     } else {
       setError('Invalid email or password')

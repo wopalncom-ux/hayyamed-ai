@@ -3,6 +3,13 @@ export function getAuth() {
   try { return JSON.parse(localStorage.getItem('hayyamed_auth') || '{}') } catch { return {} }
 }
 
+export function logout() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('hayyamed_auth')
+  document.cookie = 'hayyamed_session=; path=/; max-age=0'
+  window.location.href = '/login'
+}
+
 // What each role can see in the sidebar
 export const ROLE_NAV = {
   owner:        ['dashboard','inbox','contacts','analytics','reports','campaigns','chatbot','notifications','agency','integrations','settings'],
