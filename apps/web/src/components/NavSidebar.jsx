@@ -10,6 +10,7 @@ const ALL_NAV = [
   { page:'reports',      href:'/reports',      icon:'📊' },
   { page:'campaigns',    href:'/campaigns',    icon:'📣' },
   { page:'agents',       href:'/agents',       icon:'🤖' },
+  { page:'knowledge',    href:'/knowledge',    icon:'🧠' },
   { page:'chatbot',      href:'/chatbot',      icon:'⚡' },
   { page:'notifications',href:'/notifications',icon:'🔔' },
   { page:'agency',       href:'/agency',       icon:'🏢' },

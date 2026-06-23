@@ -600,10 +600,29 @@ model KnowledgeSource {
   chunkCount      Int           @default(0)
   lastIndexed     DateTime?
   metadata        Json?
+  chunks          KnowledgeChunk[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   @@map("knowledge_sources")
+}
+
+// Vector chunks for RAG — one row per text chunk, stores embedding
+model KnowledgeChunk {
+  id              String        @id @default(uuid())
+  sourceId        String
+  source          KnowledgeSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  knowledgeBaseId String
+  orgId           String
+  content         String        @db.Text
+  embedding       Unsupported("vector(1536)")?
+  chunkIndex      Int           @default(0)
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+
+  @@index([knowledgeBaseId])
+  @@index([orgId])
+  @@map("knowledge_chunks")
 }
 
 // ============================================

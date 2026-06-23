@@ -57,9 +57,9 @@ services:
     networks:
       - hayyamed-net
 
-  # ─── POSTGRESQL ──────────────────────────
+  # ─── POSTGRESQL (pgvector-enabled) ──────────────────────────
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: hayyamed-postgres
     environment:
       - POSTGRES_DB=hayyamed

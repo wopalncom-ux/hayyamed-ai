@@ -153,6 +153,8 @@ export const api = {
     request(`/knowledge-bases/${id}/sources/${sourceId}`, { method: 'DELETE' }),
   reindexKnowledge: (id) =>
     request(`/knowledge-bases/${id}/reindex`, { method: 'POST' }),
+  searchKnowledge: (id, query, topK = 5) =>
+    request(`/knowledge-bases/${id}/search`, { method: 'POST', body: JSON.stringify({ query, topK }) }),
 
   // Bookings
   getBookings: (params = {}) =>
