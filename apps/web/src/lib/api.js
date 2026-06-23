@@ -189,6 +189,10 @@ export const api = {
   // Integrations
   getIntegrations: () =>
     request('/integrations'),
+  saveIntegration: (type, name, credentials) =>
+    request(`/integrations/${type}`, { method: 'PATCH', body: JSON.stringify({ name, credentials }) }),
+  disconnectIntegration: (type) =>
+    request(`/integrations/${type}/disconnect`, { method: 'POST' }),
 
   // Agency
   getAgencyStats: () =>

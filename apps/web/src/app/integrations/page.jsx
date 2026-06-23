@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { getAuth } from '@/lib/auth'
+import { api } from '@/lib/api'
+import NavSidebar from '@/components/NavSidebar'
 
 const INTEGRATIONS = [
   {
@@ -13,7 +15,6 @@ const INTEGRATIONS = [
       { key:'page_token', label:'PAGE ACCESS TOKEN', placeholder:'Long-lived page token', type:'password' },
     ],
     docs:'https://developers.facebook.com',
-    status:'disconnected',
   },
   {
     id:'whatsapp', category:'Social & Messaging', color:'#00e5a0',
@@ -25,7 +26,6 @@ const INTEGRATIONS = [
       { key:'waba_id',    label:'WABA ID',           placeholder:'WhatsApp Business Account ID', type:'text' },
     ],
     docs:'https://developers.facebook.com/docs/whatsapp',
-    status:'connected',
   },
   {
     id:'instagram', category:'Social & Messaging', color:'#ec4899',
@@ -36,7 +36,6 @@ const INTEGRATIONS = [
       { key:'ig_acct',   label:'ACCOUNT ID',      placeholder:'Instagram Business Account ID', type:'text' },
     ],
     docs:'https://developers.facebook.com/docs/instagram-api',
-    status:'disconnected',
   },
   {
     id:'google_cal', category:'Calendar & Booking', color:'#f97316',
@@ -48,7 +47,6 @@ const INTEGRATIONS = [
       { key:'gc_calendar_id',   label:'CALENDAR ID',   placeholder:'primary or specific calendar ID', type:'text' },
     ],
     docs:'https://developers.google.com/calendar',
-    status:'disconnected',
   },
   {
     id:'calendly', category:'Calendar & Booking', color:'#06b6d4',
@@ -59,7 +57,6 @@ const INTEGRATIONS = [
       { key:'calendly_uri',   label:'ORGANIZATION URI',      placeholder:'https://api.calendly.com/organizations/...', type:'text' },
     ],
     docs:'https://developer.calendly.com',
-    status:'disconnected',
   },
   {
     id:'google_biz', category:'Calendar & Booking', color:'#fbbf24',
@@ -70,7 +67,6 @@ const INTEGRATIONS = [
       { key:'gmb_acct_id', label:'ACCOUNT ID',    placeholder:'Your GBM Account ID', type:'text' },
     ],
     docs:'https://developers.google.com/my-business',
-    status:'disconnected',
   },
   {
     id:'stripe', category:'Payments', color:'#a78bfa',
@@ -82,7 +78,6 @@ const INTEGRATIONS = [
       { key:'stripe_wh', label:'WEBHOOK SECRET',  placeholder:'whsec_...', type:'password' },
     ],
     docs:'https://stripe.com/docs/api',
-    status:'connected',
   },
   {
     id:'hubspot', category:'CRM', color:'#f97316',
@@ -93,7 +88,6 @@ const INTEGRATIONS = [
       { key:'hs_portal_id',    label:'PORTAL ID',         placeholder:'Your HubSpot portal ID', type:'text' },
     ],
     docs:'https://developers.hubspot.com',
-    status:'disconnected',
   },
   {
     id:'salesforce', category:'CRM', color:'#3b82f6',
@@ -105,7 +99,6 @@ const INTEGRATIONS = [
       { key:'sf_instance_url',  label:'INSTANCE URL',             placeholder:'https://yourorg.salesforce.com', type:'text' },
     ],
     docs:'https://developer.salesforce.com',
-    status:'disconnected',
   },
   {
     id:'freshdesk', category:'Ticketing', color:'#00e5a0',
@@ -116,7 +109,6 @@ const INTEGRATIONS = [
       { key:'fd_domain',  label:'SUBDOMAIN', placeholder:'yourcompany.freshdesk.com', type:'text' },
     ],
     docs:'https://developers.freshdesk.com',
-    status:'disconnected',
   },
   {
     id:'zendesk', category:'Ticketing', color:'#fbbf24',
@@ -128,7 +120,6 @@ const INTEGRATIONS = [
       { key:'zd_domain', label:'SUBDOMAIN',    placeholder:'yourcompany.zendesk.com', type:'text' },
     ],
     docs:'https://developer.zendesk.com',
-    status:'disconnected',
   },
   {
     id:'openai', category:'AI & Automation', color:'#a78bfa',
@@ -139,7 +130,6 @@ const INTEGRATIONS = [
       { key:'openai_model', label:'MODEL',     placeholder:'gpt-4o', type:'text' },
     ],
     docs:'https://platform.openai.com',
-    status:'connected',
   },
   {
     id:'sendgrid', category:'Email', color:'#3b82f6',
@@ -150,7 +140,6 @@ const INTEGRATIONS = [
       { key:'sg_sender', label:'VERIFIED SENDER',placeholder:'noreply@yourdomain.com', type:'text' },
     ],
     docs:'https://docs.sendgrid.com',
-    status:'disconnected',
   },
   {
     id:'twilio', category:'Email', color:'#ef4444',
@@ -162,58 +151,93 @@ const INTEGRATIONS = [
       { key:'twilio_phone', label:'FROM NUMBER', placeholder:'+19XXXXXXXXX', type:'text' },
     ],
     docs:'https://www.twilio.com/docs',
-    status:'disconnected',
   },
 ]
 
 const CATEGORIES = [...new Set(INTEGRATIONS.map(i => i.category))]
-
-const statusColors = { connected:'#00e5a0', disconnected:'#3d4f63' }
 const inp = { width:'100%', background:'#111622', border:'1px solid #1e2d42', borderRadius:'6px', padding:'9px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none', boxSizing:'border-box' }
 const lbl = { fontSize:'9px', color:'#7a8fa6', marginBottom:'5px', display:'block', letterSpacing:'1px' }
 const btn = (extra={}) => ({ padding:'8px 16px', border:'none', borderRadius:'6px', fontWeight:'700', fontSize:'12px', cursor:'pointer', transition:'all .15s', ...extra })
 
+function buildInitialState() {
+  return INTEGRATIONS.reduce((m, i) => ({ ...m, [i.id]: { status:'disconnected', values:{}, showKeys:false } }), {})
+}
+
 export default function Integrations() {
   const [authorized,   setAuthorized]   = useState(true)
-  const [integrations, setIntegrations] = useState(
-    INTEGRATIONS.reduce((m,i) => ({ ...m, [i.id]: { status:i.status, values:{}, showKeys:false } }), {})
-  )
-  const [expandedId, setExpandedId] = useState(null)
-  const [filterCat,  setFilterCat]  = useState('All')
-  const [saved, setSaved]           = useState('')
+  const [integrations, setIntegrations] = useState(buildInitialState)
+  const [expandedId,   setExpandedId]   = useState(null)
+  const [filterCat,    setFilterCat]    = useState('All')
+  const [saved,        setSaved]        = useState('')
+  const [saving,       setSaving]       = useState(null)
 
   useEffect(() => {
     const { role } = getAuth()
-    if (role && role !== 'owner') setAuthorized(false)
+    if (role && role !== 'owner') { setAuthorized(false); return }
+
+    api.getIntegrations().then(list => {
+      if (!Array.isArray(list)) return
+      setIntegrations(prev => {
+        const next = { ...prev }
+        list.forEach(row => {
+          if (next[row.type]) {
+            next[row.type] = {
+              ...next[row.type],
+              status: row.status === 'active' ? 'connected' : 'disconnected',
+              values: (row.config && typeof row.config === 'object') ? row.config : {},
+            }
+          }
+        })
+        return next
+      })
+    }).catch(() => {})
   }, [])
 
   if (!authorized) return (
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:'16px', fontFamily:'sans-serif'}}>
       <div style={{fontSize:'48px'}}>🔒</div>
       <div style={{fontSize:'20px', fontWeight:'800'}}>Owner Access Only</div>
-      <div style={{fontSize:'13px', color:'#7a8fa6', textAlign:'center', maxWidth:'320px', lineHeight:'1.6'}}>The Integrations page is restricted to the account owner. Please log in with owner credentials to access this page.</div>
+      <div style={{fontSize:'13px', color:'#7a8fa6', textAlign:'center', maxWidth:'320px', lineHeight:'1.6'}}>The Integrations page is restricted to the account owner.</div>
       <a href="/login" style={{marginTop:'8px', padding:'10px 24px', background:'#00e5a0', color:'#07090f', borderRadius:'6px', fontWeight:'700', fontSize:'13px', textDecoration:'none'}}>Go to Login</a>
-      <a href="/dashboard" style={{fontSize:'12px', color:'#3d4f63', textDecoration:'none'}}>Back to Dashboard</a>
     </div>
   )
 
   const saveMsg = (m) => { setSaved(m); setTimeout(() => setSaved(''), 2500) }
 
-  const toggleConnect = (id) => {
-    setIntegrations(prev => ({
-      ...prev, [id]: { ...prev[id], status: prev[id].status === 'connected' ? 'disconnected' : 'connected' }
-    }))
-    const intg = INTEGRATIONS.find(i => i.id === id)
-    saveMsg(integrations[id].status === 'connected' ? `${intg.name} disconnected` : `${intg.name} connected!`)
-  }
-
-  const saveKeys = (id) => {
-    saveMsg(`${INTEGRATIONS.find(i=>i.id===id).name} keys saved!`)
-    setExpandedId(null)
-  }
-
   const updateValue = (id, key, val) => {
     setIntegrations(prev => ({ ...prev, [id]: { ...prev[id], values: { ...prev[id].values, [key]: val } } }))
+  }
+
+  const saveKeys = async (id) => {
+    const intg = INTEGRATIONS.find(i => i.id === id)
+    const vals = integrations[id]?.values || {}
+    setSaving(id)
+    try {
+      await api.saveIntegration(id, intg.name, vals)
+      setIntegrations(prev => ({ ...prev, [id]: { ...prev[id], status: 'connected' } }))
+      saveMsg(`${intg.name} keys saved!`)
+    } catch {
+      saveMsg('Failed to save — check your API keys')
+    } finally {
+      setSaving(null)
+      setExpandedId(null)
+    }
+  }
+
+  const toggleConnect = async (id) => {
+    const intg = INTEGRATIONS.find(i => i.id === id)
+    const isConn = integrations[id]?.status === 'connected'
+    if (isConn) {
+      try {
+        await api.disconnectIntegration(id)
+        setIntegrations(prev => ({ ...prev, [id]: { ...prev[id], status: 'disconnected' } }))
+        saveMsg(`${intg.name} disconnected`)
+      } catch {
+        saveMsg('Disconnect failed')
+      }
+    } else {
+      setExpandedId(id)
+    }
   }
 
   const filtered = INTEGRATIONS.filter(i => filterCat === 'All' || i.category === filterCat)
@@ -230,30 +254,11 @@ export default function Integrations() {
           {saved && <span style={{fontSize:'11px', color:'#00e5a0', fontWeight:'600'}}>✓ {saved}</span>}
           <span style={{fontSize:'10px', padding:'4px 10px', background:'rgba(0,229,160,.08)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontWeight:'700'}}>{connectedCount} Connected</span>
           <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.25)', color:'#00e5a0', borderRadius:'4px', fontWeight:'700'}}>● LIVE</div>
-          <div style={{width:'32px', height:'32px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:'800'}}>A</div>
         </div>
       </div>
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
-
-        {/* Side nav */}
-        <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1e2d42', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          {[
-            {h:'/dashboard',   icon:'⊞'},
-            {h:'/inbox',       icon:'💬'},
-            {h:'/contacts',    icon:'👥'},
-            {h:'/analytics',   icon:'📈'},
-            {h:'/reports',     icon:'📊'},
-            {h:'/campaigns',   icon:'📣'},
-            {h:'/chatbot',     icon:'🤖'},
-            {h:'/notifications',icon:'🔔'},
-            {h:'/agency',      icon:'🏢'},
-            {h:'/integrations',icon:'🔌', active:true},
-            {h:'/settings',    icon:'⚙️'},
-          ].map(n => (
-            <a key={n.h} href={n.h} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none', background: n.active ? 'rgba(0,229,160,.12)' : 'transparent', border: n.active ? '1px solid rgba(0,229,160,.2)' : '1px solid transparent'}}>{n.icon}</a>
-          ))}
-        </div>
+        <NavSidebar current="integrations" />
 
         {/* Main */}
         <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
@@ -265,7 +270,7 @@ export default function Integrations() {
                 <div style={{fontWeight:'900', fontSize:'18px'}}>Integrations Hub</div>
                 <div style={{fontSize:'12px', color:'#7a8fa6', marginTop:'2px'}}>Connect your tools — calendars, CRMs, ticketing, payments, and APIs</div>
               </div>
-              <div style={{display:'flex', gap:'8px'}}>
+              <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
                 {['All', ...CATEGORIES].map(c => (
                   <button key={c} onClick={() => setFilterCat(c)}
                     style={btn({background: filterCat===c ? '#00e5a0' : '#111622', color: filterCat===c ? '#07090f' : '#7a8fa6', border:'1px solid', borderColor: filterCat===c ? '#00e5a0' : '#1e2d42', padding:'6px 12px', fontSize:'11px', borderRadius:'5px'})}>
@@ -287,8 +292,9 @@ export default function Integrations() {
                   <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'14px'}}>
                     {items.map(intg => {
                       const state    = integrations[intg.id]
-                      const isConn   = state.status === 'connected'
+                      const isConn   = state?.status === 'connected'
                       const isOpen   = expandedId === intg.id
+                      const isSaving = saving === intg.id
                       return (
                         <div key={intg.id} style={{background:'#0f1520', border:'1px solid', borderColor: isConn ? intg.color+'40' : '#1e2d42', borderRadius:'10px', overflow:'hidden', transition:'border-color .2s'}}>
                           {/* Card header */}
@@ -328,8 +334,8 @@ export default function Integrations() {
                                 <div key={f.key}>
                                   <label style={lbl}>{f.label}</label>
                                   <input
-                                    type={state.showKeys ? 'text' : f.type}
-                                    value={state.values[f.key] || ''}
+                                    type={state?.showKeys ? 'text' : f.type}
+                                    value={state?.values?.[f.key] || ''}
                                     onChange={e => updateValue(intg.id, f.key, e.target.value)}
                                     placeholder={f.placeholder}
                                     style={inp}
@@ -342,13 +348,13 @@ export default function Integrations() {
                                   📖 View API docs ↗
                                 </a>
                                 <div style={{display:'flex', gap:'8px'}}>
-                                  <button onClick={() => setIntegrations(prev => ({...prev,[intg.id]:{...prev[intg.id],showKeys:!prev[intg.id].showKeys}}))}
+                                  <button onClick={() => setIntegrations(prev => ({...prev,[intg.id]:{...prev[intg.id],showKeys:!prev[intg.id]?.showKeys}}))}
                                     style={btn({background:'#111622', color:'#7a8fa6', padding:'6px 12px', fontSize:'11px', border:'1px solid #1e2d42'})}>
-                                    {state.showKeys ? '🙈 Hide' : '👁 Show'}
+                                    {state?.showKeys ? '🙈 Hide' : '👁 Show'}
                                   </button>
-                                  <button onClick={() => saveKeys(intg.id)}
-                                    style={btn({background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'6px 16px', fontSize:'11px'})}>
-                                    Save Keys
+                                  <button onClick={() => saveKeys(intg.id)} disabled={isSaving}
+                                    style={btn({background: isSaving ? '#1e2d42' : 'linear-gradient(135deg,#00e5a0,#00c98a)', color: isSaving ? '#7a8fa6' : '#07090f', padding:'6px 16px', fontSize:'11px'})}>
+                                    {isSaving ? 'Saving…' : 'Save Keys'}
                                   </button>
                                 </div>
                               </div>

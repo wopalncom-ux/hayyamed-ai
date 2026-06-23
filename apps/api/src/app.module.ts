@@ -28,6 +28,7 @@ import { BookingsModule } from './modules/bookings/bookings.module'
 import { MasterAdminModule } from './modules/master-admin/master-admin.module'
 import { WorkflowsModule } from './modules/workflows/workflows.module'
 import { AgencyModule } from './modules/agency/agency.module'
+import { IntegrationsModule } from './modules/integrations/integrations.module'
 import { DatabaseModule } from './database/database.module'
 import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
@@ -67,6 +68,7 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     MasterAdminModule,
     WorkflowsModule,
     AgencyModule,
+    IntegrationsModule,
   ],
   providers: [
     RealtimeGateway,
