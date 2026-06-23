@@ -27,19 +27,13 @@ steps:
 
   # ─── Push API ───────────────────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - push
-      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api'
-      - '--all-tags'
+    args: [push, 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api', '--all-tags']
     waitFor: [build-api]
     id: push-api
 
   # ─── Push Web ───────────────────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - push
-      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web'
-      - '--all-tags'
+    args: [push, 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web', '--all-tags']
     waitFor: [build-web]
     id: push-web
 
@@ -61,8 +55,19 @@ steps:
       - '--cpu=1'
       - '--concurrency=80'
       - '--timeout=60'
-      - '--set-env-vars=NODE_ENV=production'
-      - '--update-secrets=DATABASE_URL=hayyamed-database-url:latest,JWT_SECRET=hayyamed-jwt-secret:latest,OPENAI_API_KEY=hayyamed-openai-key:latest,ANTHROPIC_API_KEY=hayyamed-anthropic-key:latest'
+      - '--set-env-vars=NODE_ENV=production,PORT=4000,EMAIL_FROM=Hayyamed AI <noreply@hayyamedai.com>'
+      - >-
+        --update-secrets=
+        DATABASE_URL=hayyamed-database-url:latest,
+        JWT_SECRET=hayyamed-jwt-secret:latest,
+        JWT_REFRESH_SECRET=hayyamed-jwt-refresh-secret:latest,
+        OPENAI_API_KEY=hayyamed-openai-key:latest,
+        ANTHROPIC_API_KEY=hayyamed-anthropic-key:latest,
+        WHATSAPP_ACCESS_TOKEN=hayyamed-whatsapp-token:latest,
+        WHATSAPP_WEBHOOK_TOKEN=hayyamed-whatsapp-webhook-token:latest,
+        META_APP_SECRET=hayyamed-meta-app-secret:latest,
+        POSTMARK_SERVER_TOKEN=hayyamed-postmark-token:latest,
+        FRONTEND_URL=hayyamed-frontend-url:latest
     waitFor: [push-api]
     id: deploy-api
 
@@ -85,7 +90,7 @@ steps:
       - '--concurrency=80'
       - '--timeout=60'
       - '--set-env-vars=NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1'
-      - '--update-secrets=NEXT_PUBLIC_API_URL=hayyamed-api-url:latest'
+      - '--update-secrets=NEXT_PUBLIC_API_URL=hayyamed-api-url:latest,NEXTAUTH_SECRET=hayyamed-nextauth-secret:latest'
     waitFor: [push-web]
     id: deploy-web
 

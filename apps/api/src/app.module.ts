@@ -8,7 +8,6 @@ import { APP_GUARD } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
-import { BullModule } from '@nestjs/bull'
 import { JwtAuthGuard } from './common/guards/jwt.guard'
 
 import { AuthModule } from './modules/auth/auth.module'
@@ -37,16 +36,8 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     // Config
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
 
-    // Rate limiting
+    // Rate limiting (in-memory, single-instance; swap to Upstash at scale)
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
-
-    // Queue
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        redis: { host: config.get('REDIS_HOST'), port: config.get('REDIS_PORT') }
-      })
-    }),
 
     // Core
     DatabaseModule,
