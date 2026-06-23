@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../database/prisma.service'
+import { EmailService } from '../email/email.service'
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+    private email: EmailService,
+  ) {}
 
   async getMe(userId: string) {
     return this.prisma.user.findUnique({
@@ -54,15 +60,17 @@ export class UsersService {
     const tempPassword = Math.random().toString(36).slice(-8)
     const hash = await bcrypt.hash(tempPassword, 10)
 
-    return this.prisma.user.create({
-      data: {
-        orgId,
-        name: dto.name,
-        email: dto.email,
-        role: dto.role as any,
-        password: hash,
-      },
-      select: { id: true, name: true, email: true, role: true },
-    })
+    const [user, org] = await Promise.all([
+      this.prisma.user.create({
+        data: { orgId, name: dto.name, email: dto.email, role: dto.role as any, password: hash },
+        select: { id: true, name: true, email: true, role: true },
+      }),
+      this.prisma.organization.findUnique({ where: { id: orgId }, select: { name: true } }),
+    ])
+
+    const loginUrl = `${this.config.get('FRONTEND_URL') || 'http://localhost:3000'}/login`
+    await this.email.sendTeamInvite(dto.email, dto.name, org?.name || 'your team', tempPassword, loginUrl)
+
+    return user
   }
 }

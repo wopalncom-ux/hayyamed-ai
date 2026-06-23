@@ -8,8 +8,8 @@ import { Injectable, UnauthorizedException, ConflictException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
-import * as nodemailer from 'nodemailer'
 import { PrismaService } from '../../database/prisma.service'
+import { EmailService } from '../email/email.service'
 
 @Injectable()
 export class AuthService {
@@ -17,6 +17,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private email: EmailService,
   ) {}
 
   // Register new organization + admin user
@@ -146,26 +147,7 @@ export class AuthService {
     const frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:3000'
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.resend.com',
-      port: 465,
-      secure: true,
-      auth: { user: 'resend', pass: this.config.get('RESEND_API_KEY') },
-    })
-
-    await transporter.sendMail({
-      from: 'Hayyamed AI <noreply@hayyamedai.com>',
-      to: email,
-      subject: 'Reset your password',
-      html: `
-        <h2>Password Reset</h2>
-        <p>Click the link below to reset your password. This link expires in 1 hour.</p>
-        <a href="${resetUrl}" style="background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;">
-          Reset Password
-        </a>
-        <p style="color:#666;margin-top:16px;font-size:12px;">If you didn't request this, you can safely ignore this email.</p>
-      `,
-    })
+    await this.email.sendPasswordReset(email, resetUrl)
 
     return { message: 'If this email exists, a reset link has been sent.' }
   }
