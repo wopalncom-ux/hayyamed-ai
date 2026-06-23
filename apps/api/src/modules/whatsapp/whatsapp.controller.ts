@@ -1,6 +1,9 @@
-import { Controller, Get, Post, Body, Query, Res, Headers, Logger } from '@nestjs/common'
+import { Controller, Get, Post, Body, Query, Res, Headers, Logger, UseGuards } from '@nestjs/common'
 import { Response } from 'express'
 import { WhatsAppService } from './whatsapp.service'
+import { Public } from '../../common/decorators/public.decorator'
+import { CurrentUser, } from '../../common/decorators/user.decorator'
+import { JwtPayload } from '../../common/guards/jwt.guard'
 
 @Controller('whatsapp')
 export class WhatsAppController {
@@ -9,6 +12,7 @@ export class WhatsAppController {
   constructor(private whatsapp: WhatsAppService) {}
 
   // ─── WEBHOOK VERIFICATION (Meta calls this once) ─────────────────────────
+  @Public()
   @Get('webhook')
   verify(
     @Query('hub.mode') mode: string,
@@ -25,6 +29,7 @@ export class WhatsAppController {
   }
 
   // ─── INCOMING MESSAGES (Meta sends messages here) ─────────────────────────
+  @Public()
   @Post('webhook')
   async receive(
     @Body() body: any,

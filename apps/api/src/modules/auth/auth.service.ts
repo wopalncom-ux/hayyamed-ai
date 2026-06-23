@@ -4,10 +4,11 @@
 // ============================================
 
 // ----- auth.service.ts -----
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common'
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
+import * as nodemailer from 'nodemailer'
 import { PrismaService } from '../../database/prisma.service'
 
 @Injectable()
@@ -130,6 +131,68 @@ export class AuthService {
       where: { id: userId },
       data: { refreshToken: null }
     })
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } })
+    if (!user) return { message: 'If this email exists, a reset link has been sent.' }
+
+    const secret = this.config.get('JWT_SECRET') + (user.password || '')
+    const token = await this.jwt.signAsync(
+      { sub: user.id, email: user.email },
+      { secret, expiresIn: '1h' },
+    )
+
+    const frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:3000'
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.resend.com',
+      port: 465,
+      secure: true,
+      auth: { user: 'resend', pass: this.config.get('RESEND_API_KEY') },
+    })
+
+    await transporter.sendMail({
+      from: 'Hayyamed AI <noreply@hayyamedai.com>',
+      to: email,
+      subject: 'Reset your password',
+      html: `
+        <h2>Password Reset</h2>
+        <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+        <a href="${resetUrl}" style="background:#2563eb;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;">
+          Reset Password
+        </a>
+        <p style="color:#666;margin-top:16px;font-size:12px;">If you didn't request this, you can safely ignore this email.</p>
+      `,
+    })
+
+    return { message: 'If this email exists, a reset link has been sent.' }
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    let payload: { sub: string; email: string }
+    try {
+      payload = this.jwt.decode(token) as any
+    } catch {
+      throw new BadRequestException('Invalid token')
+    }
+
+    if (!payload?.sub) throw new BadRequestException('Invalid token')
+
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } })
+    if (!user) throw new BadRequestException('Invalid token')
+
+    const secret = this.config.get('JWT_SECRET') + (user.password || '')
+    try {
+      await this.jwt.verifyAsync(token, { secret })
+    } catch {
+      throw new BadRequestException('Token expired or invalid')
+    }
+
+    const hash = await bcrypt.hash(newPassword, 12)
+    await this.prisma.user.update({ where: { id: user.id }, data: { password: hash } })
+    return { message: 'Password updated successfully.' }
   }
 
   sanitizeUser(user: any) {

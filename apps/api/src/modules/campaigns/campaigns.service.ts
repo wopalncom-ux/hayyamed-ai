@@ -39,8 +39,8 @@ export class CampaignsService {
     return this.prisma.campaign.update({ where: { id }, data: dto })
   }
 
-  async remove(id: string) {
-    return this.prisma.campaign.delete({ where: { id } })
+  async remove(id: string, orgId: string) {
+    return this.prisma.campaign.deleteMany({ where: { id, orgId } })
   }
 
   async getStats(orgId: string) {

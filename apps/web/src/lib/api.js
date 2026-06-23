@@ -115,4 +115,72 @@ export const api = {
     request('/billing/plans'),
   createCheckout: (planId) =>
     request('/billing/checkout', { method: 'POST', body: JSON.stringify({ planId }) }),
+
+  // Notifications
+  getNotifications: (params = {}) =>
+    request('/notifications?' + new URLSearchParams(params)),
+  markNotificationRead: (id) =>
+    request(`/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () =>
+    request('/notifications/read-all', { method: 'PATCH' }),
+  deleteNotification: (id) =>
+    request(`/notifications/${id}`, { method: 'DELETE' }),
+
+  // AI Agents
+  getAgents: () =>
+    request('/ai-agents'),
+  getAgent: (id) =>
+    request(`/ai-agents/${id}`),
+  createAgent: (dto) =>
+    request('/ai-agents', { method: 'POST', body: JSON.stringify(dto) }),
+  updateAgent: (id, dto) =>
+    request(`/ai-agents/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  deleteAgent: (id) =>
+    request(`/ai-agents/${id}`, { method: 'DELETE' }),
+  toggleAgent: (id, isActive) =>
+    request(`/ai-agents/${id}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
+
+  // Knowledge Base
+  getKnowledgeBases: () =>
+    request('/knowledge-bases'),
+  getKnowledgeBase: (id) =>
+    request(`/knowledge-bases/${id}`),
+  createKnowledgeBase: (dto) =>
+    request('/knowledge-bases', { method: 'POST', body: JSON.stringify(dto) }),
+  addKnowledgeSource: (id, dto) =>
+    request(`/knowledge-bases/${id}/sources`, { method: 'POST', body: JSON.stringify(dto) }),
+  deleteKnowledgeSource: (id, sourceId) =>
+    request(`/knowledge-bases/${id}/sources/${sourceId}`, { method: 'DELETE' }),
+  reindexKnowledge: (id) =>
+    request(`/knowledge-bases/${id}/reindex`, { method: 'POST' }),
+
+  // Bookings
+  getBookings: (params = {}) =>
+    request('/bookings?' + new URLSearchParams(params)),
+  createBooking: (dto) =>
+    request('/bookings', { method: 'POST', body: JSON.stringify(dto) }),
+  updateBooking: (id, dto) =>
+    request(`/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  cancelBooking: (id) =>
+    request(`/bookings/${id}/cancel`, { method: 'POST' }),
+
+  // AI Actions
+  generateReply: (conversationId) =>
+    request('/ai/reply', { method: 'POST', body: JSON.stringify({ conversationId }) }),
+  scoreLead: (contactId) =>
+    request('/ai/score', { method: 'POST', body: JSON.stringify({ contactId }) }),
+  generateCampaignMessage: (prompt, tone, language) =>
+    request('/ai/campaign-message', { method: 'POST', body: JSON.stringify({ prompt, tone, language }) }),
+  getInsights: (metrics) =>
+    request('/ai/insights', { method: 'POST', body: JSON.stringify({ metrics }) }),
+
+  // Branches
+  getBranches: () =>
+    request('/branches'),
+  createBranch: (dto) =>
+    request('/branches', { method: 'POST', body: JSON.stringify(dto) }),
+
+  // Integrations
+  getIntegrations: () =>
+    request('/integrations'),
 }

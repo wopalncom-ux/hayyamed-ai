@@ -1,19 +1,15 @@
-import { Controller, Get, Headers, UnauthorizedException } from '@nestjs/common'
+import { Controller, Get } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
+import { CurrentUser } from '../../common/decorators/user.decorator'
+import { JwtPayload } from '../../common/guards/jwt.guard'
 
 @Controller('reports')
 export class ReportsController {
   constructor(private prisma: PrismaService) {}
 
-  private getOrgId(headers: Record<string, string>): string {
-    const orgId = headers['x-org-id']
-    if (!orgId) throw new UnauthorizedException('x-org-id header required')
-    return orgId
-  }
-
   @Get('dashboard')
-  async getDashboard(@Headers() headers: Record<string, string>) {
-    const orgId = this.getOrgId(headers)
+  async getDashboard(@CurrentUser() user: JwtPayload) {
+    const orgId = user.orgId
 
     const [totalLeads, wonLeads, booked, totalConvs, openConvs, activeCampaigns] = await Promise.all([
       this.prisma.contact.count({ where: { orgId } }),
@@ -27,17 +23,18 @@ export class ReportsController {
     const bookingRate = totalLeads > 0 ? Math.round((booked / totalLeads) * 100) : 0
     const conversionRate = totalLeads > 0 ? Math.round((wonLeads / totalLeads) * 100) : 0
 
-    const channelCounts = await this.prisma.conversation.groupBy({
-      by: ['channelId'],
-      where: { orgId },
-      _count: { id: true },
-    })
-
-    const statusCounts = await this.prisma.contact.groupBy({
-      by: ['status'],
-      where: { orgId },
-      _count: { id: true },
-    })
+    const [channelCounts, statusCounts] = await Promise.all([
+      this.prisma.conversation.groupBy({
+        by: ['channelId'],
+        where: { orgId },
+        _count: { id: true },
+      }),
+      this.prisma.contact.groupBy({
+        by: ['status'],
+        where: { orgId },
+        _count: { id: true },
+      }),
+    ])
 
     return {
       totalLeads,

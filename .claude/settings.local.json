@@ -18,7 +18,11 @@
       "PowerShell(Get-Content \"C:\\\\tmp\\\\api.log\" -Encoding UTF8 | Where-Object { $_ -match \"error|Error|WARN|fail\" } | Select-Object -Last 20)",
       "Bash(timeout 15 npm run dev)",
       "Bash(git push *)",
-      "Bash(ssh root@178.105.250.129 \"cd /root/hayyamed-ai && git pull origin master && docker compose up -d --build web 2>&1 | tail -20\")"
+      "Bash(ssh root@178.105.250.129 \"cd /root/hayyamed-ai && git pull origin master && docker compose up -d --build web 2>&1 | tail -20\")",
+      "Read(//c/Users/wopal/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\wopal\\doctorsinqatar\\src\\app"
     ]
   }
 }

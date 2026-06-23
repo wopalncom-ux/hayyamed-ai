@@ -1,0 +1,38 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-crm/api:$COMMIT_SHA
+      - -f
+      - apps/api/Dockerfile
+      - apps/api
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-crm/api:$COMMIT_SHA
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - hayyamed-crm-api
+      - --image=me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-crm/api:$COMMIT_SHA
+      - --region=me-central1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=4000
+      - --memory=512Mi
+      - --cpu=1
+      - --min-instances=0
+      - --max-instances=5
+      - --set-env-vars=NODE_ENV=production,PORT=4000
+      - --set-secrets=DATABASE_URL=HAYYAMED_CRM_DATABASE_URL:latest,REDIS_HOST=HAYYAMED_CRM_REDIS_HOST:latest,REDIS_PORT=HAYYAMED_CRM_REDIS_PORT:latest,REDIS_PASSWORD=HAYYAMED_CRM_REDIS_PASSWORD:latest,JWT_SECRET=HAYYAMED_CRM_JWT_SECRET:latest,JWT_REFRESH_SECRET=HAYYAMED_CRM_JWT_REFRESH_SECRET:latest,OPENAI_API_KEY=HAYYAMED_CRM_OPENAI_API_KEY:latest,RESEND_API_KEY=HAYYAMED_CRM_RESEND_API_KEY:latest,STRIPE_SECRET_KEY=HAYYAMED_CRM_STRIPE_SECRET_KEY:latest,WHATSAPP_ACCESS_TOKEN=HAYYAMED_CRM_WHATSAPP_ACCESS_TOKEN:latest,WHATSAPP_PHONE_NUMBER_ID=HAYYAMED_CRM_WHATSAPP_PHONE_NUMBER_ID:latest,WHATSAPP_WEBHOOK_TOKEN=HAYYAMED_CRM_WHATSAPP_WEBHOOK_TOKEN:latest,META_APP_ID=HAYYAMED_CRM_META_APP_ID:latest,META_APP_SECRET=HAYYAMED_CRM_META_APP_SECRET:latest,FRONTEND_URL=HAYYAMED_CRM_FRONTEND_URL:latest
+
+images:
+  - me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-crm/api:$COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY

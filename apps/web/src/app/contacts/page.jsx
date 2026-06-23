@@ -1,23 +1,33 @@
 'use client'
 import NavSidebar from '@/components/NavSidebar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '@/lib/api'
 
-const initialContacts = [
-  { id:1, name:'Abbas Al Masri',  phone:'+974 5551 2345', email:'abbas@company.qa',    status:'Hot Lead', channel:'WhatsApp',  avatar:'AA', color:'#00e5a0', tags:['VIP','Qatar'],     services:['Dental Checkup','Whitening'], source:'WhatsApp',  score:9, lastContact:'2 min ago',   followUp:'2024-06-20', notes:'Very interested in dental package' },
-  { id:2, name:'Khaled Ahmad',    phone:'+974 5552 3456', email:'khaled@gmail.com',    status:'Customer', channel:'Instagram', avatar:'KA', color:'#3b82f6', tags:['Retail'],           services:['Consultation'],               source:'Instagram', score:7, lastContact:'15 min ago',  followUp:'', notes:'' },
-  { id:3, name:'Cecilia Talal',   phone:'+974 5553 4567', email:'cecilia@business.qa', status:'Cold Lead', channel:'WhatsApp',  avatar:'CT', color:'#a78bfa', tags:['Enterprise'],       services:['Surgery','Follow Up'],        source:'WhatsApp',  score:4, lastContact:'1 hour ago',  followUp:'2024-06-25', notes:'Needs follow up next week' },
-  { id:4, name:'Thomas Thompson', phone:'+974 5554 5678', email:'thomas@email.com',    status:'Hot Lead', channel:'Facebook',  avatar:'TT', color:'#f97316', tags:['SME'],              services:['Checkup'],                    source:'Facebook',  score:8, lastContact:'2 hours ago', followUp:'', notes:'' },
-  { id:5, name:'Sara Kayan',      phone:'+974 5555 6789', email:'sara@corp.qa',        status:'Customer', channel:'WhatsApp',  avatar:'SK', color:'#ef4444', tags:['VIP','Enterprise'], services:['Dental Checkup','Surgery'],   source:'WhatsApp',  score:6, lastContact:'3 hours ago', followUp:'', notes:'' },
-  { id:6, name:'Ali Aluka',       phone:'+974 5556 7890', email:'ali@gmail.com',       status:'Prospect', channel:'Telegram',  avatar:'AL', color:'#fbbf24', tags:['Retail'],           services:['Consultation'],               source:'Telegram',  score:5, lastContact:'5 hours ago', followUp:'2024-06-22', notes:'' },
-  { id:7, name:'Ahmad Singa',     phone:'+974 5557 8901', email:'ahmad@singa.qa',      status:'New Lead', channel:'Instagram', avatar:'AS', color:'#06b6d4', tags:['Qatar'],            services:['Consultation'],               source:'Instagram', score:3, lastContact:'Yesterday',   followUp:'', notes:'' },
-]
+const COLORS = ['#00e5a0','#3b82f6','#a78bfa','#f97316','#ef4444','#fbbf24','#06b6d4']
+const toUi = (c) => ({
+  ...c,
+  avatar: c.name ? c.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : '??',
+  color: COLORS[(c.name?.charCodeAt(0) || 0) % COLORS.length],
+  channel: c.source || 'WhatsApp',
+  services: c.metadata?.services || [],
+  lastContact: c.updatedAt ? new Date(c.updatedAt).toLocaleString() : '—',
+  followUp: c.metadata?.followUp || '',
+})
 
-const statusColors = { 'Hot Lead':'#ef4444', 'Customer':'#00e5a0', 'Cold Lead':'#3b82f6', 'Prospect':'#f97316' }
+const statusColors = { 'NEW':'#3b82f6','CONTACTED':'#06b6d4','QUALIFYING':'#f97316','QUALIFIED':'#00e5a0','PROPOSAL':'#a78bfa','WON':'#16a34a','LOST':'#ef4444','Hot Lead':'#ef4444','Customer':'#00e5a0','Cold Lead':'#3b82f6','Prospect':'#f97316','New Lead':'#64748b' }
 const channelIcons = { 'WhatsApp':'💬', 'Instagram':'📸', 'Facebook':'👤', 'Telegram':'✈️', 'Email':'📧' }
 const servicesList = ['Dental Checkup', 'Whitening', 'Surgery', 'Consultation', 'Follow Up', 'X-Ray', 'Cleaning', 'Braces']
 
 export default function Contacts() {
-  const [contacts, setContacts] = useState(initialContacts)
+  const [contacts, setContacts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.getContacts({ limit: 200 })
+      .then(res => setContacts((res.data || []).map(toUi)))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
@@ -43,33 +53,25 @@ export default function Contacts() {
     return matchSearch && matchStatus && matchChannel
   })
 
-  const addContact = () => {
+  const addContact = async () => {
     if (!newContact.phone) return alert('Phone number is required!')
-    const duplicate = contacts.find(c => c.phone === newContact.phone)
-    if (duplicate) return alert(`⚠️ This phone number already exists! (${duplicate.name || duplicate.phone})`)
-    const initials = newContact.name ? newContact.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : newContact.phone.slice(-2)
-    const colors = ['#00e5a0','#3b82f6','#a78bfa','#f97316','#ef4444','#fbbf24']
-    const contact = {
-      id: contacts.length + 1,
-      name: newContact.name || '',
-      phone: newContact.phone,
-      email: newContact.email || '',
-      status: newContact.status,
-      channel: newContact.channel,
-      avatar: initials,
-      color: colors[Math.floor(Math.random()*colors.length)],
-      tags: [],
-      services: newContact.services,
-      source: newContact.channel,
-      score: 5,
-      lastContact: 'Just now',
-      followUp: '',
-      notes: newContact.notes,
+    try {
+      const created = await api.createContact({
+        name: newContact.name || '',
+        phone: newContact.phone,
+        email: newContact.email || '',
+        status: 'NEW',
+        source: newContact.channel,
+        notes: newContact.notes,
+        metadata: { services: newContact.services },
+      })
+      setContacts([toUi(created), ...contacts])
+      setShowAdd(false)
+      setNewContact({phone:'', name:'', email:'', status:'New Lead', channel:'WhatsApp', services:[], notes:''})
+      alert('✅ Contact added successfully!')
+    } catch (err) {
+      alert('❌ ' + (err.message || 'Failed to add contact'))
     }
-    setContacts([contact, ...contacts])
-    setShowAdd(false)
-    setNewContact({phone:'', name:'', email:'', status:'New Lead', channel:'WhatsApp', services:[], notes:''})
-    alert('✅ Contact added successfully!')
   }
 
   const handleFileUpload = (e) => {
@@ -89,29 +91,19 @@ export default function Contacts() {
     setShowImportPreview(true)
   }
 
-  const importContacts = () => {
+  const importContacts = async () => {
     const newOnes = previewContacts.filter(nc => !contacts.find(c => c.phone === nc.phone))
-    const imported = newOnes.map((c, i) => ({
-      id: contacts.length + i + 1,
-      name: c.name || '',
-      phone: c.phone,
-      email: c.email || '',
-      status: 'New Lead',
-      channel: 'WhatsApp',
-      avatar: c.name ? c.name.slice(0,2).toUpperCase() : c.phone.slice(-2),
-      color: '#00e5a0',
-      tags: [],
-      services: [],
-      source: 'Import',
-      score: 5,
-      lastContact: 'Just now',
-      followUp: '',
-      notes: '',
-    }))
-    setContacts([...imported, ...contacts])
-    setShowImportPreview(false)
-    setShowImport(false)
-    alert(`✅ ${imported.length} contacts imported! ${duplicates.length} duplicates skipped.`)
+    try {
+      const results = await Promise.all(newOnes.map(c =>
+        api.createContact({ name: c.name || '', phone: c.phone, email: c.email || '', status: 'NEW', source: 'Import' })
+      ))
+      setContacts([...results.map(toUi), ...contacts])
+      setShowImportPreview(false)
+      setShowImport(false)
+      alert(`✅ ${results.length} contacts imported! ${duplicates.length} duplicates skipped.`)
+    } catch (err) {
+      alert('❌ ' + (err.message || 'Import failed'))
+    }
   }
 
   const exportCSV = () => {

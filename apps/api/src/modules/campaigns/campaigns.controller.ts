@@ -1,25 +1,20 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Headers, UnauthorizedException } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common'
 import { CampaignsService } from './campaigns.service'
+import { CurrentUser } from '../../common/decorators/user.decorator'
+import { JwtPayload } from '../../common/guards/jwt.guard'
 
 @Controller('campaigns')
 export class CampaignsController {
   constructor(private campaigns: CampaignsService) {}
 
-  private getOrgId(headers: Record<string, string>): string {
-    const orgId = headers['x-org-id']
-    if (!orgId) throw new UnauthorizedException('x-org-id header required')
-    return orgId
-  }
-
   @Get()
   findAll(
-    @Headers() headers: Record<string, string>,
+    @CurrentUser() user: JwtPayload,
     @Query('status') status?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const orgId = this.getOrgId(headers)
-    return this.campaigns.findAll(orgId, {
+    return this.campaigns.findAll(user.orgId, {
       status,
       page: page ? +page : 1,
       limit: limit ? +limit : 20,
@@ -27,31 +22,27 @@ export class CampaignsController {
   }
 
   @Get('stats')
-  getStats(@Headers() headers: Record<string, string>) {
-    const orgId = this.getOrgId(headers)
-    return this.campaigns.getStats(orgId)
+  getStats(@CurrentUser() user: JwtPayload) {
+    return this.campaigns.getStats(user.orgId)
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Headers() headers: Record<string, string>) {
-    const orgId = this.getOrgId(headers)
-    return this.campaigns.findOne(id, orgId)
+  findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.campaigns.findOne(id, user.orgId)
   }
 
   @Post()
-  create(@Headers() headers: Record<string, string>, @Body() dto: any) {
-    const orgId = this.getOrgId(headers)
-    return this.campaigns.create(orgId, dto)
+  create(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+    return this.campaigns.create(user.orgId, dto)
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Headers() headers: Record<string, string>, @Body() dto: any) {
-    const orgId = this.getOrgId(headers)
-    return this.campaigns.update(id, orgId, dto)
+  update(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() dto: any) {
+    return this.campaigns.update(id, user.orgId, dto)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.campaigns.remove(id)
+  remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.campaigns.remove(id, user.orgId)
   }
 }

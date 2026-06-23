@@ -49,6 +49,13 @@ model Organization {
   chatbots      Chatbot[]
   invoices      Invoice[]
   settings      OrgSettings?
+  subscription  Subscription?
+  branches      Branch[]
+  aiAgents      AIAgent[]
+  knowledgeBases KnowledgeBase[]
+  bookings      Booking[]
+  integrations  Integration[]
+  services      Service[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,6 +116,7 @@ model User {
   notes                 Note[]
   activities            Activity[]
   notifications         Notification[]
+  staffBookings         Booking[]      @relation("StaffBookings")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -190,6 +198,7 @@ model Contact {
   activities    Activity[]
   notes_rel     Note[]         @relation("ContactNotes")
   campaigns     CampaignContact[]
+  bookings      Booking[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -466,4 +475,226 @@ model Invoice {
   createdAt   DateTime     @default(now())
 
   @@map("invoices")
+}
+
+// ============================================
+// SUBSCRIPTION (recurring billing per org)
+// ============================================
+model Subscription {
+  id              String       @id @default(uuid())
+  orgId           String       @unique
+  org             Organization @relation(fields: [orgId], references: [id])
+  plan            Plan         @default(STARTER)
+  status          String       @default("active") // active, cancelled, past_due, trialing
+  stripeSubId     String?
+  stripeCustomerId String?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean  @default(false)
+  trialEndsAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("subscriptions")
+}
+
+// ============================================
+// BRANCHES / LOCATIONS
+// ============================================
+model Branch {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  address     String?
+  city        String?
+  country     String       @default("QA")
+  phone       String?
+  email       String?
+  isMain      Boolean      @default(false)
+  isActive    Boolean      @default(true)
+  timezone    String       @default("Asia/Qatar")
+  workingHours Json?
+  departments Department[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("branches")
+}
+
+// ============================================
+// DEPARTMENTS
+// ============================================
+model Department {
+  id        String   @id @default(uuid())
+  orgId     String
+  branchId  String?
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  name      String
+  headId    String?
+  createdAt DateTime @default(now())
+
+  @@map("departments")
+}
+
+// ============================================
+// AI AGENTS
+// ============================================
+model AIAgent {
+  id              String       @id @default(uuid())
+  orgId           String
+  org             Organization @relation(fields: [orgId], references: [id])
+  name            String
+  avatar          String?
+  role            String       @default("receptionist")
+  personality     String?
+  language        String       @default("ar")
+  objective       String?
+  isActive        Boolean      @default(false)
+  aiProvider      String       @default("openai")
+  aiModel         String       @default("gpt-4o")
+  fallbackModel   String?
+  temperature     Float        @default(0.7)
+  maxTokens       Int          @default(500)
+  costLimitDaily  Decimal?     @db.Decimal(10, 2)
+  workingHours    Json?
+  escalationRules Json?
+  allowedActions  String[]
+  channels        String[]
+  knowledgeBaseId String?
+  knowledgeBase   KnowledgeBase? @relation(fields: [knowledgeBaseId], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("ai_agents")
+}
+
+// ============================================
+// KNOWLEDGE BASE (AI Brain)
+// ============================================
+model KnowledgeBase {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  description String?
+  sources     KnowledgeSource[]
+  agents      AIAgent[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("knowledge_bases")
+}
+
+model KnowledgeSource {
+  id              String        @id @default(uuid())
+  knowledgeBaseId String
+  knowledgeBase   KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id])
+  type            String        // pdf, docx, url, text, faq, product_list, pricing
+  name            String
+  content         String?       @db.Text
+  url             String?
+  filePath        String?
+  status          String        @default("pending") // pending, processing, ready, failed
+  chunkCount      Int           @default(0)
+  lastIndexed     DateTime?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("knowledge_sources")
+}
+
+// ============================================
+// BOOKINGS / APPOINTMENTS
+// ============================================
+model Booking {
+  id            String       @id @default(uuid())
+  orgId         String
+  org           Organization @relation(fields: [orgId], references: [id])
+  contactId     String?
+  contact       Contact?     @relation(fields: [contactId], references: [id])
+  branchId      String?
+  staffId       String?
+  staff         User?        @relation("StaffBookings", fields: [staffId], references: [id])
+  service       String
+  notes         String?
+  status        BookingStatus @default(PENDING)
+  startTime     DateTime
+  endTime       DateTime?
+  duration      Int?          // minutes
+  reminderSent  Boolean       @default(false)
+  source        String        @default("manual") // whatsapp, web, manual
+  externalCalId String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+  RESCHEDULED
+}
+
+// ============================================
+// AUDIT LOG (comprehensive)
+// ============================================
+model AuditLog {
+  id         String   @id @default(uuid())
+  orgId      String
+  userId     String?
+  action     String   // created, updated, deleted, login, logout, etc.
+  resource   String   // contact, campaign, agent, booking, etc.
+  resourceId String?
+  before     Json?
+  after      Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ============================================
+// INTEGRATIONS (per org)
+// ============================================
+model Integration {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  type        String       // whatsapp, instagram, facebook, google_calendar, stripe, etc.
+  name        String
+  config      Json         // encrypted credentials/tokens
+  status      String       @default("active")
+  lastSyncAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("integrations")
+}
+
+// ============================================
+// SERVICE CATALOG (per org)
+// ============================================
+model Service {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  description String?
+  duration    Int?         // minutes
+  price       Decimal?     @db.Decimal(10, 2)
+  currency    String       @default("QAR")
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+
+  @@map("services")
 }

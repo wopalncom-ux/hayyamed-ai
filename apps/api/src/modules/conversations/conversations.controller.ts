@@ -1,43 +1,35 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, Headers, UnauthorizedException } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common'
 import { ConversationsService } from './conversations.service'
+import { CurrentUser } from '../../common/decorators/user.decorator'
+import { JwtPayload } from '../../common/guards/jwt.guard'
 
 @Controller('conversations')
 export class ConversationsController {
   constructor(private conversations: ConversationsService) {}
 
-  private getOrgId(headers: Record<string, string>): string {
-    const orgId = headers['x-org-id']
-    if (!orgId) throw new UnauthorizedException('x-org-id header required')
-    return orgId
-  }
-
   @Get()
   findAll(
-    @Headers() headers: Record<string, string>,
+    @CurrentUser() user: JwtPayload,
     @Query('status') status?: string,
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const orgId = this.getOrgId(headers)
-    return this.conversations.findAll(orgId, {
-      status,
-      search,
+    return this.conversations.findAll(user.orgId, {
+      status, search,
       page: page ? +page : 1,
       limit: limit ? +limit : 30,
     })
   }
 
   @Get('stats')
-  getStats(@Headers() headers: Record<string, string>) {
-    const orgId = this.getOrgId(headers)
-    return this.conversations.getStats(orgId)
+  getStats(@CurrentUser() user: JwtPayload) {
+    return this.conversations.getStats(user.orgId)
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Headers() headers: Record<string, string>) {
-    const orgId = this.getOrgId(headers)
-    return this.conversations.findOne(id, orgId)
+  findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.conversations.findOne(id, user.orgId)
   }
 
   @Get(':id/messages')
@@ -46,12 +38,19 @@ export class ConversationsController {
   }
 
   @Post(':id/messages')
-  sendMessage(@Param('id') id: string, @Body() body: { content: string; senderId?: string }) {
-    return this.conversations.sendMessage(id, body.content, body.senderId)
+  sendMessage(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { content: string },
+  ) {
+    return this.conversations.sendMessage(id, body.content, user.sub)
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
+  updateStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
     return this.conversations.updateStatus(id, body.status)
   }
 }

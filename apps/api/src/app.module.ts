@@ -4,10 +4,12 @@
 // ============================================
 
 import { Module } from '@nestjs/common'
+import { APP_GUARD } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { BullModule } from '@nestjs/bull'
+import { JwtAuthGuard } from './common/guards/jwt.guard'
 
 import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
@@ -19,6 +21,10 @@ import { ChatbotModule } from './modules/chatbot/chatbot.module'
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module'
 import { AIModule } from './modules/ai/ai.module'
 import { BillingModule } from './modules/billing/billing.module'
+import { NotificationsModule } from './modules/notifications/notifications.module'
+import { AIAgentsModule } from './modules/ai-agents/ai-agents.module'
+import { KnowledgeBaseModule } from './modules/knowledge-base/knowledge-base.module'
+import { BookingsModule } from './modules/bookings/bookings.module'
 import { DatabaseModule } from './database/database.module'
 import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
@@ -51,7 +57,15 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     WhatsAppModule,
     AIModule,
     BillingModule,
+    NotificationsModule,
+    AIAgentsModule,
+    KnowledgeBaseModule,
+    BookingsModule,
   ],
-  providers: [RealtimeGateway],
+  providers: [
+    RealtimeGateway,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
 })
 export class AppModule {}

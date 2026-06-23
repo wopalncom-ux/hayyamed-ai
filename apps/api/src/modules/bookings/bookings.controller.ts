@@ -1,49 +1,45 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common'
-import { ContactsService } from './contacts.service'
+import { BookingsService } from './bookings.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
 
-@Controller('contacts')
-export class ContactsController {
-  constructor(private contacts: ContactsService) {}
+@Controller('bookings')
+export class BookingsController {
+  constructor(private svc: BookingsService) {}
 
   @Get()
   findAll(
     @CurrentUser() user: JwtPayload,
-    @Query('search') search?: string,
     @Query('status') status?: string,
+    @Query('staffId') staffId?: string,
+    @Query('contactId') contactId?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.contacts.findAll(user.orgId, {
-      search, status,
+    return this.svc.findAll(user.orgId, {
+      status, staffId, contactId,
       page: page ? +page : 1,
       limit: limit ? +limit : 50,
     })
   }
 
-  @Get('stats')
-  getStats(@CurrentUser() user: JwtPayload) {
-    return this.contacts.getStats(user.orgId)
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    return this.contacts.findOne(id, user.orgId)
+    return this.svc.findOne(id, user.orgId)
   }
 
   @Post()
   create(@CurrentUser() user: JwtPayload, @Body() dto: any) {
-    return this.contacts.create(user.orgId, dto)
+    return this.svc.create(user.orgId, dto)
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() dto: any) {
-    return this.contacts.update(id, user.orgId, dto)
+    return this.svc.update(id, user.orgId, dto)
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    return this.contacts.remove(id, user.orgId)
+  @Post(':id/cancel')
+  cancel(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.svc.cancel(id, user.orgId)
   }
 }

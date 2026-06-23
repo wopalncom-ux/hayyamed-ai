@@ -1,41 +1,39 @@
-import { Controller, Get, Post, Body, Headers, UnauthorizedException, Req, RawBodyRequest } from '@nestjs/common'
+import { Controller, Get, Post, Body, Headers, Req, RawBodyRequest } from '@nestjs/common'
 import { Request } from 'express'
 import { BillingService } from './billing.service'
+import { CurrentUser } from '../../common/decorators/user.decorator'
+import { JwtPayload } from '../../common/guards/jwt.guard'
+import { Public } from '../../common/decorators/public.decorator'
 
 @Controller('billing')
 export class BillingController {
   constructor(private billing: BillingService) {}
 
-  private getOrgId(headers: Record<string, string>): string {
-    const orgId = headers['x-org-id']
-    if (!orgId) throw new UnauthorizedException('x-org-id header required')
-    return orgId
-  }
-
   @Get('plans')
+  @Public()
   getPlans() {
     return this.billing.getPlans()
   }
 
   @Get('invoices')
-  getInvoices(@Headers() headers: Record<string, string>) {
-    return this.billing.getInvoices(this.getOrgId(headers))
+  getInvoices(@CurrentUser() user: JwtPayload) {
+    return this.billing.getInvoices(user.orgId)
   }
 
   @Get('current-plan')
-  getCurrentPlan(@Headers() headers: Record<string, string>) {
-    return this.billing.getCurrentPlan(this.getOrgId(headers))
+  getCurrentPlan(@CurrentUser() user: JwtPayload) {
+    return this.billing.getCurrentPlan(user.orgId)
   }
 
   @Post('checkout')
   createCheckout(
+    @CurrentUser() user: JwtPayload,
     @Headers() headers: Record<string, string>,
     @Body() body: { planId: string; successUrl?: string; cancelUrl?: string },
   ) {
-    const orgId = this.getOrgId(headers)
     const origin = headers['origin'] || 'http://localhost:3000'
     return this.billing.createCheckout(
-      orgId,
+      user.orgId,
       body.planId,
       body.successUrl || `${origin}/settings?tab=billing&success=1`,
       body.cancelUrl || `${origin}/settings?tab=billing`,
@@ -43,6 +41,7 @@ export class BillingController {
   }
 
   @Post('webhook')
+  @Public()
   async stripeWebhook(@Req() req: RawBodyRequest<Request>) {
     const sig = req.headers['stripe-signature'] as string
     await this.billing.handleStripeWebhook(req.rawBody!, sig)
