@@ -13,6 +13,7 @@ const ALL_NAV = [
   { page:'notifications',href:'/notifications',icon:'🔔' },
   { page:'agency',       href:'/agency',       icon:'🏢' },
   { page:'integrations', href:'/integrations', icon:'🔌' },
+  { page:'admin',        href:'/admin',        icon:'👑' },
   { page:'settings',     href:'/settings',     icon:'⚙️' },
 ]
 

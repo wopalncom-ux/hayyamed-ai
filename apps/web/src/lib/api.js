@@ -183,4 +183,20 @@ export const api = {
   // Integrations
   getIntegrations: () =>
     request('/integrations'),
+
+  // Master Admin (SUPER_ADMIN only)
+  getMasterStats: () =>
+    request('/master-admin/stats'),
+  getMasterOrgs: (params = {}) =>
+    request('/master-admin/orgs?' + new URLSearchParams(params)),
+  getMasterOrg: (id) =>
+    request(`/master-admin/orgs/${id}`),
+  updateMasterOrg: (id, dto) =>
+    request(`/master-admin/orgs/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  suspendMasterOrg: (id) =>
+    request(`/master-admin/orgs/${id}/suspend`, { method: 'POST' }),
+  createMasterOrg: (dto) =>
+    request('/master-admin/orgs', { method: 'POST', body: JSON.stringify(dto) }),
+  getMasterAuditLogs: (params = {}) =>
+    request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 }
