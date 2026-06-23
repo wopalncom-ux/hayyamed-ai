@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { getAuth, ROLE_NAV } from '@/lib/auth'
+import { getAuth, ROLE_NAV, logout } from '@/lib/auth'
 
 const ALL_NAV = [
   { page:'dashboard',    href:'/dashboard',    icon:'⊞' },
@@ -36,6 +36,13 @@ export default function NavSidebar({ current }) {
           {n.icon}
         </a>
       ))}
+      <div style={{flex:1}}/>
+      <button onClick={logout} title="Log out"
+        style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', background:'transparent', border:'1px solid transparent', cursor:'pointer', opacity:0.5}}
+        onMouseEnter={e => { e.currentTarget.style.opacity='1'; e.currentTarget.style.background='rgba(239,68,68,.12)'; e.currentTarget.style.borderColor='rgba(239,68,68,.25)' }}
+        onMouseLeave={e => { e.currentTarget.style.opacity='0.5'; e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='transparent' }}>
+        🚪
+      </button>
     </div>
   )
 }

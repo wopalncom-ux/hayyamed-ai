@@ -1,34 +1,45 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import NavSidebar from '@/components/NavSidebar'
+import { api } from '@/lib/api'
 
-const reportData = [
-  { id:1, name:'Ahmed Al Rashid', phone:'+974 5551 2345', status:'Hot Lead', channel:'WhatsApp', service:'Dental Checkup', campaign:'Ramadan 2024', date:'2024-03-15', booked:'Yes', source:'WhatsApp' },
-  { id:2, name:'Fatima Hassan', phone:'+974 5552 3456', status:'Customer', channel:'Instagram', service:'Consultation', campaign:'Summer Sale', date:'2024-06-01', booked:'Yes', source:'Instagram' },
-  { id:3, name:'Mohammed Al Ali', phone:'+974 5553 4567', status:'Cold Lead', channel:'WhatsApp', service:'Surgery', campaign:'Ramadan 2024', date:'2024-03-20', booked:'No', source:'WhatsApp' },
-  { id:4, name:'Sara Al Kuwari', phone:'+974 5554 5678', status:'Hot Lead', channel:'Facebook', service:'Checkup', campaign:'Eid Special', date:'2024-04-10', booked:'No', source:'Facebook' },
-  { id:5, name:'Khalid Al Thani', phone:'+974 5555 6789', status:'Customer', channel:'WhatsApp', service:'Dental Checkup', campaign:'Summer Sale', date:'2024-06-15', booked:'Yes', source:'WhatsApp' },
-  { id:6, name:'Mariam Al Dosari', phone:'+974 5556 7890', status:'Prospect', channel:'Telegram', service:'Consultation', campaign:'Ramadan 2024', date:'2024-03-18', booked:'No', source:'Telegram' },
-  { id:7, name:'Omar Al Kuwari', phone:'+974 5557 1111', status:'Hot Lead', channel:'WhatsApp', service:'Whitening', campaign:'Eid Special', date:'2024-04-12', booked:'Yes', source:'WhatsApp' },
-  { id:8, name:'Lana Hassan', phone:'+974 5557 2222', status:'Customer', channel:'Instagram', service:'Checkup', campaign:'Summer Sale', date:'2024-06-10', booked:'Yes', source:'Instagram' },
-]
+const STATUS_MAP = {
+  NEW_LEAD:   'Cold Lead',
+  CONTACTED:  'Prospect',
+  QUALIFYING: 'Hot Lead',
+  PROPOSAL:   'Hot Lead',
+  WON:        'Customer',
+  LOST:       'Cold Lead',
+}
 
-const campaigns = ['All Campaigns', 'Ramadan 2024', 'Summer Sale', 'Eid Special']
-const channels = ['All Channels', 'WhatsApp', 'Instagram', 'Facebook', 'Telegram']
+const CHANNEL_GUESS = { WHATSAPP:'WhatsApp', INSTAGRAM:'Instagram', FACEBOOK:'Facebook', TELEGRAM:'Telegram', EMAIL:'Email' }
+
+const toRow = (c) => ({
+  id:       c.id,
+  name:     c.name || 'Unknown',
+  phone:    c.phone || '—',
+  status:   STATUS_MAP[c.status] || 'Prospect',
+  channel:  CHANNEL_GUESS[c.source?.toUpperCase()] || c.source || 'WhatsApp',
+  service:  Array.isArray(c.tags) && c.tags.length ? c.tags[0] : '—',
+  campaign: '—',
+  date:     c.createdAt ? c.createdAt.slice(0, 10) : '—',
+  booked:   (c.status === 'WON' || c.status === 'PROPOSAL') ? 'Yes' : 'No',
+})
+
+const channels = ['All Channels', 'WhatsApp', 'Instagram', 'Facebook', 'Telegram', 'Email']
 const statuses = ['All Status', 'Hot Lead', 'Cold Lead', 'Customer', 'Prospect']
-const services = ['All Services', 'Dental Checkup', 'Consultation', 'Surgery', 'Checkup', 'Whitening']
 
 const statusColors = { 'Hot Lead':'#ef4444', 'Customer':'#00e5a0', 'Cold Lead':'#3b82f6', 'Prospect':'#f97316' }
 const channelIcons = { 'WhatsApp':'💬', 'Instagram':'📸', 'Facebook':'👤', 'Telegram':'✈️' }
 const channelColors = { 'WhatsApp':'#00e5a0', 'Instagram':'#a78bfa', 'Facebook':'#3b82f6', 'Telegram':'#f97316' }
 
 export default function Reports() {
+  const [reportData, setReportData] = useState([])
+  const [dataLoading, setDataLoading] = useState(true)
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
-  const [campaign, setCampaign] = useState('All Campaigns')
   const [channel, setChannel] = useState('All Channels')
   const [status, setStatus] = useState('All Status')
-  const [service, setService] = useState('All Services')
   const [search, setSearch] = useState('')
   const [view, setView] = useState('table')
   const [aiQuery, setAiQuery] = useState('')
@@ -36,15 +47,23 @@ export default function Reports() {
   const [aiLoading, setAiLoading] = useState(false)
   const [showAI, setShowAI] = useState(false)
 
+  useEffect(() => {
+    api.getContacts({ limit: 200 })
+      .then(data => {
+        const list = Array.isArray(data) ? data : data?.data || []
+        setReportData(list.map(toRow))
+      })
+      .catch(() => {})
+      .finally(() => setDataLoading(false))
+  }, [])
+
   const filtered = reportData.filter(d => {
-    const matchCampaign = campaign === 'All Campaigns' || d.campaign === campaign
     const matchChannel = channel === 'All Channels' || d.channel === channel
-    const matchStatus = status === 'All Status' || d.status === status
-    const matchService = service === 'All Services' || d.service === service
-    const matchSearch = d.name.toLowerCase().includes(search.toLowerCase()) || d.phone.includes(search)
-    const matchFrom = !fromDate || d.date >= fromDate
-    const matchTo = !toDate || d.date <= toDate
-    return matchCampaign && matchChannel && matchStatus && matchService && matchSearch && matchFrom && matchTo
+    const matchStatus  = status === 'All Status' || d.status === status
+    const matchSearch  = d.name.toLowerCase().includes(search.toLowerCase()) || d.phone.includes(search)
+    const matchFrom    = !fromDate || d.date >= fromDate
+    const matchTo      = !toDate   || d.date <= toDate
+    return matchChannel && matchStatus && matchSearch && matchFrom && matchTo
   })
 
   const totalLeads = filtered.length
@@ -69,23 +88,16 @@ export default function Reports() {
     setAiLoading(true)
     setAiResponse('')
     try {
-      const summary = `
-        Total leads: ${totalLeads}
-        Booked: ${booked} (${bookingRate}%)
-        By channel: ${channelStats.map(c => `${c.name}: ${c.count}`).join(', ')}
-        By status: ${statusStats.map(s => `${s.name}: ${s.count}`).join(', ')}
-        Campaigns: ${[...new Set(filtered.map(d => d.campaign))].join(', ')}
-      `
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: `${query}\n\nReport Data:\n${summary}\n\nDetailed leads:\n${filtered.slice(0,5).map(d => `${d.name} - ${d.status} - ${d.channel} - ${d.service} - Booked: ${d.booked}`).join('\n')}`,
-          history: [{ role:'system', content:'You are a CRM report assistant for Qatar market. Analyze data and give clear insights. Do not mention money amounts. Focus on leads, bookings, channels and performance.' }]
-        })
+      const data = await api.getInsights({
+        query,
+        totalLeads,
+        booked,
+        bookingRate,
+        channelBreakdown: channelStats.map(c => `${c.name}: ${c.count}`).join(', '),
+        statusBreakdown: statusStats.map(s => `${s.name}: ${s.count}`).join(', '),
+        sampleLeads: filtered.slice(0, 5).map(d => `${d.name} | ${d.status} | ${d.channel} | Booked: ${d.booked}`).join(' | '),
       })
-      const data = await res.json()
-      setAiResponse(data.reply)
+      setAiResponse(data?.insight || data?.reply || 'Analysis complete.')
     } catch {
       setAiResponse('AI assistant is not available right now.')
     }
@@ -179,12 +191,10 @@ export default function Reports() {
                   <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Name or phone..." style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 10px', color:'#e2e8f0', fontSize:'11px', outline:'none'}}/>
                 </div>
               </div>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'10px'}}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:'10px'}}>
                 {[
-                  {label:'CAMPAIGN', value:campaign, setter:setCampaign, options:campaigns},
                   {label:'CHANNEL', value:channel, setter:setChannel, options:channels},
-                  {label:'STATUS', value:status, setter:setStatus, options:statuses},
-                  {label:'SERVICE', value:service, setter:setService, options:services},
+                  {label:'STATUS',  value:status,  setter:setStatus,  options:statuses},
                 ].map(f => (
                   <div key={f.label}>
                     <div style={{fontSize:'10px', color:'#7a8fa6', marginBottom:'5px'}}>{f.label}</div>
@@ -227,21 +237,22 @@ export default function Reports() {
             {/* Table View */}
             {view === 'table' && (
               <div style={{background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', overflow:'hidden'}}>
-                <div style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 1fr 0.8fr', padding:'10px 16px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
-                  {['NAME','PHONE','STATUS','CHANNEL','SERVICE','CAMPAIGN','BOOKED'].map(h => (
+                <div style={{display:'grid', gridTemplateColumns:'2fr 1.3fr 1fr 1fr 1.2fr 0.8fr', padding:'10px 16px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
+                  {['NAME','PHONE','STATUS','CHANNEL','DATE','BOOKED'].map(h => (
                     <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{h}</div>
                   ))}
                 </div>
-                {filtered.length === 0 ? (
+                {dataLoading ? (
+                  <div style={{padding:'40px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>Loading contacts…</div>
+                ) : filtered.length === 0 ? (
                   <div style={{padding:'40px', textAlign:'center', color:'#3d4f63'}}>No records found</div>
                 ) : filtered.map(d => (
-                  <div key={d.id} style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 1fr 0.8fr', padding:'10px 16px', borderBottom:'1px solid #1a2235', alignItems:'center'}}>
+                  <div key={d.id} style={{display:'grid', gridTemplateColumns:'2fr 1.3fr 1fr 1fr 1.2fr 0.8fr', padding:'10px 16px', borderBottom:'1px solid #1a2235', alignItems:'center'}}>
                     <div style={{fontSize:'12px', fontWeight:'600'}}>{d.name}</div>
                     <div style={{fontSize:'11px', color:'#7a8fa6'}}>{d.phone}</div>
-                    <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[d.status]}20`, color:statusColors[d.status]}}>{d.status}</span></div>
-                    <div style={{fontSize:'12px'}}>{channelIcons[d.channel]}</div>
-                    <div style={{fontSize:'11px', color:'#a78bfa'}}>{d.service}</div>
-                    <div style={{fontSize:'11px', color:'#7a8fa6'}}>{d.campaign}</div>
+                    <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${(statusColors[d.status]||'#7a8fa6')}20`, color:statusColors[d.status]||'#7a8fa6'}}>{d.status}</span></div>
+                    <div style={{fontSize:'12px'}}>{channelIcons[d.channel] || '💬'} <span style={{fontSize:'10px', color:'#7a8fa6'}}>{d.channel}</span></div>
+                    <div style={{fontSize:'11px', color:'#7a8fa6'}}>{d.date}</div>
                     <div style={{fontSize:'11px', fontWeight:'700', color: d.booked==='Yes' ? '#00e5a0' : '#ef4444'}}>{d.booked==='Yes' ? '✅' : '❌'}</div>
                   </div>
                 ))}
