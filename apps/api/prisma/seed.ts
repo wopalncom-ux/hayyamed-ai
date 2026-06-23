@@ -31,10 +31,10 @@ async function main() {
   console.log(`Org: ${org.name} (${org.id})`)
 
   // Create admin user
-  const hash = await bcrypt.hash('hayyamed2024', 12)
+  const hash = await bcrypt.hash('Admin@2025', 12)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@hayyamed.ai' },
-    update: {},
+    update: { password: hash },
     create: {
       orgId: org.id,
       email: 'admin@hayyamed.ai',
