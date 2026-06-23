@@ -1,30 +1,48 @@
 'use client'
 import NavSidebar from '@/components/NavSidebar'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { api } from '@/lib/api'
 
-const contacts = [
-  { id:1, name:'Ahmed Al Rashid', phone:'+974 5551 2345', msg:'Hello, I need information about your services', time:'2 min ago', unread:3, avatar:'AR', color:'#00e5a0', channel:'WhatsApp', status:'Hot Lead', isNew:false, score:9 },
-  { id:2, name:'Fatima Hassan', phone:'+974 5552 3456', msg:'Thank you for your help!', time:'15 min ago', unread:0, avatar:'FH', color:'#3b82f6', channel:'Instagram', status:'Customer', isNew:false, score:7 },
-  { id:3, name:'Mohammed Al Ali', phone:'+974 5553 4567', msg:'When will my order arrive?', time:'1 hour ago', unread:1, avatar:'MA', color:'#a78bfa', channel:'WhatsApp', status:'Cold Lead', isNew:true, score:4 },
-  { id:4, name:'Sara Al Kuwari', phone:'+974 5554 5678', msg:'I want to book an appointment', time:'2 hours ago', unread:0, avatar:'SK', color:'#f97316', channel:'Facebook', status:'Hot Lead', isNew:true, score:8 },
-  { id:5, name:'Khalid Al Thani', phone:'+974 5555 6789', msg:'Is this available in Qatar?', time:'3 hours ago', unread:2, avatar:'KT', color:'#ef4444', channel:'Telegram', status:'New Lead', isNew:true, score:5 },
-  { id:6, name:'Mariam Al Dosari', phone:'+974 5556 7890', msg:'Can I get a discount?', time:'5 hours ago', unread:0, avatar:'MD', color:'#fbbf24', channel:'WhatsApp', status:'Customer', isNew:false, score:6 },
-]
+const COLORS = ['#00e5a0','#3b82f6','#a78bfa','#f97316','#ef4444','#fbbf24','#06b6d4']
 
-const initialMessages = [
-  { id:1, from:'contact', text:'Hello, I need information about your services', time:'10:30' },
-  { id:2, from:'ai', text:'Hello Ahmed! I am the AI assistant for Hayyamed. How can I help you today?', time:'10:31' },
-  { id:3, from:'contact', text:'What are your prices?', time:'10:32' },
-  { id:4, from:'agent', text:'Our plans start from QAR 299/month. Would you like to see a demo?', time:'10:33' },
-]
+function toUiConv(c) {
+  const name = c.contact?.name || c.contactId?.slice(0,8) || 'Unknown'
+  return {
+    id: c.id,
+    _raw: c,
+    name,
+    phone: c.contact?.phone || '',
+    msg: c.lastMessage || '—',
+    time: c.lastMsgAt ? new Date(c.lastMsgAt).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true}) : '',
+    unread: c.unreadCount || 0,
+    avatar: name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+    color: COLORS[(name.charCodeAt(0)||0) % COLORS.length],
+    channel: c.channel?.type || c.channelType || 'WhatsApp',
+    status: c.contact?.status === 'WON' ? 'Customer' : c.contact?.status === 'QUALIFYING' ? 'Hot Lead' : c.contact?.status === 'CONTACTED' ? 'Cold Lead' : 'New Lead',
+    score: c.contact?.score || 0,
+    isNew: c.status === 'OPEN',
+    convId: c.id,
+  }
+}
+
+function toUiMsg(m) {
+  return {
+    id: m.id,
+    from: m.direction === 'INBOUND' ? 'contact' : m.senderType === 'AI' ? 'ai' : 'agent',
+    text: m.content || '',
+    time: m.createdAt ? new Date(m.createdAt).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true}) : '',
+  }
+}
 
 const statusColors = { 'Hot Lead':'#ef4444', 'Cold Lead':'#3b82f6', 'New Lead':'#f97316', 'Customer':'#00e5a0' }
 const channelIcons = { 'WhatsApp':'💬', 'Instagram':'📸', 'Facebook':'👤', 'Telegram':'✈️', 'Email':'📧' }
 const channelColors = { 'WhatsApp':'#00e5a0', 'Instagram':'#a78bfa', 'Facebook':'#3b82f6', 'Telegram':'#f97316', 'Email':'#fbbf24' }
 
 export default function Inbox() {
-  const [selected, setSelected] = useState(contacts[0])
-  const [messages, setMessages] = useState(initialMessages)
+  const [contacts, setContacts] = useState([])
+  const [convLoading, setConvLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [search, setSearch] = useState('')
   const [aiMode, setAiMode] = useState(false)
@@ -35,6 +53,32 @@ export default function Inbox() {
   const [aiQuery, setAiQuery] = useState('')
   const [aiResponse, setAiResponse] = useState('')
   const [aiPanelLoading, setAiPanelLoading] = useState(false)
+  const bottomRef = useRef(null)
+
+  // Load conversations from API
+  useEffect(() => {
+    api.getConversations({ limit: 50 })
+      .then(res => {
+        const list = Array.isArray(res) ? res : (res?.data || [])
+        const ui = list.map(toUiConv)
+        setContacts(ui)
+        if (ui.length) selectConversation(ui[0])
+      })
+      .catch(() => {})
+      .finally(() => setConvLoading(false))
+  }, [])
+
+  const selectConversation = (c) => {
+    setSelected(c)
+    setMessages([])
+    api.getMessages(c.convId)
+      .then(res => {
+        const list = Array.isArray(res) ? res : (res?.data || [])
+        setMessages(list.map(toUiMsg))
+        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior:'smooth' }), 100)
+      })
+      .catch(() => {})
+  }
 
   const filtered = contacts.filter(c => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.msg.toLowerCase().includes(search.toLowerCase())
@@ -44,29 +88,23 @@ export default function Inbox() {
   })
 
   const sendMessage = async () => {
-    if (!input.trim()) return
-    const userMsg = { id: messages.length+1, from:'agent', text:input, time:'Now' }
-    const updatedMessages = [...messages, userMsg]
-    setMessages(updatedMessages)
+    if (!input.trim() || !selected) return
+    const text = input.trim()
+    const optimistic = { id: `tmp-${Date.now()}`, from:'agent', text, time:'Now' }
+    setMessages(prev => [...prev, optimistic])
     setInput('')
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior:'smooth' }), 50)
 
-    if (aiMode) {
-      setAiLoading(true)
-      try {
-        const history = messages.map(m => ({
-          role: m.from === 'agent' ? 'assistant' : 'user',
-          content: m.text
-        }))
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: input, history })
-        })
-        const data = await res.json()
-        setMessages(prev => [...prev, { id: prev.length+1, from:'ai', text:data.reply, time:'Now' }])
-      } catch {
-        setMessages(prev => [...prev, { id: prev.length+1, from:'ai', text:'Sorry, AI is not available right now.', time:'Now' }])
+    try {
+      if (aiMode) {
+        setAiLoading(true)
+        const result = await api.generateReply(selected.convId)
+        if (result?.reply) {
+          setMessages(prev => [...prev, { id:`ai-${Date.now()}`, from:'ai', text:result.reply, time:'Now' }])
+        }
+        setAiLoading(false)
       }
+    } catch {
       setAiLoading(false)
     }
   }
@@ -151,11 +189,13 @@ export default function Inbox() {
 
           {/* Contact List */}
           <div style={{overflowY:'auto', flex:1}}>
-            {filtered.length === 0 ? (
+            {convLoading ? (
+              <div style={{padding:'20px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>Loading conversations…</div>
+            ) : filtered.length === 0 ? (
               <div style={{padding:'20px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>No conversations found</div>
             ) : (
               filtered.map(c => (
-                <div key={c.id} onClick={() => setSelected(c)} style={{padding:'12px 14px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected.id===c.id ? '#0f1520' : 'none', borderLeft: `3px solid ${statusColors[c.status] || '#1a2235'}`}}>
+                <div key={c.id} onClick={() => selectConversation(c)} style={{padding:'12px 14px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', borderLeft: `3px solid ${statusColors[c.status] || '#1a2235'}`}}>
                   <div style={{display:'flex', gap:'10px', alignItems:'flex-start'}}>
                     <div style={{position:'relative', flexShrink:0}}>
                       <div style={{width:'36px', height:'36px', borderRadius:'50%', background:c.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700', color:'#07090f'}}>{c.avatar}</div>
@@ -233,6 +273,7 @@ export default function Inbox() {
                 <div style={{padding:'9px 13px', borderRadius:'2px 12px 12px 12px', background:'rgba(167,139,250,.08)', border:'1px solid rgba(167,139,250,.2)', fontSize:'12px', color:'#a78bfa'}}>Thinking...</div>
               </div>
             )}
+            <div ref={bottomRef}/>
           </div>
 
           {/* Input */}

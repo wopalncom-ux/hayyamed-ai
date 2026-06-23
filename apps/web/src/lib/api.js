@@ -186,6 +186,20 @@ export const api = {
   getIntegrations: () =>
     request('/integrations'),
 
+  // Workflows / Automations
+  getWorkflows: () =>
+    request('/workflows'),
+  getWorkflow: (id) =>
+    request(`/workflows/${id}`),
+  createWorkflow: (dto) =>
+    request('/workflows', { method: 'POST', body: JSON.stringify(dto) }),
+  updateWorkflow: (id, dto) =>
+    request(`/workflows/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  toggleWorkflow: (id, isActive) =>
+    request(`/workflows/${id}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
+  deleteWorkflow: (id) =>
+    request(`/workflows/${id}`, { method: 'DELETE' }),
+
   // Master Admin (SUPER_ADMIN only)
   getMasterStats: () =>
     request('/master-admin/stats'),
