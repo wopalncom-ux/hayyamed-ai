@@ -27,6 +27,7 @@ import { KnowledgeBaseModule } from './modules/knowledge-base/knowledge-base.mod
 import { BookingsModule } from './modules/bookings/bookings.module'
 import { MasterAdminModule } from './modules/master-admin/master-admin.module'
 import { WorkflowsModule } from './modules/workflows/workflows.module'
+import { AgencyModule } from './modules/agency/agency.module'
 import { DatabaseModule } from './database/database.module'
 import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
@@ -65,6 +66,7 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     BookingsModule,
     MasterAdminModule,
     WorkflowsModule,
+    AgencyModule,
   ],
   providers: [
     RealtimeGateway,

@@ -1,6 +1,8 @@
 ﻿'use client'
 import { useState, useEffect } from 'react'
 import { getAuth } from '@/lib/auth'
+import { api } from '@/lib/api'
+import NavSidebar from '@/components/NavSidebar'
 
 // ── Plan-based profit margins (hidden from clients) ──────────────────────────
 // "add X% on top" = X% of client revenue is your profit
@@ -52,8 +54,8 @@ const lbl = { fontSize:'10px', color:'#7a8fa6', marginBottom:'6px', display:'blo
 const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'8px', padding:'20px' }
 
 export default function Agency() {
-  const [clients,    setClients]    = useState(initialClients)
-  const [packages,   setPackages]   = useState(initialPackages)
+  const [clients,    setClients]    = useState([])
+  const [packages,   setPackages]   = useState([])
   const [selected,   setSelected]   = useState(null)
   const [search,     setSearch]     = useState('')
   const [showAdd,    setShowAdd]    = useState(false)
@@ -78,6 +80,13 @@ export default function Agency() {
   useEffect(() => {
     const { role } = getAuth()
     if (role && role !== 'owner') setAuthorized(false)
+    Promise.all([
+      api.getAgencyClients().catch(() => []),
+      api.getAgencyPackages().catch(() => []),
+    ]).then(([cls, pkgs]) => {
+      setClients(Array.isArray(cls) ? cls : [])
+      setPackages(Array.isArray(pkgs) ? pkgs.map(p => ({ ...p, features: p.features || [], conditions: p.conditions || [] })) : [])
+    })
   }, [])
 
   if (!authorized) return (
@@ -105,20 +114,22 @@ export default function Agency() {
   const totalConts  = clients.reduce((s,c) => s + c.contacts, 0)
 
   // ── Top-up ──────────────────────────────────────────────────────────────────
-  const applyTopUp = () => {
+  const applyTopUp = async () => {
     if (!selected || !topUpAmt) return
     const amt = parseInt(topUpAmt) || 0
+    try { await api.topUpAgencyClient(selected.id, amt) } catch {}
     setClients(prev => prev.map(c =>
-      c.id === selected.id ? { ...c, balance: c.balance + amt, status: amt > 0 ? 'good' : c.status } : c
+      c.id === selected.id ? { ...c, balance: (c.balance||0) + amt, status: amt > 0 ? 'good' : c.status } : c
     ))
-    setSelected(prev => ({ ...prev, balance: prev.balance + amt }))
+    setSelected(prev => ({ ...prev, balance: (prev.balance||0) + amt }))
     setShowTopUp(false); setTopUpAmt('500'); setTopUpNote('')
     saveMsg(`QAR ${amt} added to ${selected.name}`)
   }
 
   // ── Margin override ─────────────────────────────────────────────────────────
-  const saveMarginOverride = () => {
+  const saveMarginOverride = async () => {
     const val = marginInput === '' ? null : Math.min(99, Math.max(0, parseInt(marginInput) || 0))
+    try { await api.updateAgencyClient(selected.id, { customMargin: val }) } catch {}
     setClients(prev => prev.map(c => c.id === selected.id ? { ...c, customMargin: val } : c))
     setSelected(prev => ({ ...prev, customMargin: val }))
     setEditingMargin(false)
@@ -127,14 +138,27 @@ export default function Agency() {
 
   // ── Add client ──────────────────────────────────────────────────────────────
   const planRevMap = { 'PAYG':150, 'Starter':299, 'Growth':599, 'Enterprise':1299 }
-  const addClient = () => {
+  const addClient = async () => {
     if (!newClient.name || !newClient.type) return
-    setClients(prev => [...prev, {
-      id: Date.now(), name: newClient.name, type: newClient.type, logo: newClient.logo,
-      color:'#00e5a0', status:'good', contacts:0, messages:0, balance:0,
-      monthlyRev: planRevMap[newClient.plan] || 299, plan: newClient.plan,
-      wa:'Disconnected', lastActive:'Just now', ai:0, notes:'', customMargin:null,
-    }])
+    try {
+      const created = await api.createAgencyClient({
+        name: newClient.name, type: newClient.type, logo: newClient.logo, plan: newClient.plan,
+        monthlyRev: planRevMap[newClient.plan] || 299,
+      })
+      setClients(prev => [...prev, {
+        id: created.id, name: newClient.name, type: newClient.type, logo: newClient.logo,
+        status:'good', contacts:0, messages:0, balance:0,
+        monthlyRev: planRevMap[newClient.plan] || 299, plan: newClient.plan,
+        wa:'Disconnected', lastActive:'Just now', ai:0, notes:'', customMargin:null,
+      }])
+    } catch {
+      setClients(prev => [...prev, {
+        id: Date.now(), name: newClient.name, type: newClient.type, logo: newClient.logo,
+        status:'good', contacts:0, messages:0, balance:0,
+        monthlyRev: planRevMap[newClient.plan] || 299, plan: newClient.plan,
+        wa:'Disconnected', lastActive:'Just now', ai:0, notes:'', customMargin:null,
+      }])
+    }
     setShowAdd(false); setNewClient({ name:'', type:'', plan:'Growth', logo:'🏢' })
     saveMsg('Client added!')
   }
@@ -149,7 +173,7 @@ export default function Agency() {
       features:[...pkg.features,''], conditions:[...pkg.conditions,''] })
     setEditPkg(pkg.id); setShowPkgBuilder(true)
   }
-  const savePkg = () => {
+  const savePkg = async () => {
     if (!pkgForm.name || !pkgForm.price) return
     const cleaned = {
       ...pkgForm, price: parseInt(pkgForm.price)||0, margin: parseInt(pkgForm.margin)||0,
@@ -157,22 +181,38 @@ export default function Agency() {
       conditions: pkgForm.conditions.filter(c=>c.trim()),
     }
     if (editPkg) {
+      try { await api.updateAgencyPackage(editPkg, cleaned) } catch {}
       setPackages(prev => prev.map(p => p.id === editPkg ? { ...cleaned, id: editPkg } : p))
       saveMsg(`Package "${cleaned.name}" updated!`)
     } else {
-      setPackages(prev => [...prev, { ...cleaned, id: Date.now() }])
+      try {
+        const created = await api.createAgencyPackage(cleaned)
+        setPackages(prev => [...prev, { ...cleaned, id: created.id }])
+      } catch {
+        setPackages(prev => [...prev, { ...cleaned, id: Date.now() }])
+      }
       saveMsg(`Package "${cleaned.name}" created!`)
     }
     setShowPkgBuilder(false)
   }
-  const deletePkg = (id) => { setPackages(prev => prev.filter(p => p.id !== id)); saveMsg('Package deleted') }
-  const togglePkg = (id) => setPackages(prev => prev.map(p => p.id === id ? { ...p, active: !p.active } : p))
+  const deletePkg = async (id) => {
+    try { await api.deleteAgencyPackage(id) } catch {}
+    setPackages(prev => prev.filter(p => p.id !== id))
+    saveMsg('Package deleted')
+  }
+  const togglePkg = async (id) => {
+    const pkg = packages.find(p => p.id === id)
+    if (!pkg) return
+    try { await api.updateAgencyPackage(id, { isActive: !pkg.isActive }) } catch {}
+    setPackages(prev => prev.map(p => p.id === id ? { ...p, isActive: !p.isActive, active: !p.active } : p))
+  }
 
   const openClientSettings = () => {
     setSettingsForm({ name: selected.name, type: selected.type, plan: selected.plan, status: selected.status, wa: selected.wa, notes: selected.notes, logo: selected.logo })
     setShowClientSettings(true)
   }
-  const saveClientSettings = () => {
+  const saveClientSettings = async () => {
+    try { await api.updateAgencyClient(selected.id, { name: settingsForm.name, type: settingsForm.type, notes: settingsForm.notes, status: settingsForm.status, logo: settingsForm.logo }) } catch {}
     setClients(prev => prev.map(c => c.id === selected.id ? { ...c, ...settingsForm } : c))
     setSelected(prev => ({ ...prev, ...settingsForm }))
     setShowClientSettings(false)
@@ -210,24 +250,7 @@ export default function Agency() {
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
 
-        {/* ── Side nav ────────────────────────────────────────────────────────── */}
-        <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1e2d42', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          {[
-            {h:'/dashboard',  icon:'⊞'},
-            {h:'/inbox',      icon:'💬'},
-            {h:'/contacts',   icon:'👥'},
-            {h:'/analytics',  icon:'📈'},
-            {h:'/reports',    icon:'📊'},
-            {h:'/campaigns',  icon:'📣'},
-            {h:'/chatbot',    icon:'🤖'},
-            {h:'/notifications',icon:'🔔'},
-            {h:'/agency',     icon:'🏢', active:true},
-            {h:'/integrations',icon:'🔌'},
-            {h:'/settings',   icon:'⚙️'},
-          ].map(n => (
-            <a key={n.h} href={n.h} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none', background: n.active ? 'rgba(0,229,160,.12)' : 'transparent', border: n.active ? '1px solid rgba(0,229,160,.2)' : '1px solid transparent'}}>{n.icon}</a>
-          ))}
-        </div>
+        <NavSidebar current="agency" />
 
         {/* ── Main content ─────────────────────────────────────────────────── */}
         <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>

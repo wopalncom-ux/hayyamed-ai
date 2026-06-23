@@ -190,6 +190,28 @@ export const api = {
   getIntegrations: () =>
     request('/integrations'),
 
+  // Agency
+  getAgencyStats: () =>
+    request('/agency/stats'),
+  getAgencyClients: () =>
+    request('/agency/clients'),
+  createAgencyClient: (dto) =>
+    request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
+  updateAgencyClient: (id, dto) =>
+    request(`/agency/clients/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  topUpAgencyClient: (id, amount) =>
+    request(`/agency/clients/${id}/top-up`, { method: 'POST', body: JSON.stringify({ amount }) }),
+  deleteAgencyClient: (id) =>
+    request(`/agency/clients/${id}`, { method: 'DELETE' }),
+  getAgencyPackages: () =>
+    request('/agency/packages'),
+  createAgencyPackage: (dto) =>
+    request('/agency/packages', { method: 'POST', body: JSON.stringify(dto) }),
+  updateAgencyPackage: (id, dto) =>
+    request(`/agency/packages/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  deleteAgencyPackage: (id) =>
+    request(`/agency/packages/${id}`, { method: 'DELETE' }),
+
   // Workflows / Automations
   getWorkflows: () =>
     request('/workflows'),

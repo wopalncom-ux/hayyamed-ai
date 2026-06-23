@@ -55,13 +55,40 @@ model Organization {
   aiAgents      AIAgent[]
   knowledgeBases KnowledgeBase[]
   bookings      Booking[]
-  integrations  Integration[]
-  services      Service[]
+  integrations   Integration[]
+  services       Service[]
+  agencyPackages AgencyPackage[]
+
+  // Agency-client metadata (set when this org is a client of another agency)
+  agencyBalance    Float   @default(0)
+  agencyNotes      String  @default("")
+  agencyStatus     String  @default("good")
+  agencyAiScore    Int     @default(0)
+  agencyMonthlyRev Float   @default(0)
+  agencyCustomMgn  Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("organizations")
+}
+
+model AgencyPackage {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields:[orgId], references:[id])
+  name        String
+  price       Float
+  margin      Float        @default(25)
+  color       String       @default("#00e5a0")
+  description String       @default("")
+  features    String[]     @default([])
+  conditions  String[]     @default([])
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("agency_packages")
 }
 
 enum Plan {
