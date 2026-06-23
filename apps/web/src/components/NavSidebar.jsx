@@ -11,6 +11,7 @@ const ALL_NAV = [
   { page:'campaigns',    href:'/campaigns',    icon:'📣' },
   { page:'agents',       href:'/agents',       icon:'🤖' },
   { page:'knowledge',    href:'/knowledge',    icon:'🧠' },
+  { page:'bookings',     href:'/bookings',     icon:'📅' },
   { page:'chatbot',      href:'/chatbot',      icon:'⚡' },
   { page:'notifications',href:'/notifications',icon:'🔔' },
   { page:'agency',       href:'/agency',       icon:'🏢' },
