@@ -1,6 +1,7 @@
 'use client'
 import NavSidebar from '@/components/NavSidebar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '@/lib/api'
 
 const templates = [
   { id:1, name:'Ramadan Offer', channel:'WhatsApp', text:'🌙 Ramadan Kareem! We have a special offer for you this holy month. Get exclusive access to our services. Book now and let us serve you better. Reply YES to know more!', category:'Religious' },
@@ -11,19 +12,14 @@ const templates = [
   { id:6, name:'Email Newsletter', channel:'Email', text:'Dear {name},\n\nWe hope this message finds you well. We wanted to share some exciting updates about our services.\n\nWe have been working hard to improve your experience and we would love for you to be among the first to benefit.\n\nClick below to learn more.\n\nBest regards,\nHayyamed AI Team', category:'Email' },
 ]
 
-const campaigns = [
-  { id:1, name:'Ramadan 2024', channel:'WhatsApp', status:'Completed', sent:1234, leads:89, bookings:34, openRate:'72%', clickRate:'34%', date:'2024-03-15' },
-  { id:2, name:'Summer Sale', channel:'Instagram', status:'Active', sent:890, leads:56, bookings:18, openRate:'65%', clickRate:'28%', date:'2024-06-01' },
-  { id:3, name:'Eid Special', channel:'Facebook', status:'Active', sent:456, leads:34, bookings:12, openRate:'58%', clickRate:'22%', date:'2024-04-10' },
-  { id:4, name:'Monthly Newsletter', channel:'Email', status:'Completed', sent:2100, leads:45, bookings:8, openRate:'42%', clickRate:'18%', date:'2024-05-01' },
-]
-
 const statusColors = { Active:'#00e5a0', Completed:'#3b82f6', Draft:'#f97316', Scheduled:'#a78bfa' }
 const channelIcons = { WhatsApp:'💬', Instagram:'📸', Facebook:'👤', Telegram:'✈️', Email:'📧' }
 const channelColors = { WhatsApp:'#00e5a0', Instagram:'#a78bfa', Facebook:'#3b82f6', Telegram:'#f97316', Email:'#fbbf24' }
 
 export default function Campaigns() {
   const [tab, setTab] = useState('list')
+  const [campaigns, setCampaigns] = useState([])
+  const [campaignsLoading, setCampaignsLoading] = useState(true)
   const [campaignName, setCampaignName] = useState('')
   const [message, setMessage] = useState('')
   const [channel, setChannel] = useState('WhatsApp')
@@ -41,27 +37,21 @@ export default function Campaigns() {
   const [advisorLoading, setAdvisorLoading] = useState(false)
   const [emailSubject, setEmailSubject] = useState('')
 
+  useEffect(() => {
+    api.getCampaigns({ limit: 50 })
+      .then(res => setCampaigns(Array.isArray(res) ? res : (res?.data || [])))
+      .catch(() => {})
+      .finally(() => setCampaignsLoading(false))
+  }, [])
+
   const generateAIText = async () => {
     if (!aiPrompt) return
     setGenerating(true)
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: `Generate a ${channel} campaign message for: ${aiPrompt}. 
-          Make it engaging, professional and suitable for Qatar market. 
-          Include relevant emojis. Keep it under 200 words.
-          Do not mention any prices or amounts.
-          For WhatsApp: conversational and personal.
-          For Instagram: use hashtags.
-          For Facebook: more detailed.
-          For Email: formal with greeting and signature.`,
-          history: [{ role:'system', content:'You are an expert marketing copywriter for Qatar and GCC market.' }]
-        })
-      })
-      const data = await res.json()
-      setMessage(data.reply)
+      const tone = channel === 'Email' ? 'formal' : channel === 'Instagram' ? 'casual' : 'friendly'
+      const lang = aiPrompt.match(/[؀-ۿ]/) ? 'ar' : 'en'
+      const result = await api.generateCampaignMessage(aiPrompt, tone, lang)
+      setMessage(result.message || result)
     } catch {
       setMessage('Could not generate text. Please try again.')
     }
@@ -72,41 +62,30 @@ export default function Campaigns() {
     setAdvisorLoading(true)
     setAdvisorResponse('')
     try {
-      const campaignData = campaigns.map(c => 
-        `${c.name}: ${c.sent} sent, ${c.leads} leads, ${c.bookings} bookings, ${c.openRate} open rate`
+      const campaignData = campaigns.map(c =>
+        `${c.name}: ${c.sentCount || 0} sent, ${c.status}`
       ).join('\n')
-      
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: `${query}\n\nCampaign Data:\n${campaignData}`,
-          history: [{ 
-            role:'system', 
-            content:'You are a campaign advisor for a Qatar CRM platform. Analyze campaign data and give specific actionable advice. Do not mention money or revenue amounts. Focus on leads, bookings, open rates and engagement.' 
-          }]
-        })
-      })
-      const data = await res.json()
-      setAdvisorResponse(data.reply)
+      const result = await api.generateCampaignMessage(
+        `${query}\n\nCampaign Data:\n${campaignData}`, 'professional', 'en'
+      )
+      setAdvisorResponse(result.message || result)
     } catch {
       setAdvisorResponse('Advisor is not available right now.')
     }
     setAdvisorLoading(false)
   }
 
+  const STUB_generateAIText_OLD = async () => {
+    if (!aiPrompt) return
+    setGenerating(true)
+    setGenerating(false)
+  }
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0]
     if (!file) return
     setUploadedFile(file)
-    const mockContacts = [
-      { phone:'+974 5551 2345', name:'Ahmed Al Rashid', email:'ahmed@email.com' },
-      { phone:'+974 5552 3456', name:'Fatima Hassan', email:'' },
-      { phone:'+974 5553 4567', name:'', email:'' },
-      { phone:'+974 5554 5678', name:'Sara Al Kuwari', email:'sara@email.com' },
-      { phone:'+974 5555 6789', name:'', email:'' },
-    ]
-    setPreviewContacts(mockContacts)
+    setPreviewContacts([])
     setShowImportPreview(true)
   }
 
@@ -133,10 +112,25 @@ export default function Campaigns() {
     setTab('create')
   }
 
-  const sendCampaign = () => {
+  const sendCampaign = async () => {
     if (!campaignName || !message) return
-    setSent(true)
-    setTimeout(() => setSent(false), 3000)
+    try {
+      const created = await api.createCampaign({
+        name: campaignName,
+        channel,
+        message,
+        subject: emailSubject || undefined,
+        status: 'DRAFT',
+      })
+      setCampaigns(prev => [created, ...prev])
+      setCampaignName('')
+      setMessage('')
+      setEmailSubject('')
+      setSent(true)
+      setTimeout(() => { setSent(false); setTab('list') }, 2000)
+    } catch {
+      setSent(false)
+    }
   }
 
   return (
@@ -179,9 +173,9 @@ export default function Campaigns() {
                 <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px', marginBottom:'20px'}}>
                   {[
                     {label:'TOTAL CAMPAIGNS', value:campaigns.length, color:'#00e5a0'},
-                    {label:'ACTIVE', value:campaigns.filter(c=>c.status==='Active').length, color:'#3b82f6'},
-                    {label:'TOTAL LEADS', value:campaigns.reduce((s,c)=>s+c.leads,0), color:'#a78bfa'},
-                    {label:'TOTAL BOOKINGS', value:campaigns.reduce((s,c)=>s+c.bookings,0), color:'#f97316'},
+                    {label:'ACTIVE', value:campaigns.filter(c=>c.status==='ACTIVE'||c.status==='Active').length, color:'#3b82f6'},
+                    {label:'TOTAL SENT', value:campaigns.reduce((s,c)=>s+(c.sentCount||0),0), color:'#a78bfa'},
+                    {label:'DRAFTS', value:campaigns.filter(c=>c.status==='DRAFT'||c.status==='Draft').length, color:'#f97316'},
                   ].map((k,i) => (
                     <div key={i} style={{background:'#0f1520', border:'1px solid #1a2235', padding:'16px', borderTop:`2px solid ${k.color}`}}>
                       <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'8px'}}>{k.label}</div>
@@ -196,17 +190,25 @@ export default function Campaigns() {
                       <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{h}</div>
                     ))}
                   </div>
-                  {campaigns.map(c => (
-                    <div key={c.id} onClick={() => setSelectedCampaign(c)} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr 1fr 1fr', padding:'12px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', cursor:'pointer', background: selectedCampaign?.id===c.id ? '#0f1520' : 'none'}}>
-                      <div style={{fontSize:'12px', fontWeight:'600'}}>{c.name}</div>
-                      <div style={{fontSize:'12px'}}>{channelIcons[c.channel]}</div>
-                      <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[c.status]}20`, color:statusColors[c.status]}}>{c.status}</span></div>
-                      <div style={{fontSize:'12px', color:'#7a8fa6'}}>{c.sent.toLocaleString()}</div>
-                      <div style={{fontSize:'12px', color:'#3b82f6', fontWeight:'600'}}>{c.leads}</div>
-                      <div style={{fontSize:'12px', color:'#a78bfa', fontWeight:'600'}}>{c.bookings}</div>
-                      <div style={{fontSize:'12px', color:'#00e5a0', fontWeight:'600'}}>{c.openRate}</div>
-                    </div>
-                  ))}
+                  {campaignsLoading ? (
+                    <div style={{padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>Loading campaigns…</div>
+                  ) : campaigns.length === 0 ? (
+                    <div style={{padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>No campaigns yet — create your first one</div>
+                  ) : campaigns.map(c => {
+                    const st = c.status || 'DRAFT'
+                    const ch = c.channel || c.channelType || 'WhatsApp'
+                    return (
+                      <div key={c.id} onClick={() => setSelectedCampaign(c)} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr 1fr 1fr', padding:'12px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', cursor:'pointer', background: selectedCampaign?.id===c.id ? '#0f1520' : 'none'}}>
+                        <div style={{fontSize:'12px', fontWeight:'600'}}>{c.name}</div>
+                        <div style={{fontSize:'12px'}}>{channelIcons[ch] || '📤'}</div>
+                        <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[st]||statusColors[st.charAt(0)+st.slice(1).toLowerCase()]||'#64748b'}20`, color:statusColors[st]||statusColors[st.charAt(0)+st.slice(1).toLowerCase()]||'#64748b'}}>{st}</span></div>
+                        <div style={{fontSize:'12px', color:'#7a8fa6'}}>{(c.sentCount||0).toLocaleString()}</div>
+                        <div style={{fontSize:'12px', color:'#3b82f6', fontWeight:'600'}}>{c.leadsCount||0}</div>
+                        <div style={{fontSize:'12px', color:'#a78bfa', fontWeight:'600'}}>{c.bookingsCount||0}</div>
+                        <div style={{fontSize:'12px', color:'#00e5a0', fontWeight:'600'}}>{c.openRate||'—'}</div>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {selectedCampaign && (
@@ -215,15 +217,15 @@ export default function Campaigns() {
                       <div style={{fontWeight:'700', fontSize:'14px'}}>{selectedCampaign.name} — Details</div>
                       <div style={{display:'flex', gap:'8px'}}>
                         <button onClick={() => exportCSV(selectedCampaign)} style={{padding:'6px 12px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
-                        <button onClick={() => { setTab('advisor'); setAdvisorQuery(`Analyze campaign: ${selectedCampaign.name}`); askAdvisor(`Analyze this campaign and give recommendations: ${selectedCampaign.name}, sent: ${selectedCampaign.sent}, leads: ${selectedCampaign.leads}, bookings: ${selectedCampaign.bookings}, open rate: ${selectedCampaign.openRate}`) }} style={{padding:'6px 12px', background:'#a78bfa', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>🤖 AI Analysis</button>
+                        <button onClick={() => { setTab('advisor'); setAdvisorQuery(`Analyze campaign: ${selectedCampaign.name}`); askAdvisor(`Analyze this campaign: ${selectedCampaign.name}, status: ${selectedCampaign.status}, sent: ${selectedCampaign.sentCount||0}`) }} style={{padding:'6px 12px', background:'#a78bfa', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>🤖 AI Analysis</button>
                       </div>
                     </div>
                     <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px'}}>
                       {[
-                        {label:'Sent', value:selectedCampaign.sent.toLocaleString(), color:'#7a8fa6'},
-                        {label:'Leads Generated', value:selectedCampaign.leads, color:'#3b82f6'},
-                        {label:'Bookings', value:selectedCampaign.bookings, color:'#a78bfa'},
-                        {label:'Open Rate', value:selectedCampaign.openRate, color:'#00e5a0'},
+                        {label:'Sent', value:(selectedCampaign.sentCount||0).toLocaleString(), color:'#7a8fa6'},
+                        {label:'Leads Generated', value:selectedCampaign.leadsCount||0, color:'#3b82f6'},
+                        {label:'Bookings', value:selectedCampaign.bookingsCount||0, color:'#a78bfa'},
+                        {label:'Open Rate', value:selectedCampaign.openRate||'—', color:'#00e5a0'},
                       ].map(s => (
                         <div key={s.label} style={{textAlign:'center', padding:'14px', background:'#111622', borderRadius:'4px'}}>
                           <div style={{fontSize:'20px', fontWeight:'800', color:s.color}}>{s.value}</div>

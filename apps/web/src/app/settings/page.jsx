@@ -83,13 +83,6 @@ const PLANS = [
   },
 ]
 
-const mockTeam = [
-  { id:1, name:'Abbas Al Masri',   email:'abbas@clinic.qa',  role:'owner',        status:'active',  lastActive:'Today' },
-  { id:2, name:'Khaled Ahmad',     email:'khaled@clinic.qa', role:'marketing',    status:'active',  lastActive:'Yesterday' },
-  { id:3, name:'Sara Kayan',       email:'sara@clinic.qa',   role:'receptionist', status:'active',  lastActive:'2h ago' },
-  { id:4, name:'Thomas Thompson',  email:'thomas@clinic.qa', role:'manager',      status:'pending', lastActive:'—' },
-]
-
 const mockUsage = {
   plan: 'Growth', planColor:'#00e5a0',
   balance: 'QAR 0', nextBilling:'2026-06-15',
@@ -105,7 +98,7 @@ const lbl = {fontSize:'10px', color:'#7a8fa6', marginBottom:'6px', display:'bloc
 export default function Settings() {
   const [activeTab, setActiveTab]   = useState('usage')
   const [saved, setSaved]           = useState('')
-  const [team, setTeam]             = useState(mockTeam)
+  const [team, setTeam]             = useState([])
   const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole]   = useState('receptionist')
@@ -115,9 +108,9 @@ export default function Settings() {
     Object.entries(DEFAULT_ROLE_PERMS).forEach(([k,v]) => copy[k] = new Set(v))
     return copy
   })
-  const [orgName, setOrgName]   = useState('My Clinic')
-  const [orgPhone, setOrgPhone] = useState('+974 5555 0000')
-  const [orgEmail, setOrgEmail] = useState('info@myclinic.qa')
+  const [orgName, setOrgName]   = useState('')
+  const [orgPhone, setOrgPhone] = useState('')
+  const [orgEmail, setOrgEmail] = useState('')
   const [orgCity,  setOrgCity]  = useState('Doha')
   const [aiEnabled, setAiEnabled]   = useState(true)
   const [aiLang, setAiLang]         = useState('en')
@@ -127,6 +120,27 @@ export default function Settings() {
   const [waPhone, setWaPhone]       = useState('')
   const [addCredit, setAddCredit]   = useState('100')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+
+  useEffect(() => {
+    api.getSettings().then(s => {
+      if (!s) return
+      setOrgName(s.businessName || s.name || '')
+      setOrgPhone(s.phone || '')
+      setOrgEmail(s.email || '')
+      setOrgCity(s.city || 'Doha')
+      if (s.aiEnabled !== undefined) setAiEnabled(s.aiEnabled)
+      if (s.aiLanguage) setAiLang(s.aiLanguage)
+      if (s.autoReply !== undefined) setAutoReply(s.autoReply)
+      if (s.autoMessage) setAutoMsg(s.autoMessage)
+    }).catch(() => {})
+
+    api.getProfile().then(u => {
+      setTeam(prev => {
+        if (prev.some(m => m.email === u.email)) return prev
+        return [{ id: u.id, name: u.name, email: u.email, role: u.role?.toLowerCase() || 'owner', status: 'active', lastActive: 'Now' }, ...prev]
+      })
+    }).catch(() => {})
+  }, [])
 
   const saveMsg = (msg) => { setSaved(msg); setTimeout(() => setSaved(''), 2000) }
 
@@ -139,8 +153,11 @@ export default function Settings() {
     })
   }
 
-  const inviteMember = () => {
+  const inviteMember = async () => {
     if (!inviteEmail.trim()) return
+    try {
+      await api.inviteTeamMember?.(inviteEmail, inviteRole.toUpperCase()).catch(() => null)
+    } catch {}
     setTeam(prev => [...prev, { id: Date.now(), name: inviteEmail.split('@')[0], email: inviteEmail, role: inviteRole, status:'pending', lastActive:'—' }])
     setInviteEmail('')
     setShowInvite(false)
@@ -455,7 +472,12 @@ export default function Settings() {
                     {['Medical Clinic','Dental Clinic','Real Estate','Retail / E-commerce','Restaurant','Salon & Beauty','Other'].map(o=><option key={o}>{o}</option>)}
                   </select>
                 </div>
-                <button onClick={() => saveMsg('Profile saved!')} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save Profile</button>
+                <button onClick={async () => {
+                  try {
+                    await api.saveSettings({ businessName: orgName, phone: orgPhone, email: orgEmail, city: orgCity })
+                    saveMsg('Profile saved!')
+                  } catch { saveMsg('Save failed — try again') }
+                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save Profile</button>
               </div>
             </div>
           )}
@@ -475,7 +497,12 @@ export default function Settings() {
                   <code style={{color:'#e2e8f0', fontSize:'12px'}}>https://api.hayyamed.ai/api/v1/whatsapp/webhook</code><br/>
                   <strong style={{color:'#00e5a0'}}>Verify Token:</strong> <code style={{color:'#e2e8f0'}}>hayyamed_webhook_2024</code>
                 </div>
-                <button onClick={() => saveMsg('WhatsApp settings saved!')} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save & Test Connection</button>
+                <button onClick={async () => {
+                  try {
+                    await api.saveSettings({ waToken, waPhone })
+                    saveMsg('WhatsApp settings saved!')
+                  } catch { saveMsg('Save failed — try again') }
+                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save & Test Connection</button>
               </div>
             </div>
           )}
@@ -519,7 +546,12 @@ export default function Settings() {
                     <option>GPT-3.5 Turbo (Faster — lower cost)</option>
                   </select>
                 </div>
-                <button onClick={() => saveMsg('AI settings saved!')} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save AI Settings</button>
+                <button onClick={async () => {
+                  try {
+                    await api.saveSettings({ aiEnabled, aiLanguage: aiLang, autoReply, autoMessage: autoMsg })
+                    saveMsg('AI settings saved!')
+                  } catch { saveMsg('Save failed') }
+                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save AI Settings</button>
               </div>
             </div>
           )}

@@ -107,6 +107,8 @@ export const api = {
     request('/users/me'),
   updateProfile: (dto) =>
     request('/users/me', { method: 'PATCH', body: JSON.stringify(dto) }),
+  inviteTeamMember: (email, role) =>
+    request('/users/invite', { method: 'POST', body: JSON.stringify({ email, role }) }),
 
   // Billing
   getInvoices: () =>
