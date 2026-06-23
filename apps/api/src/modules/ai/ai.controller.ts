@@ -1,8 +1,11 @@
 import { Controller, Get, Post, Body, BadRequestException } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { AIService } from './ai.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
 
+// AI calls hit external LLM APIs and cost money — cap at 20 per IP per minute.
+@Throttle({ default: { limit: 20, ttl: 60000 } })
 @Controller('ai')
 export class AIController {
   constructor(private ai: AIService) {}

@@ -7,6 +7,7 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { AppModule } from './app.module'
+import { ThrottlerExceptionFilter } from './common/filters/throttler.filter'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -21,6 +22,9 @@ async function bootstrap() {
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   })
+
+  // Rate limit error format
+  app.useGlobalFilters(new ThrottlerExceptionFilter())
 
   // Validation
   app.useGlobalPipes(

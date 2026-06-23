@@ -1,10 +1,14 @@
 import { Controller, Get, Post, Body, Query, Res, Headers, Logger, UseGuards } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import { Response } from 'express'
 import { WhatsAppService } from './whatsapp.service'
 import { Public } from '../../common/decorators/public.decorator'
 import { CurrentUser, } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
 
+// Webhook endpoints receive high-volume callbacks from Meta and authenticate via
+// HMAC signature — not IP address. Skip rate limiting so Meta retries aren't blocked.
+@SkipThrottle()
 @Controller('whatsapp')
 export class WhatsAppController {
   private readonly logger = new Logger(WhatsAppController.name)
