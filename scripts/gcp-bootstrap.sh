@@ -137,7 +137,7 @@ Step 7 — After first deploy, get the API Cloud Run URL and set it:
     | gcloud secrets versions add hayyamed-api-url --data-file=- --project=PROJECT_ID
 
   # Set FRONTEND_URL for password reset email links:
-  echo -n 'https://hayyamedai.com' \
+  echo -n 'https://hayyaai.com' \
     | gcloud secrets versions add hayyamed-frontend-url --data-file=- --project=PROJECT_ID
 
 Step 8 — Redeploy web with the now-known API URL:
@@ -158,13 +158,13 @@ Step 9 — Connect GitHub for auto-deploy on push to master:
 Step 10 — (Optional) Map custom domain:
   gcloud run domain-mappings create \
     --service=hayyamed-web \
-    --domain=hayyamedai.com \
+    --domain=hayyaai.com \
     --region=me-central1 \
     --project=PROJECT_ID
 
   gcloud run domain-mappings create \
     --service=hayyamed-api \
-    --domain=api.hayyamedai.com \
+    --domain=api.hayyaai.com \
     --region=me-central1 \
     --project=PROJECT_ID
 

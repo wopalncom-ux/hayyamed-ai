@@ -10,7 +10,7 @@ export class EmailService {
 
   constructor(private config: ConfigService) {
     this.token = this.config.get<string>('POSTMARK_SERVER_TOKEN') || ''
-    this.from = this.config.get<string>('EMAIL_FROM') || 'Hayyamed AI <noreply@hayyamedai.com>'
+    this.from = this.config.get<string>('EMAIL_FROM') || 'Hayyamed AI <noreply@hayyaai.com>'
   }
 
   private async send(to: string, subject: string, html: string, text: string): Promise<void> {
