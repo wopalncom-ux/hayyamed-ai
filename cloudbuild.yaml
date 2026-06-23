@@ -1,0 +1,104 @@
+steps:
+  # ─── Build API ──────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-t'
+      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:$COMMIT_SHA'
+      - '-t'
+      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:latest'
+      - '-f'
+      - 'apps/api/Dockerfile'
+      - 'apps/api'
+    id: build-api
+
+  # ─── Build Web ──────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-t'
+      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:$COMMIT_SHA'
+      - '-t'
+      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:latest'
+      - '-f'
+      - 'apps/web/Dockerfile'
+      - 'apps/web'
+    id: build-web
+
+  # ─── Push API ───────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api'
+      - '--all-tags'
+    waitFor: [build-api]
+    id: push-api
+
+  # ─── Push Web ───────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web'
+      - '--all-tags'
+    waitFor: [build-web]
+    id: push-web
+
+  # ─── Deploy API to Cloud Run ─────────────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - hayyamed-api
+      - '--image=me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:$COMMIT_SHA'
+      - '--region=me-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=4000'
+      - '--min-instances=1'
+      - '--max-instances=10'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--concurrency=80'
+      - '--timeout=60'
+      - '--set-env-vars=NODE_ENV=production'
+      - '--update-secrets=DATABASE_URL=hayyamed-database-url:latest,JWT_SECRET=hayyamed-jwt-secret:latest,OPENAI_API_KEY=hayyamed-openai-key:latest,ANTHROPIC_API_KEY=hayyamed-anthropic-key:latest'
+    waitFor: [push-api]
+    id: deploy-api
+
+  # ─── Deploy Web to Cloud Run ─────────────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - hayyamed-web
+      - '--image=me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:$COMMIT_SHA'
+      - '--region=me-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=3000'
+      - '--min-instances=1'
+      - '--max-instances=10'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--concurrency=80'
+      - '--timeout=60'
+      - '--set-env-vars=NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1'
+      - '--update-secrets=NEXT_PUBLIC_API_URL=hayyamed-api-url:latest'
+    waitFor: [push-web]
+    id: deploy-web
+
+images:
+  - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:$COMMIT_SHA'
+  - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:latest'
+  - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:$COMMIT_SHA'
+  - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:latest'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+# PERMANENT RULE: me-central1 (Doha, Qatar) ONLY — no global/us/eu regions
+substitutions:
+  _REGION: me-central1

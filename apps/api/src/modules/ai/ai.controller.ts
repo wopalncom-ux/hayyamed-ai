@@ -1,4 +1,4 @@
-import { Controller, Post, Body, BadRequestException } from '@nestjs/common'
+import { Controller, Get, Post, Body, BadRequestException } from '@nestjs/common'
 import { AIService } from './ai.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
@@ -60,5 +60,10 @@ export class AIController {
     if (!body.text) throw new BadRequestException('text required')
     const translated = await this.ai.translate(body.text, body.targetLang || 'ar')
     return { translated }
+  }
+
+  @Get('providers')
+  getProviders() {
+    return this.ai.getProviderStatus()
   }
 }

@@ -1,253 +1,226 @@
-// ============================================
-// AI SERVICE — OpenAI GPT-4 Integration
-// apps/api/src/modules/ai/ai.service.ts
-// ============================================
-
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { PrismaService } from '../../database/prisma.service'
+
+type Provider = 'openai' | 'anthropic' | 'gemini' | 'groq'
+
+interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 
 @Injectable()
 export class AIService {
   private readonly logger = new Logger(AIService.name)
   private openai?: OpenAI
+  private anthropic?: Anthropic
+  private gemini?: GoogleGenerativeAI
+  private groq?: OpenAI // Groq uses OpenAI-compatible SDK
 
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
   ) {
-    const apiKey = this.config.get('OPENAI_API_KEY')
-    if (apiKey) {
-      this.openai = new OpenAI({ apiKey })
-    } else {
-      this.logger.warn('OPENAI_API_KEY not set; AI features will be disabled.')
-    }
+    const openaiKey = this.config.get<string>('OPENAI_API_KEY')
+    if (openaiKey) this.openai = new OpenAI({ apiKey: openaiKey })
+
+    const anthropicKey = this.config.get<string>('ANTHROPIC_API_KEY')
+    if (anthropicKey) this.anthropic = new Anthropic({ apiKey: anthropicKey })
+
+    const geminiKey = this.config.get<string>('GEMINI_API_KEY') || this.config.get<string>('GOOGLE_AI_API_KEY')
+    if (geminiKey) this.gemini = new GoogleGenerativeAI(geminiKey)
+
+    const groqKey = this.config.get<string>('GROQ_API_KEY')
+    if (groqKey) this.groq = new OpenAI({ apiKey: groqKey, baseURL: 'https://api.groq.com/openai/v1' })
+
+    this.logger.log(`AI providers initialized: ${[
+      openaiKey ? 'openai' : null,
+      anthropicKey ? 'anthropic' : null,
+      geminiKey ? 'gemini' : null,
+      groqKey ? 'groq' : null,
+    ].filter(Boolean).join(', ') || 'none'}`)
   }
 
-  private ensureOpenAI(): OpenAI {
-    if (!this.openai) {
-      throw new ServiceUnavailableException('OpenAI API key is not configured')
+  // ─── Multi-provider router ────────────────────────────────────────────────
+  private async complete(
+    messages: ChatMessage[],
+    opts: { provider?: Provider; model?: string; maxTokens?: number; temperature?: number } = {},
+  ): Promise<string> {
+    const { provider, model, maxTokens = 400, temperature = 0.7 } = opts
+
+    const systemMsg = messages.find(m => m.role === 'system')?.content || ''
+    const chatMsgs  = messages.filter(m => m.role !== 'system')
+
+    // Determine provider priority (prefer specified, fallback in order)
+    const priority: Provider[] = provider
+      ? [provider, 'openai', 'anthropic', 'gemini', 'groq']
+      : ['openai', 'anthropic', 'gemini', 'groq']
+
+    for (const p of priority) {
+      try {
+        if (p === 'anthropic' && this.anthropic) {
+          const resp = await this.anthropic.messages.create({
+            model: model || 'claude-haiku-4-5-20251001',
+            max_tokens: maxTokens,
+            system: systemMsg,
+            messages: chatMsgs.map(m => ({
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+            })),
+          })
+          return (resp.content[0] as any)?.text || ''
+        }
+
+        if (p === 'gemini' && this.gemini) {
+          const genModel = this.gemini.getGenerativeModel({ model: model || 'gemini-1.5-flash' })
+          const history = chatMsgs.slice(0, -1).map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }],
+          }))
+          const lastMsg = chatMsgs.at(-1)?.content || ''
+          const chat = genModel.startChat({ history, systemInstruction: systemMsg })
+          const result = await chat.sendMessage(lastMsg)
+          return result.response.text()
+        }
+
+        if (p === 'groq' && this.groq) {
+          const resp = await this.groq.chat.completions.create({
+            model: model || 'llama-3.1-8b-instant',
+            messages: messages as any,
+            max_tokens: maxTokens,
+            temperature,
+          })
+          return resp.choices[0]?.message?.content || ''
+        }
+
+        if (p === 'openai' && this.openai) {
+          const resp = await this.openai.chat.completions.create({
+            model: model || 'gpt-4o-mini',
+            messages: messages as any,
+            max_tokens: maxTokens,
+            temperature,
+          })
+          return resp.choices[0]?.message?.content || ''
+        }
+      } catch (err: any) {
+        this.logger.warn(`AI provider ${p} failed: ${err.message}`)
+      }
     }
-    return this.openai
+
+    throw new ServiceUnavailableException('All AI providers unavailable')
   }
 
-  // ─── GENERATE AI REPLY ───────────────────
+  // ─── GENERATE AI REPLY ────────────────────────────────────────────────────
   async generateReply(conversationId: string, orgId: string): Promise<string> {
-    // Load business context
-    const org = await this.prisma.organization.findUnique({
-      where: { id: orgId },
-      include: { settings: true }
-    })
+    const [org, messages, conversation] = await Promise.all([
+      this.prisma.organization.findUnique({ where: { id: orgId }, include: { settings: true } }),
+      this.prisma.message.findMany({ where: { conversationId }, orderBy: { createdAt: 'asc' }, take: 20 }),
+      this.prisma.conversation.findUnique({ where: { id: conversationId }, include: { contact: true } }),
+    ])
 
-    // Load conversation history
-    const messages = await this.prisma.message.findMany({
-      where: { conversationId },
-      orderBy: { createdAt: 'asc' },
-      take: 20,
-    })
-
-    // Load contact info
-    const conversation = await this.prisma.conversation.findUnique({
-      where: { id: conversationId },
-      include: { contact: true }
-    })
-
-    const systemPrompt = `
-You are an AI customer service assistant for ${org?.name}, a ${org?.industry} business in Qatar.
+    const systemPrompt = `You are an AI customer service assistant for ${org?.name}, a ${org?.industry} business in Qatar.
 You respond in the same language the customer uses (Arabic or English).
 Be professional, friendly, and helpful. Keep replies concise (2-3 sentences max).
 Your goal: answer questions, qualify leads, and book appointments.
+Customer: ${conversation?.contact?.name || 'Unknown'} — Lead status: ${conversation?.contact?.status || 'NEW'}
+Never promise specific prices without confirmation. Always end with a clear call to action.`
 
-Business context:
-- Name: ${org?.name}
-- Industry: ${org?.industry}
-- Country: Qatar (QAR currency)
+    const chatMessages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      ...messages.map(m => ({
+        role: (m.senderId ? 'assistant' : 'user') as 'user' | 'assistant',
+        content: m.content || '',
+      })).filter(m => m.content),
+    ]
 
-Customer: ${conversation?.contact?.name || 'Unknown'}
-Lead status: ${conversation?.contact?.status || 'NEW'}
-
-Important rules:
-- If customer asks about pricing, give general info and offer to book a consultation
-- If customer wants to book, ask for their preferred time
-- Never promise specific prices without confirmation
-- Always end with a clear call to action
-- For Arabic messages, reply in Arabic
-`
-
-    const chatMessages = messages.map(m => ({
-      role: m.senderId ? 'assistant' : 'user' as const,
-      content: m.content || '',
-    })).filter(m => m.content)
-
-    const openai = this.ensureOpenAI()
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...(chatMessages as any),
-      ],
-      max_tokens: 300,
-      temperature: 0.7,
-    })
-
-    return response.choices[0]?.message?.content || ''
+    // Use Groq for speed if available, fallback to openai
+    return this.complete(chatMessages, { provider: 'groq', maxTokens: 300, temperature: 0.7 })
   }
 
-  // ─── SCORE LEAD ──────────────────────────
+  // ─── SCORE LEAD ───────────────────────────────────────────────────────────
   async scoreLead(contactId: string): Promise<{ score: number; reasoning: string }> {
     const contact = await this.prisma.contact.findUnique({
       where: { id: contactId },
-      include: {
-        conversations: {
-          include: { messages: { orderBy: { createdAt: 'desc' }, take: 10 } }
-        }
-      }
+      include: { conversations: { include: { messages: { orderBy: { createdAt: 'desc' }, take: 10 } } } }
     })
-
     if (!contact) return { score: 0, reasoning: 'Contact not found' }
 
-    const recentMessages = contact.conversations
-      .flatMap(c => c.messages)
-      .map(m => m.content)
-      .filter(Boolean)
-      .join('\n')
+    const recentMessages = contact.conversations.flatMap(c => c.messages).map(m => m.content).filter(Boolean).join('\n')
+    const prompt = `Score this lead 0-100 for conversion likelihood.
+Contact: ${contact.name} | Source: ${contact.source} | Status: ${contact.status}
+Recent messages: ${recentMessages || 'none'}
+Return JSON: {"score":<0-100>,"reasoning":"<brief>","recommended_action":"<next step>"}`
 
-    const prompt = `
-Analyze this lead and score them from 0-100 based on their likelihood to convert.
-
-Lead info:
-- Name: ${contact.name}
-- Source: ${contact.source}
-- Status: ${contact.status}
-- Recent messages: ${recentMessages || 'No messages yet'}
-
-Score based on:
-- Buying intent signals (asking about price, availability, booking)
-- Engagement level (response speed, question quality)
-- Lead source quality
-- Stage in funnel
-
-Return JSON only:
-{
-  "score": <number 0-100>,
-  "reasoning": "<brief explanation>",
-  "signals": ["<signal1>", "<signal2>"],
-  "recommended_action": "<what to do next>"
-}
-`
-
-    const openai = this.ensureOpenAI()
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 300,
-      response_format: { type: 'json_object' },
-    })
-
+    const result = await this.complete(
+      [{ role: 'user', content: prompt }],
+      { provider: 'openai', model: 'gpt-4o-mini', maxTokens: 200 },
+    )
     try {
-      const result = JSON.parse(response.choices[0]?.message?.content || '{}')
-      return { score: result.score || 0, reasoning: result.reasoning || '' }
+      const parsed = JSON.parse(result)
+      return { score: parsed.score || 0, reasoning: parsed.reasoning || '' }
     } catch {
       return { score: 50, reasoning: 'Unable to analyze' }
     }
   }
 
-  // ─── CLASSIFY INTENT ─────────────────────
+  // ─── CLASSIFY INTENT ──────────────────────────────────────────────────────
   async classifyIntent(message: string): Promise<{
-    intent: string
-    language: 'ar' | 'en'
-    sentiment: 'positive' | 'neutral' | 'negative'
-    topics: string[]
+    intent: string; language: 'ar' | 'en'; sentiment: 'positive' | 'neutral' | 'negative'; topics: string[]
   }> {
-    const prompt = `
-Classify this customer message:
-"${message}"
+    const prompt = `Classify this customer message: "${message}"
+Return JSON: {"intent":"booking|pricing|info|complaint|greeting|farewell|other","language":"ar|en","sentiment":"positive|neutral|negative","topics":[]}`
 
-Return JSON:
-{
-  "intent": "booking | pricing | info | complaint | greeting | farewell | other",
-  "language": "ar | en",
-  "sentiment": "positive | neutral | negative",
-  "topics": ["<topic1>", "<topic2>"]
-}
-`
-    const openai = this.ensureOpenAI()
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 150,
-      response_format: { type: 'json_object' },
-    })
-
-    try {
-      return JSON.parse(response.choices[0]?.message?.content || '{}')
-    } catch {
-      return { intent: 'other', language: 'ar', sentiment: 'neutral', topics: [] }
-    }
+    const result = await this.complete(
+      [{ role: 'user', content: prompt }],
+      { provider: 'groq', model: 'llama-3.1-8b-instant', maxTokens: 120 },
+    )
+    try { return JSON.parse(result) }
+    catch { return { intent: 'other', language: 'ar', sentiment: 'neutral', topics: [] } }
   }
 
-  // ─── GENERATE CAMPAIGN MESSAGE ────────────
+  // ─── GENERATE CAMPAIGN MESSAGE ────────────────────────────────────────────
   async generateCampaignMessage(prompt: string, tone: string, language: string): Promise<string> {
-    const systemPrompt = `
-You are a WhatsApp marketing copywriter for Qatar/GCC market.
-Write in ${language === 'ar' ? 'Arabic' : 'English'}.
-Tone: ${tone}
-Keep it under 300 characters for WhatsApp.
-Include 1-2 relevant emojis.
-End with a clear call to action.
-`
-    const openai = this.ensureOpenAI()
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: 200,
-      temperature: 0.8,
-    })
+    const system = `You are a WhatsApp marketing copywriter for Qatar/GCC market.
+Write in ${language === 'ar' ? 'Arabic' : 'English'}. Tone: ${tone}.
+Keep under 300 characters. Include 1-2 relevant emojis. End with a clear CTA.`
 
-    return response.choices[0]?.message?.content || ''
+    return this.complete(
+      [{ role: 'system', content: system }, { role: 'user', content: prompt }],
+      { provider: 'anthropic', model: 'claude-haiku-4-5-20251001', maxTokens: 200, temperature: 0.8 },
+    )
   }
 
-  // ─── GENERATE REPORT INSIGHTS ────────────
+  // ─── GENERATE REPORT INSIGHTS ─────────────────────────────────────────────
   async generateInsights(metrics: Record<string, any>): Promise<string[]> {
-    const prompt = `
-Analyze these CRM metrics and provide 3 actionable business insights:
+    const prompt = `Analyze these CRM metrics and provide 3 actionable business insights:
 ${JSON.stringify(metrics, null, 2)}
+Return JSON array of exactly 3 insights: ["<insight1>","<insight2>","<insight3>"]`
 
-Return JSON array of exactly 3 insights:
-["<insight 1>", "<insight 2>", "<insight 3>"]
-Each insight should be specific and actionable (1-2 sentences).
-`
-    const openai = this.ensureOpenAI()
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 300,
-      response_format: { type: 'json_object' },
-    })
-
+    const result = await this.complete(
+      [{ role: 'user', content: prompt }],
+      { provider: 'openai', model: 'gpt-4o-mini', maxTokens: 300 },
+    )
     try {
-      const result = JSON.parse(response.choices[0]?.message?.content || '[]')
-      return Array.isArray(result) ? result : result.insights || []
-    } catch {
-      return []
-    }
+      const parsed = JSON.parse(result)
+      return Array.isArray(parsed) ? parsed : parsed.insights || []
+    } catch { return [] }
   }
 
-  // ─── TRANSLATE MESSAGE ───────────────────
+  // ─── TRANSLATE ────────────────────────────────────────────────────────────
   async translate(text: string, targetLang: 'ar' | 'en'): Promise<string> {
-    const openai = this.ensureOpenAI()
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: `Translate to ${targetLang === 'ar' ? 'Arabic' : 'English'}. Return only the translation:\n${text}`
-      }],
-      max_tokens: 300,
-    })
-    return response.choices[0]?.message?.content || text
+    return this.complete(
+      [{ role: 'user', content: `Translate to ${targetLang === 'ar' ? 'Arabic' : 'English'}. Return only the translation:\n${text}` }],
+      { provider: 'gemini', model: 'gemini-1.5-flash', maxTokens: 300 },
+    )
+  }
+
+  // ─── PROVIDER STATUS ──────────────────────────────────────────────────────
+  getProviderStatus(): Record<Provider, boolean> {
+    return {
+      openai:    !!this.openai,
+      anthropic: !!this.anthropic,
+      gemini:    !!this.gemini,
+      groq:      !!this.groq,
+    }
   }
 }
