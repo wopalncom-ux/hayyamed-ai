@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Optional } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
+import { WorkflowEngineService } from '../workflows/workflow-engine.service'
 
 @Injectable()
 export class ContactsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Optional() private workflowEngine?: WorkflowEngineService,
+  ) {}
 
   async findAll(orgId: string, query: { search?: string; status?: string; page?: number; limit?: number } = {}) {
     const { search, status, page = 1, limit = 50 } = query
@@ -36,11 +40,20 @@ export class ContactsService {
   }
 
   async create(orgId: string, dto: any) {
-    return this.prisma.contact.create({ data: { ...dto, orgId } })
+    const contact = await this.prisma.contact.create({ data: { ...dto, orgId } })
+    // Fire new_contact trigger (fire-and-forget)
+    this.workflowEngine?.fire(orgId, 'new_contact', contact.id, { source: contact.source }).catch(() => {})
+    return contact
   }
 
   async update(id: string, orgId: string, dto: any) {
-    return this.prisma.contact.update({ where: { id }, data: dto })
+    const before = await this.prisma.contact.findUnique({ where: { id }, select: { status: true } })
+    const contact = await this.prisma.contact.update({ where: { id }, data: dto })
+    // Fire status_changed if status was updated
+    if (dto.status && before?.status !== dto.status) {
+      this.workflowEngine?.fire(orgId, 'status_changed', id, { oldStatus: before?.status, status: dto.status }).catch(() => {})
+    }
+    return contact
   }
 
   async remove(id: string, orgId: string) {

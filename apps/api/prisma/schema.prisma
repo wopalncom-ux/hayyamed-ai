@@ -451,6 +451,25 @@ model Workflow {
   updatedAt DateTime @updatedAt
 
   @@map("workflows")
+  runs WorkflowRun[]
+}
+
+model WorkflowRun {
+  id          String   @id @default(uuid())
+  orgId       String
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id])
+  contactId   String?
+  status      String   @default("running")
+  currentStep Int      @default(0)
+  context     Json?
+  nextStepAt  DateTime?
+  error       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("workflow_runs")
 }
 
 // ============================================

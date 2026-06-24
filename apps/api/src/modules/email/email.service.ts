@@ -93,4 +93,11 @@ export class EmailService {
   async sendAIAgentAlert(to: string, data: { orgName: string; agentName: string; alertType: string; detail: string; dashboardUrl: string }) {
     return this.sendTemplate('aiAgentAlert', to, `AI Agent Alert: ${data.alertType}`, data, 'ai-alert')
   }
+
+  async sendRaw(to: string, subject: string, bodyText: string) {
+    return this.send({
+      to, subject,
+      html: `<div style="font-family:sans-serif;line-height:1.6">${bodyText.replace(/\n/g, '<br>')}</div>`,
+    })
+  }
 }

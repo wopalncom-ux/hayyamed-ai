@@ -1,15 +1,37 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common'
 import { WorkflowsService } from './workflows.service'
+import { WorkflowEngineService } from './workflow-engine.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
+import { Public } from '../../common/decorators/public.decorator'
 
 @Controller('workflows')
 export class WorkflowsController {
-  constructor(private svc: WorkflowsService) {}
+  constructor(
+    private svc: WorkflowsService,
+    private engine: WorkflowEngineService,
+  ) {}
+
+  // ─── CRUD ────────────────────────────────────────────────────────────────
 
   @Get()
   findAll(@CurrentUser() user: JwtPayload) {
     return this.svc.findAll(user.orgId)
+  }
+
+  @Get('stats')
+  stats(@CurrentUser() user: JwtPayload) {
+    return this.engine.getStats(user.orgId)
+  }
+
+  @Get('runs')
+  getRuns(
+    @CurrentUser() user: JwtPayload,
+    @Query('workflowId') workflowId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.engine.getRuns(user.orgId, workflowId, page ? +page : 1, limit ? +limit : 50)
   }
 
   @Get(':id')
@@ -35,5 +57,27 @@ export class WorkflowsController {
   @Delete(':id')
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.svc.remove(id, user.orgId)
+  }
+
+  // ─── Test fire a workflow manually ───────────────────────────────────────
+
+  @Post(':id/test')
+  async testFire(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { contactId?: string },
+  ) {
+    const wf = await this.svc.findOne(id, user.orgId)
+    await this.engine.fire(user.orgId, wf.trigger, body.contactId)
+    return { fired: true }
+  }
+
+  // ─── CRON ────────────────────────────────────────────────────────────────
+
+  @Public()
+  @Post('cron/process-pending')
+  processPending(@Query('secret') secret: string) {
+    if (secret !== process.env.CRON_SECRET) return { error: 'Unauthorized' }
+    return this.engine.processPending()
   }
 }

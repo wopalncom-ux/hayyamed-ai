@@ -221,12 +221,18 @@ export const api = {
     request('/workflows'),
   getWorkflow: (id) =>
     request(`/workflows/${id}`),
+  getWorkflowStats: () =>
+    request('/workflows/stats'),
+  getWorkflowRuns: (params = {}) =>
+    request('/workflows/runs?' + new URLSearchParams(params)),
   createWorkflow: (dto) =>
     request('/workflows', { method: 'POST', body: JSON.stringify(dto) }),
   updateWorkflow: (id, dto) =>
     request(`/workflows/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
   toggleWorkflow: (id, isActive) =>
     request(`/workflows/${id}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
+  testFireWorkflow: (id, body) =>
+    request(`/workflows/${id}/test`, { method: 'POST', body: JSON.stringify(body) }),
   deleteWorkflow: (id) =>
     request(`/workflows/${id}`, { method: 'DELETE' }),
 
