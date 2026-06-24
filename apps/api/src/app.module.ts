@@ -31,6 +31,7 @@ import { IntegrationsModule } from './modules/integrations/integrations.module'
 import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module'
 import { AIObservabilityModule } from './modules/ai-observability/ai-observability.module'
 import { CustomerHealthModule } from './modules/customer-health/customer-health.module'
+import { AIQualityModule } from './modules/ai-quality/ai-quality.module'
 import { DatabaseModule } from './database/database.module'
 import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
@@ -66,6 +67,7 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     FeatureFlagsModule,
     AIObservabilityModule,
     CustomerHealthModule,
+    AIQualityModule,
   ],
   providers: [
     RealtimeGateway,

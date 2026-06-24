@@ -246,6 +246,16 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // AI Quality Engine
+  getMasterAIQuality: (days = 30) =>
+    request(`/master-admin/ai-quality?days=${days}`),
+  getAllOrgAIQuality: (days = 30) =>
+    request(`/master-admin/ai-quality/orgs?days=${days}`),
+  getOrgAIQuality: (orgId, days = 30) =>
+    request(`/master-admin/ai-quality/orgs/${orgId}?days=${days}`),
+  getMyAIQuality: (days = 30) =>
+    request(`/ai/quality?days=${days}`),
+
   // Customer Health
   getCustomerHealth: () =>
     request('/master-admin/customer-health'),

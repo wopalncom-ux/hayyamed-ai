@@ -109,6 +109,7 @@ export default function MasterAdminPanel() {
             { id:'flags', label:'🚩 Feature Flags' },
             { id:'ai', label:'🔭 AI Observability' },
             { id:'health', label:'💚 Customer Health' },
+            { id:'quality', label:'⭐ AI Quality' },
           ].map(t => (
             <button
               key={t.id}
@@ -251,6 +252,23 @@ export default function MasterAdminPanel() {
               </div>
               <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
                 Click "Open Dashboard" to see full AI metrics: cost per provider, tokens, latency, escalation rates, and recent calls.
+              </div>
+            </div>
+          )}
+
+          {tab === 'quality' && (
+            <div style={{ paddingTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '16px' }}>AI Quality Engine</div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Success rate, escalation rate, user feedback, and model performance — graded A–F.</div>
+                </div>
+                <a href="/admin/ai-quality" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                  Open Dashboard →
+                </a>
+              </div>
+              <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                Click "Open Dashboard" to view AI quality scores by module, model, and organization.
               </div>
             </div>
           )}
