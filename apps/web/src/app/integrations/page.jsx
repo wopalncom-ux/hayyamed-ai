@@ -316,10 +316,17 @@ export default function Integrations() {
                               <span style={{fontSize:'11px', color: isConn ? '#00e5a0' : '#7a8fa6', fontWeight: isConn ? '700' : '400'}}>{isConn ? 'Connected' : 'Not connected'}</span>
                             </div>
                             <div style={{display:'flex', gap:'8px'}}>
-                              <button onClick={() => setExpandedId(isOpen ? null : intg.id)}
-                                style={btn({background:'rgba(167,139,250,.1)', color:'#a78bfa', padding:'5px 12px', fontSize:'11px', border:'1px solid rgba(167,139,250,.2)', borderRadius:'5px'})}>
-                                {isOpen ? '▲ Hide' : '⚙ Configure'}
-                              </button>
+                              {intg.id === 'whatsapp' ? (
+                                <a href="/integrations/whatsapp"
+                                  style={{...btn({background:'#25D36622', color:'#25D366', padding:'5px 12px', fontSize:'11px', border:'1px solid #25D36633', borderRadius:'5px'}), textDecoration:'none'}}>
+                                  ⚙ Full Setup →
+                                </a>
+                              ) : (
+                                <button onClick={() => setExpandedId(isOpen ? null : intg.id)}
+                                  style={btn({background:'rgba(167,139,250,.1)', color:'#a78bfa', padding:'5px 12px', fontSize:'11px', border:'1px solid rgba(167,139,250,.2)', borderRadius:'5px'})}>
+                                  {isOpen ? '▲ Hide' : '⚙ Configure'}
+                                </button>
+                              )}
                               <button onClick={() => toggleConnect(intg.id)}
                                 style={btn({background: isConn ? 'rgba(239,68,68,.1)' : intg.color, color: isConn ? '#ef4444' : '#07090f', border: isConn ? '1px solid rgba(239,68,68,.25)' : 'none', padding:'5px 12px', fontSize:'11px', borderRadius:'5px'})}>
                                 {isConn ? 'Disconnect' : 'Connect'}

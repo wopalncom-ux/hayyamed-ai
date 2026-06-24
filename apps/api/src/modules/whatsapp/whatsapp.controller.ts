@@ -1,13 +1,12 @@
-import { Controller, Get, Post, Body, Query, Res, Headers, Logger, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Delete, Body, Param, Query, Res, Logger } from '@nestjs/common'
 import { SkipThrottle } from '@nestjs/throttler'
 import { Response } from 'express'
 import { WhatsAppService } from './whatsapp.service'
 import { Public } from '../../common/decorators/public.decorator'
-import { CurrentUser, } from '../../common/decorators/user.decorator'
+import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
 
-// Webhook endpoints receive high-volume callbacks from Meta and authenticate via
-// HMAC signature — not IP address. Skip rate limiting so Meta retries aren't blocked.
+// Meta webhook callbacks authenticate via HMAC, not rate-limit headers — skip throttle
 @SkipThrottle()
 @Controller('whatsapp')
 export class WhatsAppController {
@@ -15,7 +14,7 @@ export class WhatsAppController {
 
   constructor(private whatsapp: WhatsAppService) {}
 
-  // ─── WEBHOOK VERIFICATION (Meta calls this once) ─────────────────────────
+  // ─── WEBHOOK VERIFICATION ───────────────────────────────────────────────
   @Public()
   @Get('webhook')
   verify(
@@ -32,38 +31,59 @@ export class WhatsAppController {
     return res.status(403).send('Forbidden')
   }
 
-  // ─── INCOMING MESSAGES (Meta sends messages here) ─────────────────────────
+  // ─── INCOMING MESSAGES (Meta sends here — always 200 immediately) ───────
   @Public()
   @Post('webhook')
-  async receive(
-    @Body() body: any,
-    @Headers('x-org-id') orgId: string,
-  ) {
-    // Always return 200 immediately — Meta will retry if we don't respond fast
+  async receive(@Body() body: any) {
     try {
-      const orgIdToUse = orgId || await this.getDefaultOrgId()
-      if (orgIdToUse) {
-        await this.whatsapp.processWebhook(body, orgIdToUse)
-      }
+      await this.whatsapp.processWebhook(body)
     } catch (err: any) {
-      this.logger.error(`Webhook processing error: ${err?.message}`)
+      this.logger.error(`Webhook error: ${err?.message}`)
     }
     return { status: 'ok' }
   }
 
-  // ─── SEND MESSAGE ─────────────────────────────────────────────────────────
-  @Post('send')
-  async send(@Body() body: {
-    phoneNumberId: string
-    to: string
-    text: string
-    token?: string
-  }) {
-    const token = body.token || process.env.WHATSAPP_ACCESS_TOKEN || ''
-    return this.whatsapp.sendText(body.phoneNumberId, body.to, body.text, token)
+  // ─── CHANNEL MANAGEMENT ─────────────────────────────────────────────────
+  @Get('channels')
+  getChannels(@CurrentUser() user: JwtPayload) {
+    return this.whatsapp.getChannels(user.orgId)
   }
 
-  // ─── GET TEMPLATES ────────────────────────────────────────────────────────
+  @Post('channels')
+  connectChannel(@CurrentUser() user: JwtPayload, @Body() body: {
+    name: string
+    phoneNumberId: string
+    accessToken: string
+    businessId?: string
+    webhookSecret?: string
+  }) {
+    return this.whatsapp.connectChannel(user.orgId, body)
+  }
+
+  @Delete('channels/:id')
+  disconnectChannel(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.whatsapp.disconnectChannel(user.orgId, id)
+  }
+
+  // ─── TEST SEND ──────────────────────────────────────────────────────────
+  @Post('channels/test')
+  testSend(@CurrentUser() user: JwtPayload, @Body() body: { to: string }) {
+    return this.whatsapp.sendTestMessage(user.orgId, body.to)
+  }
+
+  // ─── MANUAL SEND ────────────────────────────────────────────────────────
+  @Post('send')
+  send(@CurrentUser() user: JwtPayload, @Body() body: { to: string; text: string }) {
+    return this.whatsapp.sendFromOrg(user.orgId, body.to, body.text)
+  }
+
+  // ─── BROADCAST ──────────────────────────────────────────────────────────
+  @Post('broadcast')
+  broadcast(@CurrentUser() user: JwtPayload, @Body() body: { contactIds: string[]; text: string }) {
+    return this.whatsapp.broadcast(user.orgId, body.contactIds, body.text)
+  }
+
+  // ─── TEMPLATES ──────────────────────────────────────────────────────────
   @Get('templates')
   async getTemplates(
     @Query('businessId') businessId: string,
@@ -73,18 +93,5 @@ export class WhatsAppController {
       businessId,
       token || process.env.WHATSAPP_ACCESS_TOKEN || '',
     )
-  }
-
-  private async getDefaultOrgId(): Promise<string | null> {
-    // Fallback: get first org from DB
-    try {
-      const { PrismaClient } = require('@prisma/client')
-      const prisma = new PrismaClient()
-      const org = await prisma.organization.findFirst()
-      await prisma.$disconnect()
-      return org?.id || null
-    } catch {
-      return null
-    }
   }
 }

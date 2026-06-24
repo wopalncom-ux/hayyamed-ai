@@ -246,6 +246,14 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // WhatsApp
+  getWhatsAppChannels: () => request('/whatsapp/channels'),
+  connectWhatsApp: (body) => request('/whatsapp/channels', { method: 'POST', body: JSON.stringify(body) }),
+  disconnectWhatsApp: (id) => request(`/whatsapp/channels/${id}`, { method: 'DELETE' }),
+  testWhatsApp: (body) => request('/whatsapp/channels/test', { method: 'POST', body: JSON.stringify(body) }),
+  sendWhatsApp: (body) => request('/whatsapp/send', { method: 'POST', body: JSON.stringify(body) }),
+  broadcastWhatsApp: (body) => request('/whatsapp/broadcast', { method: 'POST', body: JSON.stringify(body) }),
+
   // Email
   testEmail: (body) => request('/master-admin/email/test', { method: 'POST', body: JSON.stringify(body) }),
 
