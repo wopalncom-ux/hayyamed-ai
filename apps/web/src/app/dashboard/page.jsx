@@ -1,360 +1,370 @@
 'use client'
-import { useState, useEffect } from 'react'
+import NavSidebar from '@/components/NavSidebar'
+import { useState, useEffect, useMemo } from 'react'
 import { api } from '@/lib/api'
-import { getAuth, ROLE_LABELS, canSee } from '@/lib/auth'
+import { getAuth, ROLE_LABELS, logout } from '@/lib/auth'
 
-const weekData = {
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  messages: [120, 185, 140, 220, 175, 90, 200],
-  leads: [45, 62, 38, 85, 70, 30, 95],
-  bookings: [12, 18, 10, 25, 20, 8, 28],
-  aiResponses: [98, 145, 110, 180, 140, 72, 165],
+const fmt = (n) => n == null ? '—' : n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n)
+const fmtQar = (n) => (n || 0).toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 })
+
+const STAGE_COLOR = { NEW:'#64748b', CONTACTED:'#3b82f6', QUALIFYING:'#f97316', QUALIFIED:'#00e5a0', PROPOSAL:'#8b5cf6', NEGOTIATION:'#fbbf24', WON:'#22c55e', LOST:'#ef4444' }
+const ACTIVITY_LABEL = { note_added:'Added note', status_changed:'Status changed', contact_created:'Contact created', message_sent:'Message sent', campaign_sent:'Campaign sent', workflow_triggered:'Workflow triggered' }
+const pct = (a, b) => b > 0 ? Math.round((a / b) * 100) : 0
+
+function MiniAreaChart({ data, color = '#00e5a0', keyName = 'messages', height = 64 }) {
+  const W = 400; const H = height
+  const n = data.length
+  if (n < 2) return <div style={{ height }} />
+  const vals = data.map(d => d[keyName] || 0)
+  const max = Math.max(...vals, 1)
+  const pts = vals.map((v, i) => {
+    const x = (i / (n - 1)) * W
+    const y = H - (v / max) * H * 0.85 - 4
+    return [x, y]
+  })
+  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ')
+  const area = line + ` L${pts[n-1][0]},${H} L0,${H} Z`
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height }} preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={`mg-${keyName}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#mg-${keyName})`} />
+      <path d={line} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  )
 }
 
-const campaigns = [
-  { id:1, name:'Ramadan 2024', channel:'WhatsApp', status:'Completed', sent:1234, leads:89, bookings:34, spend:'QAR 500', roi:'340%', cpl:'QAR 5.6' },
-  { id:2, name:'Summer Sale', channel:'Instagram', status:'Active', sent:890, leads:56, bookings:18, spend:'QAR 800', roi:'225%', cpl:'QAR 14.3' },
-  { id:3, name:'Eid Special', channel:'Facebook', status:'Active', sent:456, leads:34, bookings:12, spend:'QAR 300', roi:'400%', cpl:'QAR 8.8' },
-  { id:4, name:'New Year', channel:'WhatsApp', status:'Draft', sent:0, leads:0, bookings:0, spend:'QAR 0', roi:'0%', cpl:'QAR 0' },
-]
-
-const funnel = [
-  { stage:'New Leads', count:425, color:'#3b82f6', pct:100 },
-  { stage:'Hot Leads', count:180, color:'#f97316', pct:42 },
-  { stage:'Booked', count:89, color:'#a78bfa', pct:21 },
-  { stage:'Won', count:67, color:'#00e5a0', pct:16 },
-]
-
-const statusColors = { Active:'#00e5a0', Completed:'#3b82f6', Draft:'#f97316' }
-const channelIcons = { WhatsApp:'💬', Instagram:'📸', Facebook:'👤', Telegram:'✈️' }
-const maxVal = Math.max(...weekData.messages)
+function QuickAction({ href, icon, label, color }) {
+  return (
+    <a href={href} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '14px 8px', background: '#111622', border: `1px solid ${color}33`, borderRadius: '10px', textDecoration: 'none', transition: 'all .15s', minWidth: '90px', flex: 1 }}
+      onMouseEnter={e => { e.currentTarget.style.background = color + '12'; e.currentTarget.style.borderColor = color + '55' }}
+      onMouseLeave={e => { e.currentTarget.style.background = '#111622'; e.currentTarget.style.borderColor = color + '33' }}>
+      <span style={{ fontSize: '22px' }}>{icon}</span>
+      <span style={{ fontSize: '11px', fontWeight: '700', color, textAlign: 'center' }}>{label}</span>
+    </a>
+  )
+}
 
 export default function Dashboard() {
-  const [showMenu, setShowMenu] = useState(false)
-  const [period, setPeriod] = useState('week')
-  const [metric, setMetric] = useState('messages')
-  const [aiAdvice, setAiAdvice] = useState('')
-  const [aiLoading, setAiLoading] = useState(false)
-  const [showAiPanel, setShowAiPanel] = useState(false)
-  const [stats, setStats] = useState(null)
+  const [full, setFull] = useState(null)
+  const [chart, setChart] = useState([])
+  const [loading, setLoading] = useState(true)
   const [auth, setAuth] = useState({})
 
   useEffect(() => {
-    api.getDashboard().then(data => setStats(data)).catch(() => {})
     setAuth(getAuth())
+    Promise.all([
+      api.getFullStats().catch(() => null),
+      api.getAnalytics('7days').catch(() => ({ days: [] })),
+    ]).then(([f, c]) => {
+      setFull(f)
+      setChart(c?.days || [])
+      setLoading(false)
+    })
   }, [])
 
-  const role      = auth.role || 'owner'
-  const userName  = auth.userName || 'Abbas Al Masri'
-  const userInit  = userName.split(' ').map(n=>n[0]).join('').slice(0,2)
-  const roleInfo  = ROLE_LABELS[role] || ROLE_LABELS.owner
+  const kpis = full?.kpis
+  const pipeline = full?.pipeline || []
+  const campaigns = full?.campaigns || []
+  const activities = full?.recentActivities || []
 
-  const logout = () => {
-    localStorage.removeItem('hayyamed_auth')
-    window.location.href = '/login'
-  }
+  const userName = auth.userName || auth.name || 'Abbas'
+  const firstName = userName.split(' ')[0]
+  const roleInfo = ROLE_LABELS[auth.role || 'owner'] || ROLE_LABELS.owner
 
-  const getAiAdvice = async (question) => {
-    setAiLoading(true)
-    setAiAdvice('')
-    setShowAiPanel(true)
-    try {
-      const context = `
-        Current business data:
-        - Total messages this week: 1,130
-        - Total leads: 425
-        - Bookings: 121
-        - Conversion rate: 16%
-        - Best performing campaign: Ramadan 2024 (ROI 340%)
-        - Active campaigns: Summer Sale (Instagram), Eid Special (Facebook)
-        - Most leads from: WhatsApp (45%), Instagram (25%)
-        - AI response rate: 94%
-      `
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: question + '\n\nBusiness context:\n' + context,
-          history: [{
-            role: 'system',
-            content: 'You are an expert business advisor for a Qatar-based CRM platform. Give specific, actionable advice based on the data provided. Be concise and direct.'
-          }]
-        })
-      })
-      const data = await res.json()
-      setAiAdvice(data.reply)
-    } catch {
-      setAiAdvice('AI advisor is not available right now.')
-    }
-    setAiLoading(false)
-  }
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
-  const quickAdvice = [
-    'How can I increase my leads?',
-    'Which campaign should I run next?',
-    'What is my best performing channel?',
-    'How to improve booking rate?',
-    'Should I run WhatsApp or Instagram ads?',
-    'What call to action works best for my leads?',
-  ]
+  // Chart data — combine messages + contacts on same sparklines
+  const chartMsgMax = Math.max(...chart.map(d => d.messages || 0), 1)
+  const chartConMax = Math.max(...chart.map(d => d.contacts || 0), 1)
 
-  const chartData = weekData[metric] || weekData.messages
-  const chartMax = Math.max(...chartData)
+  // Pipeline max count for funnel bar widths
+  const pipelineMax = Math.max(...pipeline.map(s => s.count), 1)
 
   return (
-    <div style={{background:'#07090f', color:'#e2e8f0', minHeight:'100vh', fontFamily:'sans-serif'}}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0f1a', color: '#e2e8f0', fontFamily: 'system-ui,sans-serif' }}>
+      <NavSidebar current="dashboard" />
 
-      {/* Topbar */}
-      <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'12px', position:'sticky', top:0, zIndex:50}}>
-        <img src="/logo.svg" alt="Hayyamed" style={{height:'40px', width:'auto'}} />
-        <div style={{marginLeft:'auto'}}/>
-        <span style={{fontSize:'10px', padding:'4px 10px', background:`${roleInfo.color}15`, border:`1px solid ${roleInfo.color}40`, borderRadius:'4px', color:roleInfo.color, fontWeight:'700'}}>{roleInfo.label}</span>
-        <button onClick={() => getAiAdvice('Give me a quick summary of my business performance and top 3 recommendations')} style={{padding:'8px 18px', background:'linear-gradient(135deg,rgba(167,139,250,.25),rgba(167,139,250,.12))', border:'1px solid rgba(167,139,250,.5)', borderRadius:'6px', color:'#c4b5fd', fontSize:'12px', cursor:'pointer', fontWeight:'700', letterSpacing:'.3px', display:'flex', alignItems:'center', gap:'7px', boxShadow:'0 0 20px rgba(167,139,250,.15)'}}>
-          <span style={{fontSize:'18px'}}>🤖</span> AI Advisor
-        </button>
-        <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
-        <div style={{position:'relative'}}>
-          <div onClick={() => setShowMenu(!showMenu)} style={{width:'32px', height:'32px', borderRadius:'50%', background:`linear-gradient(135deg,${roleInfo.color},${roleInfo.color}99)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'800', cursor:'pointer', color:'#07090f'}}>{userInit}</div>
-          {showMenu && (
-            <div style={{position:'absolute', top:'40px', right:'0', background:'#0f1520', border:'1px solid #1a2235', borderRadius:'8px', minWidth:'180px', zIndex:100, padding:'8px', boxShadow:'0 12px 40px rgba(0,0,0,.5)'}}>
-              <div style={{padding:'10px 12px', borderBottom:'1px solid #1a2235', marginBottom:'4px'}}>
-                <div style={{fontSize:'12px', fontWeight:'700', color:'#e2e8f0'}}>{userName}</div>
-                <div style={{fontSize:'10px', color:roleInfo.color, fontWeight:'600', marginTop:'2px'}}>{roleInfo.label}</div>
-              </div>
-              <a href="/settings" style={{display:'block', padding:'8px 12px', fontSize:'12px', color:'#e2e8f0', textDecoration:'none'}}>⚙️ Settings</a>
-              <a href="/profile" style={{display:'block', padding:'8px 12px', fontSize:'12px', color:'#e2e8f0', textDecoration:'none'}}>👤 Profile</a>
-              <div onClick={logout} style={{padding:'8px 12px', fontSize:'12px', color:'#ef4444', cursor:'pointer', borderTop:'1px solid #1a2235', marginTop:'4px'}}>🚪 Logout</div>
-            </div>
-          )}
-        </div>
-      </div>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
-      <div style={{display:'flex', height:'calc(100vh - 52px)'}}>
-
-        {/* Sidebar */}
-        <div style={{width:'56px', background:'#0c0f1a', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', gap:'8px', flexShrink:0}}>
-          {[
-            {h:'/dashboard',    icon:'⊞', page:'dashboard',    active:true},
-            {h:'/inbox',        icon:'💬', page:'inbox'},
-            {h:'/contacts',     icon:'👥', page:'contacts'},
-            {h:'/analytics',    icon:'📈', page:'analytics'},
-            {h:'/reports',      icon:'📊', page:'reports'},
-            {h:'/campaigns',    icon:'📣', page:'campaigns'},
-            {h:'/chatbot',      icon:'🤖', page:'chatbot'},
-            {h:'/notifications',icon:'🔔', page:'notifications'},
-            {h:'/agency',       icon:'🏢', page:'agency'},
-            {h:'/integrations', icon:'🔌', page:'integrations'},
-            {h:'/settings',     icon:'⚙️', page:'settings'},
-          ].filter(n => canSee(n.page) || n.page === 'dashboard').map(n => (
-            <a key={n.h} href={n.h} title={n.page} style={{width:'40px', height:'40px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', textDecoration:'none', background: n.active ? 'rgba(0,229,160,.1)' : 'transparent'}}>{n.icon}</a>
-          ))}
+        {/* Topbar */}
+        <div style={{ height: '50px', background: '#0c0f1a', borderBottom: '1px solid #1a2235', display: 'flex', alignItems: 'center', padding: '0 20px', gap: '10px', flexShrink: 0, position: 'sticky', top: 0, zIndex: 40 }}>
+          <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#00e5a0' }}>med</span> AI</div>
+          <div style={{ flex: 1 }} />
+          <span style={{ fontSize: '10px', padding: '3px 9px', background: roleInfo.color + '18', border: `1px solid ${roleInfo.color}44`, borderRadius: '12px', color: roleInfo.color, fontWeight: '700' }}>{roleInfo.label}</span>
+          <div style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '10px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.2)', color: '#00e5a0', fontWeight: '700' }}>● LIVE</div>
+          <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: `linear-gradient(135deg, ${roleInfo.color}, ${roleInfo.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800', color: '#0a0f1a', cursor: 'pointer' }}
+            onClick={logout}>
+            {firstName[0]}{(userName.split(' ')[1] || '')[0] || ''}
+          </div>
         </div>
 
-        {/* Main Content */}
-        <div style={{flex:1, overflowY:'auto', padding:'20px', display:'flex', flexDirection:'column', gap:'16px'}}>
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '18px', flex: 1 }}>
 
-          {/* Header */}
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+          {/* Greeting + quick actions */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
             <div>
-              <div style={{fontWeight:'800', fontSize:'20px'}}>Dashboard</div>
-              <div style={{fontSize:'12px', color:'#7a8fa6', marginTop:'3px'}}>Welcome back — here is your business overview</div>
+              <h1 style={{ fontSize: '22px', fontWeight: '800', margin: 0 }}>{greeting}, {firstName} 👋</h1>
+              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>{today} · Here's your CRM overview</div>
             </div>
-            <div style={{display:'flex', gap:'6px'}}>
-              {['today','week','month'].map(p => (
-                <button key={p} onClick={() => setPeriod(p)} style={{padding:'6px 12px', background: period===p ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: period===p ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: period===p ? '700' : '400', textTransform:'capitalize'}}>
-                  {p === 'today' ? 'Today' : p === 'week' ? 'This Week' : 'This Month'}
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <QuickAction href="/contacts?action=new" icon="➕" label="New Contact" color="#00e5a0" />
+              <QuickAction href="/campaigns" icon="📣" label="New Campaign" color="#3b82f6" />
+              <QuickAction href="/pipeline" icon="📊" label="Pipeline" color="#8b5cf6" />
+              <QuickAction href="/inbox" icon="💬" label="Inbox" color="#f97316" />
+              <QuickAction href="/analytics" icon="📈" label="Analytics" color="#fbbf24" />
             </div>
           </div>
 
-          {/* KPI Cards */}
-          <div style={{display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'10px'}}>
+          {/* KPI Strip */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
             {[
-              {label:'MESSAGES', value: stats ? stats.totalConvs.toLocaleString() : '1,130', change:'+18%', color:'#00e5a0', icon:'💬'},
-              {label:'LEADS', value: stats ? stats.totalLeads.toLocaleString() : '425', change:'+24%', color:'#3b82f6', icon:'👤'},
-              {label:'BOOKINGS', value: stats ? stats.booked.toLocaleString() : '121', change:'+31%', color:'#a78bfa', icon:'📅'},
-              {label:'AI RATE', value:'94%', change:'+3%', color:'#f97316', icon:'🤖'},
-              {label:'CONVERSION', value: stats ? stats.conversionRate + '%' : '16%', change:'+2%', color:'#fbbf24', icon:'📈'},
-            ].map((kpi, i) => (
-              <div key={i} style={{background:'#0f1520', border:'1px solid #1a2235', padding:'14px', borderTop:`2px solid ${kpi.color}`}}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
-                  <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{kpi.label}</div>
-                  <span style={{fontSize:'16px'}}>{kpi.icon}</span>
-                </div>
-                <div style={{fontSize:'22px', fontWeight:'800'}}>{kpi.value}</div>
-                <div style={{fontSize:'10px', marginTop:'4px', color:'#00e5a0'}}>↑ {kpi.change} vs last period</div>
+              { label: 'Total Contacts',   value: fmt(kpis?.totalContacts),   sub: `+${kpis?.newContacts7d || 0} this week`,    color: '#00e5a0', chart: chart, chartKey: 'contacts' },
+              { label: 'Pipeline Value',   value: fmtQar(kpis?.pipelineValue), sub: `${fmtQar(kpis?.wonValue)} won`,            color: '#3b82f6', chart: null },
+              { label: 'Win Rate',         value: `${kpis?.winRate ?? '—'}%`,  sub: `${kpis?.wonContacts || 0} deals closed`,   color: '#22c55e', chart: null },
+              { label: 'Open Convs',       value: fmt(kpis?.openConvs),        sub: `${fmt(kpis?.totalConvs)} total`,           color: '#f97316', chart: null },
+              { label: 'Active Campaigns', value: fmt(kpis?.activeCampaigns),  sub: `${kpis?.totalCampaigns || 0} total`,       color: '#8b5cf6', chart: null },
+              { label: 'Workflow Runs',    value: fmt(kpis?.totalWorkflowRuns), sub: 'all time',                                color: '#06b6d4', chart: null },
+            ].map((k, i) => (
+              <div key={i} style={{ background: '#111622', border: '1px solid #1a2235', borderTop: `2px solid ${k.color}`, borderRadius: '8px', padding: '14px 16px', overflow: 'hidden', position: 'relative' }}>
+                <div style={{ fontSize: '10px', color: '#475569', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{k.label}</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: k.color }}>{loading ? '—' : k.value}</div>
+                <div style={{ fontSize: '11px', color: '#475569', marginTop: '3px' }}>{k.sub}</div>
+                {k.chart && k.chart.length > 2 && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, opacity: 0.5 }}>
+                    <MiniAreaChart data={k.chart} color={k.color} keyName={k.chartKey} height={36} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
-          <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:'14px'}}>
+          {/* Chart + Pipeline funnel */}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
 
-            {/* Main Chart */}
-            <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'18px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px'}}>
-                <div style={{fontWeight:'700', fontSize:'13px'}}>Performance Chart</div>
-                <div style={{display:'flex', gap:'4px'}}>
-                  {['messages','leads','bookings','aiResponses'].map(m => (
-                    <button key={m} onClick={() => setMetric(m)} style={{padding:'4px 8px', background: metric===m ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'3px', color: metric===m ? '#07090f' : '#7a8fa6', fontSize:'9px', cursor:'pointer', fontWeight: metric===m ? '700' : '400', textTransform:'capitalize'}}>
-                      {m === 'aiResponses' ? 'AI' : m.charAt(0).toUpperCase() + m.slice(1)}
-                    </button>
-                  ))}
+            {/* 7-day chart */}
+            <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div style={{ fontWeight: '700', fontSize: '14px' }}>Last 7 Days</div>
+                <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#64748b' }}>
+                  <span><span style={{ display: 'inline-block', width: '10px', height: '3px', background: '#3b82f6', borderRadius: '2px', verticalAlign: 'middle', marginRight: '4px' }} />Messages</span>
+                  <span><span style={{ display: 'inline-block', width: '10px', height: '3px', background: '#00e5a0', borderRadius: '2px', verticalAlign: 'middle', marginRight: '4px' }} />Contacts</span>
                 </div>
               </div>
-              <div style={{display:'flex', alignItems:'flex-end', gap:'6px', height:'140px', marginBottom:'8px'}}>
-                {chartData.map((val, i) => (
-                  <div key={i} style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', height:'100%', justifyContent:'flex-end', gap:'4px'}}>
-                    <div style={{fontSize:'8px', color:'#3d4f63'}}>{val}</div>
-                    <div style={{width:'100%', borderRadius:'3px 3px 0 0', background:`linear-gradient(180deg, #00e5a0, #00b37e)`, height:`${(val/chartMax)*100}%`, minHeight:'4px', transition:'height .4s'}}></div>
-                    <div style={{fontSize:'8px', color:'#3d4f63'}}>{weekData.labels[i]}</div>
+              {chart.length < 2 ? (
+                <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '12px' }}>
+                  {loading ? 'Loading…' : 'No activity data yet'}
+                </div>
+              ) : (
+                <>
+                  {/* Dual mini chart */}
+                  <div style={{ position: 'relative', height: '120px' }}>
+                    <svg viewBox={`0 0 700 120`} style={{ width: '100%', height: '120px' }} preserveAspectRatio="none">
+                      {/* Grid */}
+                      {[0, 0.33, 0.66, 1].map((t, i) => (
+                        <line key={i} x1="0" x2="700" y1={t * 110 + 5} y2={t * 110 + 5} stroke="#1a2235" strokeWidth="1" />
+                      ))}
+                      {/* Messages area */}
+                      {(() => {
+                        const n = chart.length
+                        const pts = chart.map((d, i) => {
+                          const x = (i / (n - 1)) * 700
+                          const y = 110 - ((d.messages || 0) / chartMsgMax) * 100 + 5
+                          return [x, y]
+                        })
+                        const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ')
+                        const area = line + ` L${pts[n-1][0]},115 L0,115 Z`
+                        return (
+                          <g key="msg">
+                            <defs><linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" /><stop offset="100%" stopColor="#3b82f6" stopOpacity="0" /></linearGradient></defs>
+                            <path d={area} fill="url(#gm)" />
+                            <polyline points={pts.map(p => p.join(',')).join(' ')} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
+                          </g>
+                        )
+                      })()}
+                      {/* Contacts area */}
+                      {(() => {
+                        const n = chart.length
+                        const pts = chart.map((d, i) => {
+                          const x = (i / (n - 1)) * 700
+                          const y = 110 - ((d.contacts || 0) / chartConMax) * 100 + 5
+                          return [x, y]
+                        })
+                        const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ')
+                        const area = line + ` L${pts[n-1][0]},115 L0,115 Z`
+                        return (
+                          <g key="con">
+                            <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#00e5a0" stopOpacity="0.2" /><stop offset="100%" stopColor="#00e5a0" stopOpacity="0" /></linearGradient></defs>
+                            <path d={area} fill="url(#gc)" />
+                            <polyline points={pts.map(p => p.join(',')).join(' ')} fill="none" stroke="#00e5a0" strokeWidth="2" strokeLinejoin="round" />
+                          </g>
+                        )
+                      })()}
+                      {/* X-axis labels */}
+                      {chart.map((d, i) => {
+                        const x = (i / (chart.length - 1)) * 700
+                        const dt = new Date(d.date)
+                        return <text key={i} x={x} y={120} fontSize="9" fill="#475569" textAnchor="middle">{['Su','Mo','Tu','We','Th','Fr','Sa'][dt.getUTCDay()]}</text>
+                      })}
+                    </svg>
                   </div>
-                ))}
-              </div>
+                  {/* Day totals */}
+                  <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+                    {chart.map((d, i) => (
+                      <div key={i} style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: '9px', color: '#3b82f6', fontWeight: '700' }}>{d.messages || 0}</div>
+                        <div style={{ fontSize: '9px', color: '#00e5a0' }}>{d.contacts || 0}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Lead Funnel */}
-            <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'18px'}}>
-              <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>Lead Funnel</div>
-              {funnel.map((f, i) => (
-                <div key={i} style={{marginBottom:'12px'}}>
-                  <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
-                    <div style={{fontSize:'11px', color:'#7a8fa6'}}>{f.stage}</div>
-                    <div style={{fontSize:'11px', fontWeight:'700', color:f.color}}>{f.count} <span style={{color:'#3d4f63', fontWeight:'400'}}>({f.pct}%)</span></div>
-                  </div>
-                  <div style={{height:'8px', background:'#1a2235', borderRadius:'4px', overflow:'hidden'}}>
-                    <div style={{height:'100%', width:`${f.pct}%`, background:f.color, borderRadius:'4px', transition:'width .5s'}}></div>
+            {/* Pipeline Funnel */}
+            <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ fontWeight: '700', fontSize: '14px' }}>Pipeline</div>
+                <a href="/pipeline" style={{ fontSize: '11px', color: '#3b82f6', textDecoration: 'none' }}>Open →</a>
+              </div>
+              {loading ? (
+                <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div>
+              ) : pipeline.every(s => s.count === 0) ? (
+                <div style={{ fontSize: '12px', color: '#475569', padding: '20px 0' }}>No contacts in pipeline yet.<br /><a href="/contacts" style={{ color: '#3b82f6' }}>Add contacts →</a></div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {pipeline.filter(s => s.count > 0).map(s => {
+                    const color = STAGE_COLOR[s.status] || '#64748b'
+                    const w = pct(s.count, pipelineMax)
+                    return (
+                      <div key={s.status} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '68px', fontSize: '10px', color: '#64748b', textAlign: 'right', flexShrink: 0 }}>{s.status}</div>
+                        <div style={{ flex: 1, height: '16px', background: '#0a0f1a', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${w}%`, background: color, opacity: 0.8, borderRadius: '3px', transition: 'width .5s' }} />
+                        </div>
+                        <div style={{ width: '22px', fontSize: '11px', fontWeight: '800', color, textAlign: 'right', flexShrink: 0 }}>{s.count}</div>
+                      </div>
+                    )
+                  })}
+                  <div style={{ marginTop: '10px', padding: '10px', background: '#0a0f1a', borderRadius: '6px', border: '1px solid #1a2235' }}>
+                    <div style={{ fontSize: '10px', color: '#475569' }}>Pipeline Value</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#3b82f6' }}>{fmtQar(kpis?.pipelineValue)}</div>
+                    <div style={{ fontSize: '10px', color: '#475569', marginTop: '2px' }}>{fmtQar(kpis?.wonValue)} won · {kpis?.winRate || 0}% win rate</div>
                   </div>
                 </div>
-              ))}
-              <div style={{marginTop:'16px', padding:'10px', background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px'}}>
-                <div style={{fontSize:'10px', color:'#3d4f63', marginBottom:'3px'}}>ESTIMATED ROI</div>
-                <div style={{fontSize:'18px', fontWeight:'800', color:'#00e5a0'}}>340%</div>
-                <div style={{fontSize:'10px', color:'#7a8fa6'}}>Based on current campaigns</div>
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Campaigns */}
-          <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'18px'}}>
-            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px'}}>
-              <div style={{fontWeight:'700', fontSize:'13px'}}>Campaign Performance & ROI</div>
-              <a href="/campaigns" style={{fontSize:'11px', color:'#00e5a0', textDecoration:'none'}}>View All →</a>
-            </div>
-            <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px', marginBottom:'12px', padding:'8px 12px', background:'#0c0f1a', borderRadius:'4px'}}>
-              {['CAMPAIGN','CHANNEL / STATUS','LEADS & BOOKINGS','ROI & COST/LEAD'].map(h => (
-                <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{h}</div>
-              ))}
-            </div>
-            {campaigns.map(c => (
-              <div key={c.id} style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px', padding:'10px 12px', borderBottom:'1px solid #1a2235', alignItems:'center'}}>
-                <div style={{fontSize:'12px', fontWeight:'600'}}>{c.name}</div>
-                <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
-                  <span style={{fontSize:'14px'}}>{channelIcons[c.channel]}</span>
-                  <span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[c.status]}20`, color:statusColors[c.status]}}>{c.status}</span>
-                </div>
-                <div>
-                  <div style={{fontSize:'11px', color:'#7a8fa6'}}>👤 {c.leads} leads · 📅 {c.bookings} booked</div>
-                  <div style={{fontSize:'10px', color:'#3d4f63'}}>Sent: {c.sent.toLocaleString()}</div>
-                </div>
-                <div>
-                  <div style={{fontSize:'13px', fontWeight:'800', color:'#00e5a0'}}>{c.roi}</div>
-                  <div style={{fontSize:'10px', color:'#7a8fa6'}}>CPL: {c.cpl}</div>
-                </div>
+          {/* Campaigns + Activity Feed */}
+          <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '16px' }}>
+
+            {/* Top Campaigns */}
+            <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ fontWeight: '700', fontSize: '14px' }}>Campaigns</div>
+                <a href="/campaigns" style={{ fontSize: '11px', color: '#3b82f6', textDecoration: 'none' }}>View all →</a>
               </div>
+              {loading ? <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div>
+                : campaigns.length === 0 ? (
+                  <div style={{ fontSize: '12px', color: '#475569', padding: '16px 0' }}>
+                    No campaigns yet. <a href="/campaigns" style={{ color: '#3b82f6' }}>Create one →</a>
+                  </div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #1a2235' }}>
+                        {['Name', 'Status', 'Sent', 'Read Rate'].map(h => (
+                          <th key={h} style={{ padding: '5px 8px', textAlign: 'left', color: '#475569', fontSize: '10px', fontWeight: '600' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {campaigns.map(c => {
+                        const readRate = pct(c.read, c.total)
+                        const sc = c.status === 'COMPLETED' ? '#22c55e' : c.status === 'RUNNING' ? '#00e5a0' : '#64748b'
+                        return (
+                          <tr key={c.id} style={{ borderBottom: '1px solid #111622' }}>
+                            <td style={{ padding: '9px 8px', color: '#e2e8f0', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '600' }}>{c.name}</td>
+                            <td style={{ padding: '9px 8px' }}>
+                              <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: sc + '22', color: sc, fontWeight: '700' }}>{c.status}</span>
+                            </td>
+                            <td style={{ padding: '9px 8px', color: '#94a3b8' }}>{c.total}</td>
+                            <td style={{ padding: '9px 8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <div style={{ width: '50px', height: '5px', background: '#1a2235', borderRadius: '3px', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${readRate}%`, background: readRate >= 40 ? '#22c55e' : readRate >= 20 ? '#fbbf24' : '#64748b', borderRadius: '3px' }} />
+                                </div>
+                                <span style={{ fontSize: '11px', fontWeight: '700', color: readRate >= 40 ? '#22c55e' : readRate >= 20 ? '#fbbf24' : '#64748b' }}>{readRate}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )
+              }
+            </div>
+
+            {/* Recent Activity */}
+            <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ fontWeight: '700', fontSize: '14px' }}>Recent Activity</div>
+                <a href="/analytics" style={{ fontSize: '11px', color: '#3b82f6', textDecoration: 'none' }}>All →</a>
+              </div>
+              {loading ? <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div>
+                : activities.length === 0 ? (
+                  <div style={{ fontSize: '12px', color: '#475569' }}>No activity yet</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                    {activities.slice(0, 8).map((a, i) => (
+                      <div key={a.id} style={{ display: 'flex', gap: '8px', padding: '7px 0', borderBottom: i < Math.min(activities.length, 8) - 1 ? '1px solid #1a2235' : 'none' }}>
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00e5a0', flexShrink: 0, marginTop: '5px' }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '12px', color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {ACTIVITY_LABEL[a.type] || a.type.replace(/_/g, ' ')}
+                            {a.contactName && <> · <a href={a.contactId ? `/contacts/${a.contactId}` : '#'} style={{ color: '#3b82f6', textDecoration: 'none' }}>{a.contactName}</a></>}
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#475569', marginTop: '1px' }}>
+                            {a.userName && `${a.userName} · `}
+                            {new Date(a.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              }
+            </div>
+          </div>
+
+          {/* Bottom nav shortcuts */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingBottom: '8px' }}>
+            {[
+              { href: '/contacts', label: 'Contacts', sub: fmt(kpis?.totalContacts) + ' total', color: '#00e5a0' },
+              { href: '/inbox',    label: 'Inbox',    sub: fmt(kpis?.openConvs) + ' open',     color: '#f97316' },
+              { href: '/workflows',label: 'Workflows', sub: fmt(kpis?.totalWorkflowRuns) + ' runs', color: '#06b6d4' },
+              { href: '/campaigns',label: 'Campaigns', sub: fmt(kpis?.activeCampaigns) + ' active', color: '#8b5cf6' },
+              { href: '/analytics',label: 'Analytics', sub: 'Full report', color: '#fbbf24' },
+              { href: '/settings', label: 'Settings',  sub: 'Integrations', color: '#64748b' },
+            ].map(s => (
+              <a key={s.href} href={s.href} style={{ flex: 1, minWidth: '100px', padding: '12px 14px', background: '#111622', border: `1px solid ${s.color}22`, borderRadius: '8px', textDecoration: 'none', transition: 'border-color .15s' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = s.color + '55'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = s.color + '22'}>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: s.color }}>{s.label}</div>
+                <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>{loading ? '—' : s.sub}</div>
+              </a>
             ))}
-          </div>
-
-          {/* Channel Performance */}
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px'}}>
-            <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'18px'}}>
-              <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'14px'}}>Channel Performance</div>
-              {[
-                {name:'WhatsApp', leads:191, pct:45, color:'#00e5a0'},
-                {name:'Instagram', leads:106, pct:25, color:'#a78bfa'},
-                {name:'Facebook', leads:77, pct:18, color:'#3b82f6'},
-                {name:'Telegram', leads:34, pct:8, color:'#f97316'},
-                {name:'Email', leads:17, pct:4, color:'#fbbf24'},
-              ].map(ch => (
-                <div key={ch.name} style={{marginBottom:'10px'}}>
-                  <div style={{display:'flex', justifyContent:'space-between', marginBottom:'4px'}}>
-                    <div style={{fontSize:'11px', color:'#7a8fa6'}}>{channelIcons[ch.name] || '📧'} {ch.name}</div>
-                    <div style={{fontSize:'11px', color:ch.color, fontWeight:'600'}}>{ch.leads} leads ({ch.pct}%)</div>
-                  </div>
-                  <div style={{height:'6px', background:'#1a2235', borderRadius:'3px', overflow:'hidden'}}>
-                    <div style={{height:'100%', width:`${ch.pct}%`, background:ch.color, borderRadius:'3px'}}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'18px'}}>
-              <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'14px'}}>AI Performance</div>
-              {[
-                {label:'Response Rate', value:'94%', color:'#00e5a0', bar:94},
-                {label:'Avg Response Time', value:'1.2s', color:'#3b82f6', bar:88},
-                {label:'Customer Satisfaction', value:'4.8/5', color:'#a78bfa', bar:96},
-                {label:'Lead Qualification', value:'72%', color:'#f97316', bar:72},
-                {label:'Handoff to Human', value:'6%', color:'#ef4444', bar:6},
-              ].map(s => (
-                <div key={s.label} style={{marginBottom:'10px'}}>
-                  <div style={{display:'flex', justifyContent:'space-between', marginBottom:'4px'}}>
-                    <div style={{fontSize:'11px', color:'#7a8fa6'}}>{s.label}</div>
-                    <div style={{fontSize:'11px', color:s.color, fontWeight:'700'}}>{s.value}</div>
-                  </div>
-                  <div style={{height:'6px', background:'#1a2235', borderRadius:'3px', overflow:'hidden'}}>
-                    <div style={{height:'100%', width:`${s.bar}%`, background:s.color, borderRadius:'3px'}}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
         </div>
-
-        {/* AI Advisor Panel */}
-        {showAiPanel && (
-          <div style={{width:'300px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', display:'flex', flexDirection:'column', flexShrink:0}}>
-            <div style={{padding:'14px 16px', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
-              <div>
-                <div style={{fontWeight:'700', fontSize:'13px', color:'#a78bfa'}}>🤖 AI Business Advisor</div>
-                <div style={{fontSize:'10px', color:'#3d4f63', marginTop:'2px'}}>Powered by GPT-4</div>
-              </div>
-              <button onClick={() => setShowAiPanel(false)} style={{background:'none', border:'none', color:'#7a8fa6', cursor:'pointer', fontSize:'16px'}}>×</button>
-            </div>
-
-            <div style={{padding:'12px', borderBottom:'1px solid #1a2235'}}>
-              <div style={{fontSize:'10px', color:'#3d4f63', marginBottom:'8px'}}>QUICK ADVICE:</div>
-              {quickAdvice.map(q => (
-                <button key={q} onClick={() => getAiAdvice(q)} style={{display:'block', width:'100%', textAlign:'left', padding:'7px 10px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'10px', cursor:'pointer', marginBottom:'5px'}}>
-                  💡 {q}
-                </button>
-              ))}
-            </div>
-
-            <div style={{flex:1, padding:'12px', display:'flex', flexDirection:'column', gap:'8px', overflowY:'auto'}}>
-              {aiLoading && (
-                <div style={{padding:'12px', background:'rgba(167,139,250,.05)', border:'1px solid rgba(167,139,250,.2)', borderRadius:'4px', fontSize:'11px', color:'#a78bfa'}}>
-                  🤖 Analyzing your business data...
-                </div>
-              )}
-              {aiAdvice && !aiLoading && (
-                <div style={{padding:'14px', background:'rgba(167,139,250,.05)', border:'1px solid rgba(167,139,250,.2)', borderRadius:'4px', fontSize:'11px', color:'#e2e8f0', lineHeight:'1.7'}}>
-                  {aiAdvice}
-                </div>
-              )}
-            </div>
-
-            <div style={{padding:'12px', borderTop:'1px solid #1a2235'}}>
-              <input
-                placeholder="Ask AI advisor..."
-                onKeyDown={e => e.key==='Enter' && getAiAdvice(e.target.value)}
-                style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 10px', color:'#e2e8f0', fontSize:'11px', outline:'none'}}
-              />
-            </div>
-          </div>
-        )}
-
       </div>
     </div>
   )
