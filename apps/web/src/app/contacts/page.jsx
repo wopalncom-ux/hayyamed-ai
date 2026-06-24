@@ -39,6 +39,7 @@ export default function Contacts() {
   const [duplicates, setDuplicates] = useState([])
   const [uploadedFile, setUploadedFile] = useState(null)
   const [tab, setTab] = useState('list')
+  const [scoringAll, setScoringAll] = useState(false)
 
   const [newContact, setNewContact] = useState({
     phone:'', name:'', email:'', status:'New Lead', channel:'WhatsApp', services:[], notes:''
@@ -173,6 +174,19 @@ export default function Contacts() {
               <div style={{marginLeft:'auto', display:'flex', gap:'6px'}}>
                 <button onClick={exportCSV} style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
                 <a href="/contacts/import" style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer', textDecoration:'none', display:'inline-block'}}>📊 Import CSV</a>
+                <button
+                  disabled={scoringAll}
+                  onClick={async () => {
+                    setScoringAll(true)
+                    try {
+                      const r = await api.scoreAllContacts()
+                      alert(`🤖 Scoring ${r.queued} contacts in background. Refresh in ~1 min to see scores.`)
+                    } catch (e) { alert('Scoring failed: ' + e.message) }
+                    setScoringAll(false)
+                  }}
+                  style={{padding:'6px 12px', background: scoringAll ? '#1a2235' : 'rgba(139,92,246,.12)', border:'1px solid rgba(139,92,246,.3)', borderRadius:'4px', color:'#8b5cf6', fontWeight:'700', fontSize:'11px', cursor: scoringAll ? 'default' : 'pointer'}}>
+                  {scoringAll ? '⏳ Queuing...' : '🤖 Score All'}
+                </button>
                 <button onClick={() => setShowAdd(true)} style={{padding:'6px 12px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>+ Add Contact</button>
               </div>
             </div>
@@ -201,8 +215,8 @@ export default function Contacts() {
                   <div style={{fontSize:'13px'}}>{channelIcons[c.channel]} <span style={{fontSize:'11px', color:'#7a8fa6'}}>{c.channel}</span></div>
                   <div>
                     <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
-                      <div style={{fontSize:'13px', fontWeight:'800', color: c.score >= 7 ? '#00e5a0' : c.score >= 4 ? '#f97316' : '#ef4444'}}>{c.score}</div>
-                      <div style={{fontSize:'9px', color:'#3d4f63'}}>/10</div>
+                      <div style={{fontSize:'13px', fontWeight:'800', color: !c.score ? '#3d4f63' : c.score >= 80 ? '#22c55e' : c.score >= 60 ? '#00e5a0' : c.score >= 40 ? '#fbbf24' : c.score >= 20 ? '#f97316' : '#ef4444'}}>{c.score || '—'}</div>
+                      {c.score > 0 && <div style={{fontSize:'9px', color:'#3d4f63'}}>/100</div>}
                     </div>
                   </div>
                   <div style={{display:'flex', gap:'3px', flexWrap:'wrap'}}>
@@ -225,8 +239,8 @@ export default function Contacts() {
                 <div style={{fontWeight:'700', fontSize:'14px'}}>{selected.name || 'No name'}</div>
                 <div style={{fontSize:'11px', color:'#7a8fa6', marginTop:'3px'}}>{selected.status}</div>
                 <div style={{display:'flex', justifyContent:'center', gap:'6px', marginTop:'8px'}}>
-                  <div style={{width:'8px', height:'8px', borderRadius:'50%', background: selected.score >= 7 ? '#00e5a0' : selected.score >= 4 ? '#f97316' : '#ef4444'}}></div>
-                  <span style={{fontSize:'10px', color:'#7a8fa6'}}>Lead Score: {selected.score}/10</span>
+                  <div style={{width:'8px', height:'8px', borderRadius:'50%', background: !selected.score ? '#3d4f63' : selected.score >= 80 ? '#22c55e' : selected.score >= 60 ? '#00e5a0' : selected.score >= 40 ? '#fbbf24' : '#f97316'}}></div>
+                  <span style={{fontSize:'10px', color:'#7a8fa6'}}>AI Score: {selected.score || '—'}{selected.score > 0 ? '/100' : ''}</span>
                 </div>
               </div>
 

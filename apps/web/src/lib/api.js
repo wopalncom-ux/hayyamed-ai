@@ -177,6 +177,8 @@ export const api = {
     request('/ai/reply', { method: 'POST', body: JSON.stringify({ conversationId }) }),
   scoreLead: (contactId) =>
     request('/ai/score', { method: 'POST', body: JSON.stringify({ contactId }) }),
+  scoreAllContacts: () =>
+    request('/ai/score-all', { method: 'POST', body: JSON.stringify({}) }),
   generateCampaignMessage: (prompt, tone, language) =>
     request('/ai/campaign-message', { method: 'POST', body: JSON.stringify({ prompt, tone, language }) }),
   getInsights: (metrics) =>

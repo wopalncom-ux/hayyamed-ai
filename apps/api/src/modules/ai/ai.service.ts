@@ -143,29 +143,95 @@ Never promise specific prices without confirmation. Always end with a clear call
   }
 
   // ─── SCORE LEAD ───────────────────────────────────────────────────────────
-  async scoreLead(contactId: string): Promise<{ score: number; reasoning: string }> {
+  async scoreLead(contactId: string): Promise<{ score: number; reasoning: string; recommended_action: string }> {
     const contact = await this.prisma.contact.findUnique({
       where: { id: contactId },
-      include: { conversations: { include: { messages: { orderBy: { createdAt: 'desc' }, take: 10 } } } }
+      include: {
+        conversations: {
+          include: { messages: { orderBy: { createdAt: 'desc' }, take: 10 } },
+          orderBy: { lastMsgAt: 'desc' },
+          take: 3,
+        },
+      },
     })
-    if (!contact) return { score: 0, reasoning: 'Contact not found' }
+    if (!contact) return { score: 0, reasoning: 'Contact not found', recommended_action: 'Verify contact exists' }
 
-    const recentMessages = contact.conversations.flatMap(c => c.messages).map(m => m.content).filter(Boolean).join('\n')
-    const prompt = `Score this lead 0-100 for conversion likelihood.
-Contact: ${contact.name} | Source: ${contact.source} | Status: ${contact.status}
-Recent messages: ${recentMessages || 'none'}
-Return JSON: {"score":<0-100>,"reasoning":"<brief>","recommended_action":"<next step>"}`
+    const msgCount = contact.conversations.reduce((n, c) => n + c.messages.length, 0)
+    const recentMessages = contact.conversations
+      .flatMap(c => c.messages)
+      .slice(0, 8)
+      .map(m => `[${m.direction}] ${m.content || `(${m.type})`}`)
+      .join('\n')
+    const daysSinceCreated = Math.floor((Date.now() - new Date(contact.createdAt).getTime()) / 86_400_000)
 
-    const result = await this.complete(
-      [{ role: 'user', content: prompt }],
-      { provider: 'openai', model: 'gpt-4o-mini', maxTokens: 200 },
-    )
+    const prompt = `You are a CRM lead scoring engine. Score this lead 0-100 for conversion likelihood.
+
+Contact data:
+- Name: ${contact.name}
+- Source: ${contact.source || 'unknown'}
+- Status: ${contact.status || 'NEW'}
+- Tags: ${(contact as any).tags?.join(', ') || 'none'}
+- Value estimate: ${(contact as any).value || 0} ${(contact as any).currency || 'QAR'}
+- Days since created: ${daysSinceCreated}
+- Conversations: ${contact.conversations.length}
+- Total messages: ${msgCount}
+- Recent messages: ${recentMessages || 'none'}
+
+Scoring guide:
+- 80-100: High engagement, clear intent, ready to close
+- 60-79: Interested, responding, needs nurturing
+- 40-59: Some engagement, unclear intent
+- 20-39: Low engagement, cold
+- 0-19: No activity, likely unqualified
+
+Return ONLY valid JSON (no markdown, no explanation outside the JSON):
+{"score":<0-100>,"reasoning":"<1-2 sentences>","recommended_action":"<specific next step>"}`
+
+    let raw = ''
     try {
-      const parsed = JSON.parse(result)
-      return { score: parsed.score || 0, reasoning: parsed.reasoning || '' }
+      raw = await this.complete(
+        [{ role: 'user', content: prompt }],
+        { maxTokens: 250, temperature: 0.3, module: 'lead-scoring', action: 'score' },
+      )
+      // Strip markdown code blocks if present
+      const cleaned = raw.replace(/```json?\s*/gi, '').replace(/```\s*/g, '').trim()
+      const parsed = JSON.parse(cleaned)
+      const score = Math.max(0, Math.min(100, Number(parsed.score) || 0))
+      const reasoning = parsed.reasoning || 'Scored based on activity data'
+      const recommended_action = parsed.recommended_action || 'Follow up with contact'
+
+      // Persist score to DB
+      await this.prisma.contact.update({ where: { id: contactId }, data: { score } })
+
+      return { score, reasoning, recommended_action }
     } catch {
-      return { score: 50, reasoning: 'Unable to analyze' }
+      // Fallback: regex extract score from raw response
+      const match = raw.match(/"score"\s*:\s*(\d+)/)
+      const score = match ? Math.min(100, Number(match[1])) : 50
+      await this.prisma.contact.update({ where: { id: contactId }, data: { score } }).catch(() => {})
+      return { score, reasoning: 'Scored based on engagement signals', recommended_action: 'Follow up with contact' }
     }
+  }
+
+  // ─── SCORE ALL CONTACTS (batch, fire-and-forget) ──────────────────────────
+  async scoreAllContacts(orgId: string): Promise<{ queued: number }> {
+    const contacts = await this.prisma.contact.findMany({
+      where: { orgId },
+      select: { id: true },
+      orderBy: { updatedAt: 'desc' },
+      take: 200,
+    })
+    // Process in background — don't await
+    ;(async () => {
+      for (const c of contacts) {
+        try {
+          await this.scoreLead(c.id)
+          await new Promise(r => setTimeout(r, 300)) // ~3/sec to avoid rate limiting
+        } catch { /* continue */ }
+      }
+      this.logger.log(`Scored ${contacts.length} contacts for org ${orgId}`)
+    })()
+    return { queued: contacts.length }
   }
 
   // ─── CLASSIFY INTENT ──────────────────────────────────────────────────────

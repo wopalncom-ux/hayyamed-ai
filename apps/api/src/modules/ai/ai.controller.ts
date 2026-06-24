@@ -29,6 +29,11 @@ export class AIController {
     return this.ai.scoreLead(body.contactId)
   }
 
+  @Post('score-all')
+  async scoreAll(@CurrentUser() user: JwtPayload) {
+    return this.ai.scoreAllContacts(user.orgId)
+  }
+
   @Post('classify')
   async classifyIntent(@Body() body: { message: string }) {
     if (!body.message) throw new BadRequestException('message required')

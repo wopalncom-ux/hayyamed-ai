@@ -96,6 +96,8 @@ export default function ContactDetailPage() {
   const [msgText, setMsgText] = useState('')
   const [showMsgBox, setShowMsgBox] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [scoring, setScoring] = useState(false)
+  const [scoreResult, setScoreResult] = useState(null)
 
   const showToast = (msg, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3000) }
 
@@ -139,6 +141,18 @@ export default function ContactDetailPage() {
       showToast('Message sent')
     } catch (e) { showToast(e.message || 'Send failed', false) }
     setSendingMsg(false)
+  }
+
+  const scoreContact = async () => {
+    setScoring(true)
+    setScoreResult(null)
+    try {
+      const result = await api.scoreLead(id)
+      setScoreResult(result)
+      setProfile(p => ({ ...p, contact: { ...p.contact, score: result.score } }))
+      showToast(`Lead scored: ${result.score}/100`)
+    } catch (e) { showToast(e.message || 'Scoring failed', false) }
+    setScoring(false)
   }
 
   const deleteContact = async () => {
@@ -204,11 +218,27 @@ export default function ContactDetailPage() {
                 <span>Joined {new Date(contact.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Score badge */}
+              {contact.score != null && contact.score > 0 && (() => {
+                const sc = contact.score
+                const scoreColor = sc >= 80 ? '#22c55e' : sc >= 60 ? '#00e5a0' : sc >= 40 ? '#fbbf24' : sc >= 20 ? '#f97316' : '#ef4444'
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: scoreColor + '15', border: `1px solid ${scoreColor}40`, borderRadius: '20px' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>AI Score</span>
+                    <span style={{ fontSize: '15px', fontWeight: '800', color: scoreColor }}>{sc}</span>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>/100</span>
+                  </div>
+                )
+              })()}
+              <button onClick={scoreContact} disabled={scoring}
+                style={{ padding: '8px 16px', background: scoring ? '#1a2235' : 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.3)', borderRadius: '7px', color: '#8b5cf6', cursor: scoring ? 'default' : 'pointer', fontWeight: '700', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                {scoring ? <><span style={{ display: 'inline-block', width: '10px', height: '10px', border: '2px solid #8b5cf6', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} /> Scoring...</> : '🤖 Score Lead'}
+              </button>
               {contact.phone && (
                 <button onClick={() => setShowMsgBox(v => !v)}
                   style={{ padding: '8px 16px', background: '#25D36622', border: '1px solid #25D36633', borderRadius: '7px', color: '#25D366', cursor: 'pointer', fontWeight: '700', fontSize: '13px' }}>
-                  💬 Send WhatsApp
+                  💬 WhatsApp
                 </button>
               )}
               <button onClick={deleteContact} disabled={deleting}
@@ -217,6 +247,32 @@ export default function ContactDetailPage() {
               </button>
             </div>
           </div>
+
+          {/* AI Score result panel */}
+          {scoreResult && (
+            <div style={{ marginTop: '14px', padding: '14px 16px', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.25)', borderRadius: '8px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+              {(() => {
+                const sc = scoreResult.score
+                const scoreColor = sc >= 80 ? '#22c55e' : sc >= 60 ? '#00e5a0' : sc >= 40 ? '#fbbf24' : sc >= 20 ? '#f97316' : '#ef4444'
+                return (
+                  <>
+                    <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                      <div style={{ fontSize: '36px', fontWeight: '900', color: scoreColor, lineHeight: 1 }}>{sc}</div>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>/100</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>🤖 AI Analysis</div>
+                      <div style={{ fontSize: '13px', color: '#e2e8f0', marginBottom: '6px' }}>{scoreResult.reasoning}</div>
+                      <div style={{ fontSize: '12px', color: '#8b5cf6', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span>→</span><strong>Next step:</strong> {scoreResult.recommended_action}
+                      </div>
+                    </div>
+                    <button onClick={() => setScoreResult(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '16px', padding: '0', flexShrink: 0 }}>×</button>
+                  </>
+                )
+              })()}
+            </div>
+          )}
 
           {/* Quick WhatsApp send box */}
           {showMsgBox && (
