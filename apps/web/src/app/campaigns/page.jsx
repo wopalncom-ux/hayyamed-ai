@@ -36,6 +36,12 @@ export default function Campaigns() {
   const [advisorResponse, setAdvisorResponse] = useState('')
   const [advisorLoading, setAdvisorLoading] = useState(false)
   const [emailSubject, setEmailSubject] = useState('')
+  const [audienceType, setAudienceType]   = useState('all')       // 'all' | 'by_status' | 'by_tag'
+  const [audienceStatus, setAudienceStatus] = useState('NEW')
+  const [audienceTags, setAudienceTags]   = useState('')
+  const [audienceCount, setAudienceCount] = useState(null)
+  const [launching, setLaunching]         = useState(false)
+  const [actionLoading, setActionLoading] = useState({}) // { [campaignId]: 'launch'|'pause'|'resume' }
 
   useEffect(() => {
     api.getCampaigns({ limit: 50 })
@@ -43,6 +49,15 @@ export default function Campaigns() {
       .catch(() => {})
       .finally(() => setCampaignsLoading(false))
   }, [])
+
+  // Preview audience count whenever filter changes
+  useEffect(() => {
+    let q = {}
+    if (audienceType === 'by_status') q.status = audienceStatus
+    api.getContacts({ limit: 1, ...q })
+      .then(r => setAudienceCount(r.total ?? (Array.isArray(r) ? r.length : null)))
+      .catch(() => setAudienceCount(null))
+  }, [audienceType, audienceStatus, audienceTags])
 
   const generateAIText = async () => {
     if (!aiPrompt) return
@@ -113,24 +128,49 @@ export default function Campaigns() {
   }
 
   const sendCampaign = async () => {
-    if (!campaignName || !message) return
+    if (!campaignName.trim() || !message.trim()) return
+    setLaunching(true)
     try {
+      // 1. Create campaign
       const created = await api.createCampaign({
         name: campaignName,
         channel,
         message,
         subject: emailSubject || undefined,
-        status: 'DRAFT',
       })
-      setCampaigns(prev => [created, ...prev])
+
+      // 2. Add audience via filter
+      const filterBody = {}
+      if (audienceType === 'by_status') filterBody.status = audienceStatus
+      if (audienceType === 'by_tag' && audienceTags.trim()) filterBody.tags = audienceTags.split(',').map(t => t.trim())
+      await api.addContactsByFilter(created.id, filterBody).catch(() => {})
+
+      // 3. Launch
+      await api.launchCampaign(created.id).catch(() => {})
+
+      setCampaigns(prev => [{ ...created, status: 'RUNNING' }, ...prev])
       setCampaignName('')
       setMessage('')
       setEmailSubject('')
+      setAudienceType('all')
       setSent(true)
-      setTimeout(() => { setSent(false); setTab('list') }, 2000)
-    } catch {
-      setSent(false)
+      setTimeout(() => { setSent(false); setTab('list') }, 2500)
+    } catch (e) {
+      alert('Failed to launch: ' + (e.message || 'Unknown error'))
     }
+    setLaunching(false)
+  }
+
+  const campaignAction = async (campaignId, action) => {
+    setActionLoading(prev => ({ ...prev, [campaignId]: action }))
+    try {
+      let updated
+      if (action === 'launch') updated = await api.launchCampaign(campaignId)
+      else if (action === 'pause') updated = await api.pauseCampaign(campaignId)
+      else if (action === 'resume') updated = await api.resumeCampaign(campaignId)
+      setCampaigns(prev => prev.map(c => c.id === campaignId ? { ...c, status: updated?.status || (action === 'launch' ? 'RUNNING' : action === 'pause' ? 'PAUSED' : 'RUNNING') } : c))
+    } catch (e) { alert(e.message) }
+    setActionLoading(prev => ({ ...prev, [campaignId]: null }))
   }
 
   return (
@@ -185,27 +225,73 @@ export default function Campaigns() {
                 </div>
 
                 <div style={{background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', overflow:'hidden'}}>
-                  <div style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr 1fr 1fr', padding:'10px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
-                    {['CAMPAIGN','CHANNEL','STATUS','SENT','LEADS','BOOKINGS','OPEN RATE'].map(h => (
+                  <div style={{display:'grid', gridTemplateColumns:'2fr 90px 100px 80px 80px 80px 160px', padding:'10px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a', gap:'8px'}}>
+                    {['CAMPAIGN','STATUS','DELIVERY','READ RATE','DATE','','ACTIONS'].map(h => (
                       <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{h}</div>
                     ))}
                   </div>
                   {campaignsLoading ? (
                     <div style={{padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>Loading campaigns…</div>
                   ) : campaigns.length === 0 ? (
-                    <div style={{padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>No campaigns yet — create your first one</div>
+                    <div style={{padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>
+                      No campaigns yet —{' '}
+                      <button onClick={() => setTab('create')} style={{background:'none', border:'none', color:'#00e5a0', cursor:'pointer', fontSize:'12px', textDecoration:'underline'}}>create your first one</button>
+                    </div>
                   ) : campaigns.map(c => {
-                    const st = c.status || 'DRAFT'
+                    const st = (c.status || 'DRAFT').toUpperCase()
                     const ch = c.channel || c.channelType || 'WhatsApp'
+                    const stColor = st === 'RUNNING' ? '#00e5a0' : st === 'COMPLETED' ? '#3b82f6' : st === 'PAUSED' ? '#fbbf24' : st === 'FAILED' ? '#ef4444' : '#64748b'
+                    const isLoading = actionLoading[c.id]
+                    const totalContacts = c._count?.campaignContacts ?? c.totalContacts ?? 0
+                    const sentCount = c.sentCount ?? 0
+                    const readCount = c.readCount ?? 0
+                    const readRate = sentCount > 0 ? Math.round((readCount / sentCount) * 100) : 0
                     return (
-                      <div key={c.id} onClick={() => window.location.href = `/campaigns/${c.id}`} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr 1fr 1fr', padding:'12px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', cursor:'pointer', background: selectedCampaign?.id===c.id ? '#0f1520' : 'none'}}>
-                        <div style={{fontSize:'12px', fontWeight:'600'}}>{c.name}</div>
-                        <div style={{fontSize:'12px'}}>{channelIcons[ch] || '📤'}</div>
-                        <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[st]||statusColors[st.charAt(0)+st.slice(1).toLowerCase()]||'#64748b'}20`, color:statusColors[st]||statusColors[st.charAt(0)+st.slice(1).toLowerCase()]||'#64748b'}}>{st}</span></div>
-                        <div style={{fontSize:'12px', color:'#7a8fa6'}}>{(c.sentCount||0).toLocaleString()}</div>
-                        <div style={{fontSize:'12px', color:'#3b82f6', fontWeight:'600'}}>{c.leadsCount||0}</div>
-                        <div style={{fontSize:'12px', color:'#a78bfa', fontWeight:'600'}}>{c.bookingsCount||0}</div>
-                        <div style={{fontSize:'12px', color:'#00e5a0', fontWeight:'600'}}>{c.openRate||'—'}</div>
+                      <div key={c.id} style={{display:'grid', gridTemplateColumns:'2fr 90px 100px 80px 80px 80px 160px', padding:'10px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', gap:'8px'}}>
+                        <div>
+                          <div style={{fontSize:'12px', fontWeight:'600', marginBottom:'2px'}}>{c.name}</div>
+                          <div style={{fontSize:'10px', color:'#64748b'}}>{channelIcons[ch] || '📤'} {ch} · {totalContacts} contacts</div>
+                        </div>
+                        <div>
+                          <span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'3px', background: stColor + '20', color: stColor, fontWeight:'700'}}>{st}</span>
+                        </div>
+                        <div style={{fontSize:'12px', color:'#7a8fa6'}}>
+                          <div>{sentCount.toLocaleString()} sent</div>
+                          {readCount > 0 && <div style={{fontSize:'10px', color:'#00e5a0'}}>{readRate}% read</div>}
+                        </div>
+                        <div>
+                          {sentCount > 0 && (
+                            <div style={{width:'100%', height:'4px', background:'#1a2235', borderRadius:'2px', overflow:'hidden'}}>
+                              <div style={{height:'100%', width:`${Math.min(readRate,100)}%`, background:'#00e5a0', borderRadius:'2px'}} />
+                            </div>
+                          )}
+                        </div>
+                        <div style={{fontSize:'10px', color:'#64748b'}}>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—'}</div>
+                        <div />
+                        <div style={{display:'flex', gap:'5px'}}>
+                          {st === 'DRAFT' && (
+                            <button disabled={!!isLoading} onClick={() => campaignAction(c.id, 'launch')}
+                              style={{padding:'4px 10px', background:'rgba(0,229,160,.12)', border:'1px solid rgba(0,229,160,.3)', borderRadius:'3px', color:'#00e5a0', fontSize:'10px', cursor: isLoading ? 'wait' : 'pointer', fontWeight:'700'}}>
+                              {isLoading === 'launch' ? '…' : '🚀 Launch'}
+                            </button>
+                          )}
+                          {st === 'RUNNING' && (
+                            <button disabled={!!isLoading} onClick={() => campaignAction(c.id, 'pause')}
+                              style={{padding:'4px 10px', background:'rgba(251,191,36,.12)', border:'1px solid rgba(251,191,36,.3)', borderRadius:'3px', color:'#fbbf24', fontSize:'10px', cursor: isLoading ? 'wait' : 'pointer', fontWeight:'700'}}>
+                              {isLoading === 'pause' ? '…' : '⏸ Pause'}
+                            </button>
+                          )}
+                          {st === 'PAUSED' && (
+                            <button disabled={!!isLoading} onClick={() => campaignAction(c.id, 'resume')}
+                              style={{padding:'4px 10px', background:'rgba(0,229,160,.12)', border:'1px solid rgba(0,229,160,.3)', borderRadius:'3px', color:'#00e5a0', fontSize:'10px', cursor: isLoading ? 'wait' : 'pointer', fontWeight:'700'}}>
+                              {isLoading === 'resume' ? '…' : '▶ Resume'}
+                            </button>
+                          )}
+                          <button onClick={() => setSelectedCampaign(selectedCampaign?.id === c.id ? null : c)}
+                            style={{padding:'4px 8px', background:'#111622', border:'1px solid #1a2235', borderRadius:'3px', color:'#64748b', fontSize:'10px', cursor:'pointer'}}>
+                            Details
+                          </button>
+                        </div>
                       </div>
                     )
                   })}
@@ -300,18 +386,37 @@ export default function Campaigns() {
                     </div>
                   </div>
 
+                  {/* Audience selector — uses contacts already in the CRM */}
                   <div style={{marginBottom:'16px'}}>
-                    <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'8px'}}>RECIPIENTS</div>
-                    {importedContacts.length > 0 ? (
-                      <div style={{padding:'10px 14px', background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', fontSize:'11px', color:'#00e5a0', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
-                        <span>✅ {importedContacts.length} contacts ready</span>
-                        <button onClick={() => setTab('import')} style={{background:'none', border:'none', color:'#7a8fa6', fontSize:'10px', cursor:'pointer', textDecoration:'underline'}}>Change</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => setTab('import')} style={{width:'100%', padding:'10px', background:'#111622', border:'1px dashed #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>
-                        📥 Import contacts from Excel/CSV
-                      </button>
+                    <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'8px'}}>AUDIENCE</div>
+                    <div style={{display:'flex', gap:'6px', marginBottom:'10px'}}>
+                      {[
+                        { id:'all', label:'All Contacts' },
+                        { id:'by_status', label:'By Status' },
+                        { id:'by_tag', label:'By Tag' },
+                      ].map(opt => (
+                        <button key={opt.id} onClick={() => setAudienceType(opt.id)}
+                          style={{padding:'6px 12px', background: audienceType===opt.id ? 'rgba(0,229,160,.15)' : '#111622', border:`1px solid ${audienceType===opt.id ? 'rgba(0,229,160,.4)' : '#1a2235'}`, borderRadius:'4px', color: audienceType===opt.id ? '#00e5a0' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: audienceType===opt.id ? '700' : '400'}}>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {audienceType === 'by_status' && (
+                      <select value={audienceStatus} onChange={e => setAudienceStatus(e.target.value)}
+                        style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none', marginBottom:'6px'}}>
+                        {['NEW','CONTACTED','QUALIFYING','QUALIFIED','PROPOSAL','NEGOTIATION','WON','LOST'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     )}
+                    {audienceType === 'by_tag' && (
+                      <input value={audienceTags} onChange={e => setAudienceTags(e.target.value)}
+                        placeholder="e.g. vip, dental, follow-up (comma-separated)"
+                        style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none', marginBottom:'6px'}} />
+                    )}
+                    <div style={{padding:'8px 12px', background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.15)', borderRadius:'4px', fontSize:'11px', color:'#00e5a0'}}>
+                      👥 {audienceCount == null ? 'Counting...' : audienceCount === 0 ? 'No contacts match — adjust filter' : `${audienceCount} contact${audienceCount !== 1 ? 's' : ''} will receive this message`}
+                    </div>
                   </div>
 
                   <div style={{marginBottom:'16px'}}>
@@ -320,8 +425,12 @@ export default function Campaigns() {
                   </div>
                 </div>
 
-                <button onClick={sendCampaign} style={{width:'100%', padding:'12px', background: campaignName && message ? '#00e5a0' : '#1a2235', border:'none', borderRadius:'4px', color: campaignName && message ? '#07090f' : '#3d4f63', fontWeight:'700', fontSize:'13px', cursor:'pointer'}}>
-                  🚀 Launch Campaign
+                <button onClick={sendCampaign} disabled={launching || !campaignName.trim() || !message.trim() || audienceCount === 0}
+                  style={{width:'100%', padding:'12px', background: (launching || !campaignName.trim() || !message.trim() || audienceCount === 0) ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'4px', color: (launching || !campaignName.trim() || !message.trim() || audienceCount === 0) ? '#3d4f63' : '#07090f', fontWeight:'700', fontSize:'13px', cursor: launching ? 'wait' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>
+                  {launching
+                    ? <><span style={{display:'inline-block', width:'12px', height:'12px', border:'2px solid #64748b', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 1s linear infinite'}} /> Creating & launching…</>
+                    : `🚀 Launch to ${audienceCount == null ? '…' : audienceCount} contacts`
+                  }
                 </button>
               </div>
             )}
