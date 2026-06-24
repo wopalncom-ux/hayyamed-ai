@@ -246,6 +246,14 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Audit Dashboard
+  getPlatformAuditLogs: (params = {}) =>
+    request('/master-admin/audit?' + new URLSearchParams(params)),
+  getAuditStats: (days = 30) =>
+    request(`/master-admin/audit/stats?days=${days}`),
+  getMyAuditLogs: (params = {}) =>
+    request('/audit?' + new URLSearchParams(params)),
+
   // AI Quality Engine
   getMasterAIQuality: (days = 30) =>
     request(`/master-admin/ai-quality?days=${days}`),

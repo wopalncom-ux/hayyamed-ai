@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
 import { PrismaService } from '../../database/prisma.service'
 import { EmailService } from '../email/email.service'
+import { AuditService } from '../audit/audit.service'
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
     private email: EmailService,
+    private audit: AuditService,
   ) {}
 
   // Register new organization + admin user
@@ -64,6 +66,7 @@ export class AuthService {
     })
 
     const tokens = await this.generateTokens(result.user.id, result.user.email, result.org.id)
+    this.audit.log({ orgId: result.org.id, userId: result.user.id, action: 'auth.register', category: 'auth', resource: 'user', resourceId: result.user.id, after: { email: result.user.email, orgName: result.org.name } })
     return { user: this.sanitizeUser(result.user), org: result.org, ...tokens }
   }
 
@@ -87,6 +90,7 @@ export class AuthService {
     })
 
     const tokens = await this.generateTokens(user.id, user.email, user.orgId)
+    this.audit.log({ orgId: user.orgId, userId: user.id, action: 'auth.login', category: 'auth', resource: 'user', resourceId: user.id })
     return { user: this.sanitizeUser(user), org: user.org, ...tokens }
   }
 
