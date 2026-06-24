@@ -1,4 +1,13 @@
 steps:
+  # ─── Authenticate Docker to Artifact Registry ───────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: ['auth', 'configure-docker', 'me-central1-docker.pkg.dev', '--quiet']
+    volumes:
+    - name: docker-config
+      path: /root/.docker
+    id: auth-docker
+
   # ─── Build API ──────────────────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
     args:
@@ -10,6 +19,7 @@ steps:
       - '-f'
       - 'apps/api/Dockerfile'
       - 'apps/api'
+    waitFor: [auth-docker]
     id: build-api
 
   # ─── Build Web ──────────────────────────────────────────────────────────────
@@ -23,17 +33,24 @@ steps:
       - '-f'
       - 'apps/web/Dockerfile'
       - 'apps/web'
+    waitFor: [auth-docker]
     id: build-web
 
   # ─── Push API ───────────────────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
     args: [push, 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api', '--all-tags']
+    volumes:
+    - name: docker-config
+      path: /root/.docker
     waitFor: [build-api]
     id: push-api
 
   # ─── Push Web ───────────────────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
     args: [push, 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web', '--all-tags']
+    volumes:
+    - name: docker-config
+      path: /root/.docker
     waitFor: [build-web]
     id: push-web
 
@@ -55,19 +72,10 @@ steps:
       - '--cpu=1'
       - '--concurrency=80'
       - '--timeout=60'
-      - '--set-env-vars=NODE_ENV=production,PORT=4000,EMAIL_FROM=Hayyamed AI <noreply@hayyaai.com>'
+      - '--set-env-vars=NODE_ENV=production'
+      - '--add-cloudsql-instances=hayyamed-ai-crm:me-central1:hayyamed-db'
       - >-
-        --update-secrets=
-        DATABASE_URL=hayyamed-database-url:latest,
-        JWT_SECRET=hayyamed-jwt-secret:latest,
-        JWT_REFRESH_SECRET=hayyamed-jwt-refresh-secret:latest,
-        OPENAI_API_KEY=hayyamed-openai-key:latest,
-        ANTHROPIC_API_KEY=hayyamed-anthropic-key:latest,
-        WHATSAPP_ACCESS_TOKEN=hayyamed-whatsapp-token:latest,
-        WHATSAPP_WEBHOOK_TOKEN=hayyamed-whatsapp-webhook-token:latest,
-        META_APP_SECRET=hayyamed-meta-app-secret:latest,
-        POSTMARK_SERVER_TOKEN=hayyamed-postmark-token:latest,
-        FRONTEND_URL=hayyamed-frontend-url:latest
+        --update-secrets=DATABASE_URL=hayyamed-database-url:latest,JWT_SECRET=hayyamed-jwt-secret:latest,JWT_REFRESH_SECRET=hayyamed-jwt-refresh-secret:latest,OPENAI_API_KEY=hayyamed-openai-key:latest,ANTHROPIC_API_KEY=hayyamed-anthropic-key:latest,WHATSAPP_ACCESS_TOKEN=hayyamed-whatsapp-token:latest,WHATSAPP_WEBHOOK_TOKEN=hayyamed-whatsapp-webhook-token:latest,META_APP_SECRET=hayyamed-meta-app-secret:latest,POSTMARK_SERVER_TOKEN=hayyamed-postmark-token:latest,FRONTEND_URL=hayyamed-frontend-url:latest,EMAIL_FROM=hayyamed-email-from:latest
     waitFor: [push-api]
     id: deploy-api
 
@@ -102,8 +110,6 @@ images:
 
 options:
   machineType: 'E2_HIGHCPU_8'
-  logging: CLOUD_LOGGING_ONLY
+  logging: LEGACY
 
 # PERMANENT RULE: me-central1 (Doha, Qatar) ONLY — no global/us/eu regions
-substitutions:
-  _REGION: me-central1
