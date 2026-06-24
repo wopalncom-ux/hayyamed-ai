@@ -1,11 +1,20 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common'
+import {
+  Controller, Get, Post, Patch, Delete, Body, Param, Query,
+  UseInterceptors, UploadedFile, Res, BadRequestException,
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { Response } from 'express'
 import { ContactsService } from './contacts.service'
+import { ContactsImportService } from './contacts-import.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
 
 @Controller('contacts')
 export class ContactsController {
-  constructor(private contacts: ContactsService) {}
+  constructor(
+    private contacts: ContactsService,
+    private importer: ContactsImportService,
+  ) {}
 
   @Get()
   findAll(
@@ -45,5 +54,55 @@ export class ContactsController {
   @Delete(':id')
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.contacts.remove(id, user.orgId)
+  }
+
+  // ─── IMPORT ──────────────────────────────────────────────────────────────
+
+  @Post('import/preview')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  async preview(@UploadedFile() file: Express.Multer.File, @CurrentUser() _user: JwtPayload) {
+    if (!file) throw new BadRequestException('No file uploaded')
+    return this.importer.preview(file.buffer, file.originalname)
+  }
+
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  async import(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: JwtPayload,
+    @Body('mapping') rawMapping: string,
+    @Body('overwriteDuplicates') overwrite: string,
+    @Body('defaultSource') defaultSource: string,
+    @Body('defaultStatus') defaultStatus: string,
+  ) {
+    if (!file) throw new BadRequestException('No file uploaded')
+    let mapping: any
+    try { mapping = JSON.parse(rawMapping) } catch { throw new BadRequestException('Invalid mapping JSON') }
+    if (!mapping.name) throw new BadRequestException('Mapping must include a "name" column')
+
+    return this.importer.import(
+      user.orgId, user.userId,
+      file.buffer, file.originalname,
+      mapping,
+      { overwriteDuplicates: overwrite === 'true', defaultSource, defaultStatus },
+    )
+  }
+
+  // ─── EXPORT ──────────────────────────────────────────────────────────────
+
+  @Get('export/csv')
+  async exportCsv(
+    @CurrentUser() user: JwtPayload,
+    @Res() res: Response,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ) {
+    const csv = await this.importer.exportCsv(user.orgId, { status, search })
+    const filename = `contacts-${new Date().toISOString().split('T')[0]}.csv`
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    })
+    res.send(csv)
   }
 }

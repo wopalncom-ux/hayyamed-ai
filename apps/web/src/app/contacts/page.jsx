@@ -172,7 +172,7 @@ export default function Contacts() {
 
               <div style={{marginLeft:'auto', display:'flex', gap:'6px'}}>
                 <button onClick={exportCSV} style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
-                <button onClick={() => setShowImport(true)} style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>📊 Import</button>
+                <a href="/contacts/import" style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer', textDecoration:'none', display:'inline-block'}}>📊 Import CSV</a>
                 <button onClick={() => setShowAdd(true)} style={{padding:'6px 12px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>+ Add Contact</button>
               </div>
             </div>

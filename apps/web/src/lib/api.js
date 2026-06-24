@@ -246,6 +246,32 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Contact Import / Export
+  previewContactImport: (file) => {
+    const auth = getAuth()
+    const form = new FormData()
+    form.append('file', file)
+    return fetch(`${BASE}/api/v1/contacts/import/preview`, {
+      method: 'POST', body: form,
+      headers: {
+        ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}),
+        ...(auth.orgId ? { 'x-org-id': auth.orgId } : {}),
+        ...(auth.userId ? { 'x-user-id': auth.userId } : {}),
+      },
+    }).then(r => r.json())
+  },
+  exportContactsCsv: (params = {}) => {
+    const auth = getAuth()
+    const qs = new URLSearchParams(params)
+    return fetch(`${BASE}/api/v1/contacts/export/csv?${qs}`, {
+      headers: {
+        ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}),
+        ...(auth.orgId ? { 'x-org-id': auth.orgId } : {}),
+        ...(auth.userId ? { 'x-user-id': auth.userId } : {}),
+      },
+    })
+  },
+
   // Campaign Execution Engine
   getCampaign: (id) => request(`/campaigns/${id}`),
   updateCampaign: (id, body) => request(`/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
