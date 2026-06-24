@@ -128,12 +128,29 @@ export default function Settings() {
       if (s.autoMessage) setAutoMsg(s.autoMessage)
     }).catch(() => {})
 
-    api.getProfile().then(u => {
-      setTeam(prev => {
-        if (prev.some(m => m.email === u.email)) return prev
-        return [{ id: u.id, name: u.name, email: u.email, role: u.role?.toLowerCase() || 'owner', status: 'active', lastActive: 'Now' }, ...prev]
-      })
-    }).catch(() => {})
+    api.getTeam().then(members => {
+      if (Array.isArray(members) && members.length > 0) {
+        setTeam(members.map(m => {
+          const rawRole = (m.role || '').toLowerCase()
+          const uiRole = rawRole === 'admin' || rawRole === 'owner' ? 'owner'
+            : rawRole === 'manager' ? 'manager'
+            : rawRole === 'marketing' ? 'marketing'
+            : 'receptionist'
+          return {
+            id: m.id,
+            name: m.name || m.email?.split('@')[0] || 'Team Member',
+            email: m.email,
+            role: uiRole,
+            status: 'active',
+            lastActive: m.lastSeen ? new Date(m.lastSeen).toLocaleDateString() : '—',
+          }
+        }))
+      }
+    }).catch(() => {
+      api.getProfile().then(u => {
+        setTeam([{ id: u.id, name: u.name || u.email, email: u.email, role: 'owner', status: 'active', lastActive: 'Now' }])
+      }).catch(() => {})
+    })
 
     Promise.all([
       api.getCurrentPlan().catch(() => null),
@@ -359,18 +376,20 @@ export default function Settings() {
                     <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{h}</div>
                   ))}
                 </div>
-                {team.map(m => (
+                {team.map(m => {
+                  const rl = ROLE_LABELS[m.role] || ROLE_LABELS.receptionist
+                  return (
                   <div key={m.id} style={{display:'grid', gridTemplateColumns:'2fr 2fr 1.5fr 1fr 1fr', padding:'12px 16px', borderBottom:'1px solid #1a2235', alignItems:'center'}}>
                     <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                      <div style={{width:'30px', height:'30px', borderRadius:'50%', background:ROLE_LABELS[m.role].color+'30', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700', color:ROLE_LABELS[m.role].color, flexShrink:0}}>
-                        {m.name[0]}
+                      <div style={{width:'30px', height:'30px', borderRadius:'50%', background:rl.color+'30', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700', color:rl.color, flexShrink:0}}>
+                        {(m.name||'?')[0]}
                       </div>
                       <div style={{fontSize:'12px', fontWeight:'600'}}>{m.name}</div>
                     </div>
                     <div style={{fontSize:'11px', color:'#7a8fa6'}}>{m.email}</div>
                     <div>
                       <select value={m.role} onChange={e => setTeam(prev => prev.map(t => t.id===m.id ? {...t,role:e.target.value} : t))}
-                        style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'3px', padding:'4px 8px', color:ROLE_LABELS[m.role].color, fontSize:'11px', outline:'none', cursor:'pointer', fontWeight:'600'}}>
+                        style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'3px', padding:'4px 8px', color:rl.color, fontSize:'11px', outline:'none', cursor:'pointer', fontWeight:'600'}}>
                         {Object.entries(ROLE_LABELS).map(([k,v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
                     </div>
@@ -386,7 +405,8 @@ export default function Settings() {
                       )}
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
 
               {/* Permissions matrix */}

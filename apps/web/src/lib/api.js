@@ -115,8 +115,10 @@ export const api = {
     request('/users/me'),
   updateProfile: (dto) =>
     request('/users/me', { method: 'PATCH', body: JSON.stringify(dto) }),
+  getTeam: () =>
+    request('/users/team'),
   inviteTeamMember: (email, role) =>
-    request('/users/invite', { method: 'POST', body: JSON.stringify({ email, role }) }),
+    request('/users/team/invite', { method: 'POST', body: JSON.stringify({ email, role }) }),
 
   // Billing
   getInvoices: () =>
