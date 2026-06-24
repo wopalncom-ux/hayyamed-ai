@@ -106,6 +106,7 @@ export default function MasterAdminPanel() {
           {[
             { id:'orgs', label:'Organizations' },
             { id:'audit', label:'Audit Logs' },
+            { id:'flags', label:'🚩 Feature Flags' },
           ].map(t => (
             <button
               key={t.id}
@@ -233,6 +234,23 @@ export default function MasterAdminPanel() {
 
           {tab === 'audit' && (
             <AuditLogTab />
+          )}
+
+          {tab === 'flags' && (
+            <div style={{ paddingTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '16px' }}>Feature Flags</div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Control platform features globally. Changes take effect within 30s.</div>
+                </div>
+                <a href="/admin/feature-flags" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                  Open Full Editor →
+                </a>
+              </div>
+              <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                Click "Open Full Editor" to manage all {'{18}'} feature flags with toggle controls, plan gating, and beta settings.
+              </div>
+            </div>
           )}
         </div>
       </div>

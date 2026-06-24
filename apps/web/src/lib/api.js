@@ -245,4 +245,16 @@ export const api = {
     request('/master-admin/orgs', { method: 'POST', body: JSON.stringify(dto) }),
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
+
+  // Feature Flags (Master Admin)
+  getFeatureFlags: () =>
+    request('/master-admin/feature-flags'),
+  updateFeatureFlag: (key, dto) =>
+    request(`/master-admin/feature-flags/${key}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  setOrgFeatureFlag: (orgId, key, isEnabled) =>
+    request(`/master-admin/feature-flags/orgs/${orgId}/${key}`, { method: 'POST', body: JSON.stringify({ isEnabled }) }),
+  removeOrgFeatureFlag: (orgId, key) =>
+    request(`/master-admin/feature-flags/orgs/${orgId}/${key}`, { method: 'DELETE' }),
+  getOrgFeatureFlagOverrides: (orgId) =>
+    request(`/master-admin/feature-flags/orgs/${orgId}`),
 }
