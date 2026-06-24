@@ -70,6 +70,26 @@ export class ContactsService {
     return { total, hot: qualifying, booked: proposal, won }
   }
 
+  async getPipelineContacts(orgId: string, filter: { source?: string; search?: string } = {}) {
+    const where: any = { orgId }
+    if (filter.source) where.source = filter.source
+    if (filter.search) where.OR = [
+      { name: { contains: filter.search, mode: 'insensitive' } },
+      { phone: { contains: filter.search } },
+    ]
+    return this.prisma.contact.findMany({
+      where,
+      orderBy: { updatedAt: 'desc' },
+      take: 1000,
+      select: {
+        id: true, name: true, phone: true, email: true, status: true,
+        source: true, stage: true, score: true, value: true, currency: true,
+        tags: true, city: true, language: true,
+        createdAt: true, updatedAt: true,
+      },
+    })
+  }
+
   async getProfile(id: string, orgId: string) {
     const [contact, conversations, activities, notes, campaignCount] = await Promise.all([
       this.prisma.contact.findFirst({ where: { id, orgId } }),

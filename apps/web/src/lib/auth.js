@@ -12,9 +12,9 @@ export function logout() {
 
 // What each role can see in the sidebar
 export const ROLE_NAV = {
-  owner:        ['dashboard','inbox','contacts','analytics','reports','campaigns','chatbot','notifications','agency','integrations','settings'],
-  manager:      ['dashboard','inbox','contacts','analytics','reports','campaigns','chatbot','notifications','settings'],
-  marketing:    ['dashboard','inbox','contacts','analytics','reports','campaigns','notifications','settings'],
+  owner:        ['dashboard','inbox','contacts','pipeline','analytics','reports','campaigns','agents','knowledge','bookings','chatbot','workflows','marketplace','notifications','agency','integrations','admin','settings'],
+  manager:      ['dashboard','inbox','contacts','pipeline','analytics','reports','campaigns','chatbot','workflows','notifications','settings'],
+  marketing:    ['dashboard','inbox','contacts','pipeline','analytics','reports','campaigns','notifications','settings'],
   receptionist: ['dashboard','inbox','contacts','notifications','settings'],
   client:       ['client'],
 }

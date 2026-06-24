@@ -56,6 +56,17 @@ export class ContactsController {
     return this.contacts.remove(id, user.orgId)
   }
 
+  // ─── PIPELINE ─────────────────────────────────────────────────────────────
+
+  @Get('pipeline')
+  getPipeline(
+    @CurrentUser() user: JwtPayload,
+    @Query('source') source?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.contacts.getPipelineContacts(user.orgId, { source, search })
+  }
+
   // ─── PROFILE / NOTES ─────────────────────────────────────────────────────
 
   @Get(':id/profile')

@@ -252,6 +252,9 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Pipeline
+  getPipelineContacts: (params = {}) => request('/contacts/pipeline?' + new URLSearchParams(params)),
+
   // Contact Profile & Notes
   getContactProfile: (id) => request(`/contacts/${id}/profile`),
   addContactNote: (id, body) => request(`/contacts/${id}/notes`, { method: 'POST', body: JSON.stringify(body) }),
