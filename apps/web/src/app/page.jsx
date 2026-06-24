@@ -110,7 +110,7 @@ export default function LandingPage() {
           <Link href="/login" style={{ padding: '8px 18px', background: 'none', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
             Log in
           </Link>
-          <Link href="/onboarding" style={{ padding: '8px 20px', background: '#00e5a0', borderRadius: '6px', color: '#07090f', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
+          <Link href="/register" style={{ padding: '8px 20px', background: '#00e5a0', borderRadius: '6px', color: '#07090f', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
             Start Free →
           </Link>
         </div>
@@ -129,7 +129,7 @@ export default function LandingPage() {
           Qualify leads, book appointments, and run campaigns — all automated.
         </p>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/onboarding" style={{ padding: '14px 32px', background: '#00e5a0', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.01em' }}>
+          <Link href="/register" style={{ padding: '14px 32px', background: '#00e5a0', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.01em' }}>
             Start Free — Setup in 5 min →
           </Link>
           <Link href="/login" style={{ padding: '14px 24px', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '8px', color: '#e2e8f0', textDecoration: 'none', fontSize: '15px' }}>
@@ -221,7 +221,7 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/onboarding" style={{ display: 'block', textAlign: 'center', padding: '9px', background: p.popular ? '#00e5a0' : 'rgba(255,255,255,.04)', border: `1px solid ${p.popular ? 'transparent' : '#1a2235'}`, borderRadius: '6px', color: p.popular ? '#07090f' : '#e2e8f0', textDecoration: 'none', fontSize: '12px', fontWeight: '700' }}>
+              <Link href="/register" style={{ display: 'block', textAlign: 'center', padding: '9px', background: p.popular ? '#00e5a0' : 'rgba(255,255,255,.04)', border: `1px solid ${p.popular ? 'transparent' : '#1a2235'}`, borderRadius: '6px', color: p.popular ? '#07090f' : '#e2e8f0', textDecoration: 'none', fontSize: '12px', fontWeight: '700' }}>
                 Get started →
               </Link>
             </div>
@@ -233,7 +233,7 @@ export default function LandingPage() {
       <section style={{ background: '#0c0f1a', borderTop: '1px solid #1a2235', padding: '80px 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>Start automating your business today</h2>
         <p style={{ fontSize: '15px', color: '#94a3b8', marginBottom: '28px' }}>Join Qatar businesses using AI to respond faster, convert more leads, and grow revenue.</p>
-        <Link href="/onboarding" style={{ display: 'inline-block', padding: '14px 36px', background: '#00e5a0', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.01em' }}>
+        <Link href="/register" style={{ display: 'inline-block', padding: '14px 36px', background: '#00e5a0', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.01em' }}>
           Create your free account →
         </Link>
         <p style={{ marginTop: '14px', fontSize: '11px', color: '#475569' }}>Data stored in Qatar · me-central1 (Doha) · PDPL compliant</p>
@@ -245,7 +245,7 @@ export default function LandingPage() {
         <div style={{ fontSize: '11px', color: '#475569' }}>© {new Date().getFullYear()} Hayyamed AI. All rights reserved. Qatar.</div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <Link href="/login" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Log in</Link>
-          <Link href="/onboarding" style={{ fontSize: '11px', color: '#00e5a0', textDecoration: 'none' }}>Sign up free</Link>
+          <Link href="/register" style={{ fontSize: '11px', color: '#00e5a0', textDecoration: 'none' }}>Sign up free</Link>
         </div>
       </footer>
     </div>

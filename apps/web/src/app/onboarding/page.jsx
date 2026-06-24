@@ -1,7 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import { getAuth } from '@/lib/auth'
 
 const STEPS = [
   { id: 1, icon: '🏢', title: 'Business Info',   desc: 'Tell us about your business' },
@@ -64,6 +65,11 @@ function StepIndicator({ step }) {
 export default function Onboarding() {
   const router = useRouter()
   const [step, setStep] = useState(1)
+
+  useEffect(() => {
+    const auth = getAuth()
+    if (!auth.loggedIn) router.replace('/register')
+  }, [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 

@@ -130,7 +130,11 @@ export default function Login() {
           </div>
         </div>
 
-        <div style={{textAlign:'center', marginTop:'18px', fontSize:'11px', color:'#3d4f63'}}>
+        <div style={{textAlign:'center', marginTop:'16px', fontSize:'12px', color:'#3d4f63'}}>
+          New here?{' '}
+          <a href="/register" style={{color:'#00e5a0', textDecoration:'none', fontWeight:'700'}}>Create a free account →</a>
+        </div>
+        <div style={{textAlign:'center', marginTop:'8px', fontSize:'11px', color:'#3d4f63'}}>
           Powered by Hayyamed AI · Qatar 🇶🇦
         </div>
       </div>
