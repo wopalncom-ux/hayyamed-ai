@@ -13,8 +13,6 @@ steps:
     args:
       - build
       - '-t'
-      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:$COMMIT_SHA'
-      - '-t'
       - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:latest'
       - '-f'
       - 'apps/api/Dockerfile'
@@ -26,8 +24,6 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - build
-      - '-t'
-      - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:$COMMIT_SHA'
       - '-t'
       - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:latest'
       - '-f'
@@ -61,7 +57,7 @@ steps:
       - run
       - deploy
       - hayyamed-api
-      - '--image=me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:$COMMIT_SHA'
+      - '--image=me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:latest'
       - '--region=me-central1'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -86,7 +82,7 @@ steps:
       - run
       - deploy
       - hayyamed-web
-      - '--image=me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:$COMMIT_SHA'
+      - '--image=me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:latest'
       - '--region=me-central1'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -103,9 +99,7 @@ steps:
     id: deploy-web
 
 images:
-  - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:$COMMIT_SHA'
   - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/api:latest'
-  - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:$COMMIT_SHA'
   - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:latest'
 
 options:
