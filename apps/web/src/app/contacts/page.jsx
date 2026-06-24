@@ -187,7 +187,9 @@ export default function Contacts() {
             {/* Table Rows */}
             <div style={{flex:1, overflowY:'auto'}}>
               {filtered.map(c => (
-                <div key={c.id} onClick={() => setSelected(selected?.id===c.id ? null : c)} style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1.5fr 0.8fr', padding:'10px 18px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', alignItems:'center', borderLeft: selected?.id===c.id ? '2px solid #00e5a0' : '2px solid transparent'}}>
+                <div key={c.id} onClick={() => c.id && !c.id.startsWith('local-') ? window.location.href = `/contacts/${c.id}` : setSelected(selected?.id===c.id ? null : c)} style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1.5fr 0.8fr', padding:'10px 18px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', alignItems:'center', borderLeft: selected?.id===c.id ? '2px solid #00e5a0' : '2px solid transparent'}}
+                  onMouseEnter={e => { if (!selected || selected.id !== c.id) e.currentTarget.style.background = '#0f1624' }}
+                  onMouseLeave={e => { if (!selected || selected.id !== c.id) e.currentTarget.style.background = 'none' }}>
                   <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                     <div style={{width:'32px', height:'32px', borderRadius:'50%', background:c.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'700', color:'#07090f', flexShrink:0}}>{c.avatar}</div>
                     <div>

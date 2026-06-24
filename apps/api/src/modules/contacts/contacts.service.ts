@@ -69,4 +69,47 @@ export class ContactsService {
     ])
     return { total, hot: qualifying, booked: proposal, won }
   }
+
+  async getProfile(id: string, orgId: string) {
+    const [contact, conversations, activities, notes, campaignCount] = await Promise.all([
+      this.prisma.contact.findFirst({ where: { id, orgId } }),
+      this.prisma.conversation.findMany({
+        where: { contactId: id, orgId },
+        orderBy: { updatedAt: 'desc' },
+        take: 10,
+        select: { id: true, status: true, channel: { select: { name: true, type: true } }, updatedAt: true, lastMsgAt: true },
+      }),
+      this.prisma.activity.findMany({
+        where: { contactId: id, orgId },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: { id: true, type: true, data: true, createdAt: true, user: { select: { name: true } } },
+      }),
+      this.prisma.note.findMany({
+        where: { contactId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: { id: true, content: true, createdAt: true, author: { select: { name: true } } },
+      }),
+      this.prisma.campaignContact.count({ where: { contactId: id } }),
+    ])
+    if (!contact) return null
+    return { contact, conversations, activities, notes, campaignCount }
+  }
+
+  async addNote(id: string, orgId: string, userId: string, content: string) {
+    const contact = await this.prisma.contact.findFirst({ where: { id, orgId } })
+    if (!contact) throw new Error('Contact not found')
+    const note = await this.prisma.note.create({
+      data: { contactId: id, authorId: userId, content },
+    })
+    await this.prisma.activity.create({
+      data: { orgId, contactId: id, userId, type: 'note_added', data: { noteId: note.id } },
+    })
+    return note
+  }
+
+  async deleteNote(noteId: string, userId: string) {
+    return this.prisma.note.deleteMany({ where: { id: noteId, authorId: userId } })
+  }
 }

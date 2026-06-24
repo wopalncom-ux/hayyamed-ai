@@ -252,6 +252,11 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Contact Profile & Notes
+  getContactProfile: (id) => request(`/contacts/${id}/profile`),
+  addContactNote: (id, body) => request(`/contacts/${id}/notes`, { method: 'POST', body: JSON.stringify(body) }),
+  deleteContactNote: (contactId, noteId) => request(`/contacts/${contactId}/notes/${noteId}`, { method: 'DELETE' }),
+
   // Contact Import / Export
   previewContactImport: (file) => {
     const auth = getAuth()

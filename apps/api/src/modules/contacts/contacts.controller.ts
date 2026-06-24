@@ -56,6 +56,27 @@ export class ContactsController {
     return this.contacts.remove(id, user.orgId)
   }
 
+  // ─── PROFILE / NOTES ─────────────────────────────────────────────────────
+
+  @Get(':id/profile')
+  getProfile(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.contacts.getProfile(id, user.orgId)
+  }
+
+  @Post(':id/notes')
+  addNote(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { content: string },
+  ) {
+    return this.contacts.addNote(id, user.orgId, user.userId, body.content)
+  }
+
+  @Delete(':id/notes/:noteId')
+  deleteNote(@Param('noteId') noteId: string, @CurrentUser() user: JwtPayload) {
+    return this.contacts.deleteNote(noteId, user.userId)
+  }
+
   // ─── IMPORT ──────────────────────────────────────────────────────────────
 
   @Post('import/preview')

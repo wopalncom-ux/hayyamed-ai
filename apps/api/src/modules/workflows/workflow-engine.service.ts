@@ -203,7 +203,7 @@ export class WorkflowEngineService {
           data: {
             orgId, contactId: contact.id,
             type: 'workflow',
-            title: this.interpolate(step.title || 'Workflow step executed', context),
+            data: { title: this.interpolate(step.title || 'Workflow step executed', context) },
           },
         })
         break
