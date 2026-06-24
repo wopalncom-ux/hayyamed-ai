@@ -108,6 +108,7 @@ export default function MasterAdminPanel() {
             { id:'audit', label:'Audit Logs' },
             { id:'flags', label:'🚩 Feature Flags' },
             { id:'ai', label:'🔭 AI Observability' },
+            { id:'health', label:'💚 Customer Health' },
           ].map(t => (
             <button
               key={t.id}
@@ -250,6 +251,23 @@ export default function MasterAdminPanel() {
               </div>
               <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
                 Click "Open Dashboard" to see full AI metrics: cost per provider, tokens, latency, escalation rates, and recent calls.
+              </div>
+            </div>
+          )}
+
+          {tab === 'health' && (
+            <div style={{ paddingTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '16px' }}>Customer Health Engine</div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Engagement, adoption, automation and AI scores per org — identify churn risk early.</div>
+                </div>
+                <a href="/admin/customer-health" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                  Open Dashboard →
+                </a>
+              </div>
+              <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                Click "Open Dashboard" to view health scores, churn risk, and signals for every organization.
               </div>
             </div>
           )}

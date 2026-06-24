@@ -246,6 +246,14 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Customer Health
+  getCustomerHealth: () =>
+    request('/master-admin/customer-health'),
+  getAllCustomerHealth: () =>
+    request('/master-admin/customer-health/all'),
+  getOrgHealth: (orgId) =>
+    request(`/master-admin/customer-health/${orgId}`),
+
   // AI Observability
   getAIObservabilityStats: (days = 30) =>
     request(`/ai/observability/stats?days=${days}`),
