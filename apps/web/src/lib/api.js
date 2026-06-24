@@ -246,6 +246,9 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Email
+  testEmail: (body) => request('/master-admin/email/test', { method: 'POST', body: JSON.stringify(body) }),
+
   // Marketplace
   getMarketplaceItems: (params = {}) =>
     request('/marketplace?' + new URLSearchParams(params)),

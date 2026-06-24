@@ -16,6 +16,82 @@ function StatCard({ label, value, icon, color }) {
   )
 }
 
+function EmailTestPanel() {
+  const [to, setTo] = useState('')
+  const [template, setTemplate] = useState('welcome')
+  const [sending, setSending] = useState(false)
+  const [result, setResult] = useState(null)
+
+  const send = async () => {
+    if (!to) return
+    setSending(true)
+    try {
+      const r = await api.testEmail({ to, template })
+      setResult({ ok: true, msg: `Sent "${template}" to ${to}` })
+    } catch (e) {
+      setResult({ ok: false, msg: e.message || 'Failed' })
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div style={{ paddingTop: '8px', maxWidth: '560px' }}>
+      <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>📧 Email System</div>
+      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '20px' }}>
+        Powered by Postmark. Set <code style={{ background: '#1a2235', padding: '1px 5px', borderRadius: '3px', color: '#00e5a0' }}>POSTMARK_SERVER_TOKEN</code> in GCP Secret Manager to activate. Without it, emails are logged to console only.
+      </div>
+
+      <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '10px', padding: '20px' }}>
+        <div style={{ fontWeight: '700', marginBottom: '14px', fontSize: '14px' }}>Send Test Email</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input value={to} onChange={e => setTo(e.target.value)} placeholder="Recipient email address"
+            style={{ background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '9px 12px', color: '#e2e8f0', fontSize: '13px' }} />
+          <select value={template} onChange={e => setTemplate(e.target.value)}
+            style={{ background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '9px 12px', color: '#e2e8f0', fontSize: '13px' }}>
+            <option value="welcome">Welcome Email</option>
+            <option value="passwordReset">Password Reset</option>
+            <option value="invite">Team Invitation</option>
+            <option value="billing">Subscription Confirmed</option>
+            <option value="all">All Templates (4 emails)</option>
+          </select>
+          <button onClick={send} disabled={sending || !to} style={{
+            padding: '10px 20px', background: sending || !to ? '#1a2235' : '#00e5a0',
+            color: sending || !to ? '#64748b' : '#0a0f1a', border: 'none', borderRadius: '6px', cursor: sending || !to ? 'not-allowed' : 'pointer', fontWeight: '700', fontSize: '14px',
+          }}>{sending ? 'Sending...' : 'Send Test'}</button>
+          {result && (
+            <div style={{ padding: '10px 14px', borderRadius: '6px', background: result.ok ? '#00e5a022' : '#ef444422', color: result.ok ? '#00e5a0' : '#ef4444', fontSize: '13px', fontWeight: '600' }}>
+              {result.ok ? '✓' : '✗'} {result.msg}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: '20px', background: '#111622', border: '1px solid #1a2235', borderRadius: '10px', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid #1a2235', fontWeight: '700', fontSize: '13px' }}>Templates Available</div>
+        {[
+          { name: 'Welcome Email', trigger: 'User registers', tag: 'welcome' },
+          { name: 'Password Reset', trigger: 'Forgot password flow', tag: 'password-reset' },
+          { name: 'Team Invitation', trigger: 'User invite', tag: 'invite' },
+          { name: 'Subscription Confirmed', trigger: 'Checkout success', tag: 'billing' },
+          { name: 'Subscription Cancelled', trigger: 'Paddle cancellation webhook', tag: 'billing' },
+          { name: 'Payment Failed', trigger: 'Stripe invoice.payment_failed', tag: 'billing' },
+          { name: 'Agency Client Invite', trigger: 'Agency creates client org', tag: 'agency' },
+          { name: 'AI Agent Alert', trigger: 'Agent error / escalation', tag: 'ai-alert' },
+        ].map((t, i, arr) => (
+          <div key={t.name} style={{ padding: '11px 18px', borderBottom: i < arr.length - 1 ? '1px solid #0f1624' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0' }}>{t.name}</div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{t.trigger}</div>
+            </div>
+            <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: '#00e5a022', color: '#00e5a0', fontWeight: '700' }}>{t.tag}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function MasterAdminPanel() {
   const [stats, setStats] = useState(null)
   const [orgs, setOrgs] = useState([])
@@ -105,12 +181,12 @@ export default function MasterAdminPanel() {
         <div style={{ padding:'0 24px', borderBottom:'1px solid #1a2235', display:'flex', gap:'0', flexShrink:0 }}>
           {[
             { id:'orgs', label:'Organizations' },
-            { id:'audit', label:'Audit Logs' },
             { id:'flags', label:'🚩 Feature Flags' },
             { id:'ai', label:'🔭 AI Observability' },
             { id:'health', label:'💚 Customer Health' },
             { id:'quality', label:'⭐ AI Quality' },
             { id:'audit', label:'📋 Audit Log' },
+            { id:'email', label:'📧 Email' },
           ].map(t => (
             <button
               key={t.id}
@@ -324,6 +400,8 @@ export default function MasterAdminPanel() {
               </div>
             </div>
           )}
+
+          {tab === 'email' && <EmailTestPanel />}
         </div>
       </div>
 

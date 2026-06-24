@@ -67,6 +67,14 @@ export class AuthService {
 
     const tokens = await this.generateTokens(result.user.id, result.user.email, result.org.id)
     this.audit.log({ orgId: result.org.id, userId: result.user.id, action: 'auth.register', category: 'auth', resource: 'user', resourceId: result.user.id, after: { email: result.user.email, orgName: result.org.name } })
+
+    const frontendUrl = this.config.get('FRONTEND_URL') || 'https://www.hayyaai.com'
+    this.email.sendWelcome(result.user.email, {
+      name: result.user.name,
+      orgName: result.org.name,
+      loginUrl: `${frontendUrl}/dashboard`,
+    }).catch(() => {})
+
     return { user: this.sanitizeUser(result.user), org: result.org, ...tokens }
   }
 
@@ -151,7 +159,11 @@ export class AuthService {
     const frontendUrl = this.config.get('FRONTEND_URL') || 'http://localhost:3000'
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`
 
-    await this.email.sendPasswordReset(email, resetUrl)
+    await this.email.sendPasswordReset(email, {
+      name: user.name,
+      resetUrl,
+      expiresIn: '1 hour',
+    })
 
     return { message: 'If this email exists, a reset link has been sent.' }
   }
