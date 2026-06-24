@@ -86,7 +86,10 @@ export default function Login() {
           </div>
 
           <div style={{marginBottom:'26px'}}>
-            <div style={{fontSize:'10px', color:'#7a8fa6', marginBottom:'6px', letterSpacing:'1px'}}>PASSWORD</div>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'6px'}}>
+              <div style={{fontSize:'10px', color:'#7a8fa6', letterSpacing:'1px'}}>PASSWORD</div>
+              <a href="/forgot-password" style={{fontSize:'11px', color:'#00e5a0', textDecoration:'none'}}>Forgot password?</a>
+            </div>
             <div style={{position:'relative'}}>
               <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key==='Enter' && doLogin()}
