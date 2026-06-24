@@ -123,6 +123,8 @@ export const api = {
     request('/billing/invoices'),
   getPlans: () =>
     request('/billing/plans'),
+  getCurrentPlan: () =>
+    request('/billing/current-plan'),
   createCheckout: (planId) =>
     request('/billing/checkout', { method: 'POST', body: JSON.stringify({ planId }) }),
 

@@ -83,14 +83,7 @@ const PLANS = [
   },
 ]
 
-const mockUsage = {
-  plan: 'Growth', planColor:'#00e5a0',
-  balance: 'QAR 0', nextBilling:'2026-06-15',
-  messages: { used:6240, limit:10000 },
-  ai: { used:2180, limit:5000 },
-  contacts: { used:847, limit:99999 },
-  team: { used:4, limit:15 },
-}
+const PLAN_COLORS = { starter:'#3b82f6', growth:'#00e5a0', enterprise:'#a78bfa', payg:'#fbbf24' }
 
 const inp = {width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'10px 14px', color:'#e2e8f0', fontSize:'13px', outline:'none', boxSizing:'border-box'}
 const lbl = {fontSize:'10px', color:'#7a8fa6', marginBottom:'6px', display:'block'}
@@ -120,6 +113,7 @@ export default function Settings() {
   const [waPhone, setWaPhone]       = useState('')
   const [addCredit, setAddCredit]   = useState('100')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [liveUsage, setLiveUsage]   = useState(null)
 
   useEffect(() => {
     api.getSettings().then(s => {
@@ -140,6 +134,26 @@ export default function Settings() {
         return [{ id: u.id, name: u.name, email: u.email, role: u.role?.toLowerCase() || 'owner', status: 'active', lastActive: 'Now' }, ...prev]
       })
     }).catch(() => {})
+
+    Promise.all([
+      api.getCurrentPlan().catch(() => null),
+      api.getFullStats().catch(() => null),
+    ]).then(([plan, stats]) => {
+      if (!plan && !stats) return
+      const planId = plan?.id?.toLowerCase() || 'starter'
+      const planName = plan?.name || 'Starter'
+      const planColor = PLAN_COLORS[planId] || '#3b82f6'
+      const expiry = plan?.expiry ? new Date(plan.expiry).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—'
+      setLiveUsage({
+        plan: planName,
+        planColor,
+        nextBilling: expiry,
+        contacts: { used: stats?.totalContacts || 0, limit: plan?.contacts || 99999 },
+        messages: { used: stats?.totalConvs || 0, limit: plan?.messages || 10000 },
+        ai:       { used: stats?.totalWorkflowRuns || 0, limit: plan?.aiResponses || 5000 },
+        team:     { used: 0, limit: 15 },
+      })
+    })
   }, [])
 
   const saveMsg = (msg) => { setSaved(msg); setTimeout(() => setSaved(''), 2000) }
@@ -228,17 +242,22 @@ export default function Settings() {
 
               {/* Plan + Balance banner */}
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-                <div style={{background:'#0f1520', border:`1px solid ${mockUsage.planColor}40`, padding:'20px', borderRadius:'4px', borderTop:`2px solid ${mockUsage.planColor}`}}>
-                  <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'8px'}}>CURRENT PLAN</div>
-                  <div style={{fontSize:'22px', fontWeight:'800', color:mockUsage.planColor, marginBottom:'4px'}}>{mockUsage.plan}</div>
-                  <div style={{fontSize:'11px', color:'#7a8fa6'}}>Next billing: {mockUsage.nextBilling}</div>
-                  <button onClick={() => setActiveTab('billing')} style={{marginTop:'12px', padding:'6px 14px', background:`${mockUsage.planColor}20`, border:`1px solid ${mockUsage.planColor}40`, borderRadius:'4px', color:mockUsage.planColor, fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>
-                    Upgrade Plan →
-                  </button>
-                </div>
+                {(() => {
+                  const u = liveUsage || { plan:'—', planColor:'#3b82f6', nextBilling:'—' }
+                  return (
+                    <div style={{background:'#0f1520', border:`1px solid ${u.planColor}40`, padding:'20px', borderRadius:'4px', borderTop:`2px solid ${u.planColor}`}}>
+                      <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'8px'}}>CURRENT PLAN</div>
+                      <div style={{fontSize:'22px', fontWeight:'800', color:u.planColor, marginBottom:'4px'}}>{u.plan}</div>
+                      <div style={{fontSize:'11px', color:'#7a8fa6'}}>Next billing: {u.nextBilling}</div>
+                      <button onClick={() => setActiveTab('billing')} style={{marginTop:'12px', padding:'6px 14px', background:`${u.planColor}20`, border:`1px solid ${u.planColor}40`, borderRadius:'4px', color:u.planColor, fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>
+                        Upgrade Plan →
+                      </button>
+                    </div>
+                  )
+                })()}
                 <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px', borderRadius:'4px'}}>
                   <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'8px'}}>ACCOUNT BALANCE</div>
-                  <div style={{fontSize:'22px', fontWeight:'800', color:'#fbbf24', marginBottom:'4px'}}>{mockUsage.balance}</div>
+                  <div style={{fontSize:'22px', fontWeight:'800', color:'#fbbf24', marginBottom:'4px'}}>QAR 0</div>
                   <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'12px'}}>Pay-as-you-go credit</div>
                   <div style={{display:'flex', gap:'6px'}}>
                     {['50','100','200','500'].map(amt => (
@@ -258,10 +277,10 @@ export default function Settings() {
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px', borderRadius:'4px'}}>
                 <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>This Month's Usage</div>
                 {[
-                  { label:'Messages Sent', ...mockUsage.messages, color:'#00e5a0', unit:'msgs' },
-                  { label:'AI Responses', ...mockUsage.ai, color:'#a78bfa', unit:'responses' },
-                  { label:'Active Contacts', ...mockUsage.contacts, color:'#3b82f6', unit:'contacts', unlimitedLabel:'Unlimited' },
-                  { label:'Team Members', ...mockUsage.team, color:'#f97316', unit:'members' },
+                  { label:'Conversations', ...(liveUsage?.messages || {used:0,limit:10000}), color:'#00e5a0', unit:'convos' },
+                  { label:'AI Workflow Runs', ...(liveUsage?.ai || {used:0,limit:5000}), color:'#a78bfa', unit:'runs' },
+                  { label:'Active Contacts', ...(liveUsage?.contacts || {used:0,limit:99999}), color:'#3b82f6', unit:'contacts', unlimitedLabel: liveUsage?.contacts?.limit >= 99999 ? 'Unlimited' : undefined },
+                  { label:'Team Members', used: team.length, limit: liveUsage?.team?.limit || 15, color:'#f97316', unit:'members' },
                 ].map(u => {
                   const pct = u.unlimitedLabel ? 0 : Math.round((u.used/u.limit)*100)
                   return (
@@ -441,7 +460,7 @@ export default function Settings() {
                     </div>
                     <button onClick={() => checkout(plan.id)} disabled={checkoutLoading === plan.id}
                       style={{width:'100%', padding:'9px', background: plan.popular ? plan.color : `${plan.color}20`, border:`1px solid ${plan.color}40`, borderRadius:'4px', color: plan.popular ? '#07090f' : plan.color, fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
-                      {checkoutLoading === plan.id ? 'Processing...' : mockUsage.plan === plan.name ? '✅ Current Plan' : 'Select Plan'}
+                      {checkoutLoading === plan.id ? 'Processing...' : liveUsage?.plan === plan.name ? '✅ Current Plan' : 'Select Plan'}
                     </button>
                   </div>
                 ))}
