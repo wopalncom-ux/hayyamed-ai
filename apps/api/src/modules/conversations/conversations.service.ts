@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Optional } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
+import { RealtimeGateway } from '../../common/gateways/websocket.gateway'
 
 @Injectable()
 export class ConversationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Optional() private gateway?: RealtimeGateway,
+  ) {}
 
   async findAll(orgId: string, query: { status?: string; search?: string; page?: number; limit?: number } = {}) {
     const { status, search, page = 1, limit = 30 } = query
@@ -56,11 +60,16 @@ export class ConversationsService {
 
   async sendMessage(conversationId: string, content: string, senderId?: string) {
     const msg = await this.prisma.message.create({
-      data: { conversationId, content, senderId, type: 'TEXT', status: 'SENT' },
+      data: { conversationId, content, senderId, type: 'TEXT', status: 'SENT', direction: 'OUTBOUND' },
     })
-    await this.prisma.conversation.update({
+    const conv = await this.prisma.conversation.update({
       where: { id: conversationId },
       data: { lastMessage: content, lastMsgAt: new Date() },
+    })
+    // Emit real-time event to all agents in this org
+    this.gateway?.emitNewMessage(conv.orgId, conversationId, {
+      id: msg.id, content, direction: 'OUTBOUND', senderType: 'AGENT',
+      status: 'SENT', createdAt: msg.createdAt, conversationId,
     })
     return msg
   }

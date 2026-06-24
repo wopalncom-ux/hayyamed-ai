@@ -1,7 +1,8 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import axios from 'axios'
 import { PrismaService } from '../../database/prisma.service'
+import { RealtimeGateway } from '../../common/gateways/websocket.gateway'
 
 @Injectable()
 export class WhatsAppService {
@@ -11,6 +12,7 @@ export class WhatsAppService {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    @Optional() private gateway?: RealtimeGateway,
   ) {}
 
   // ─── CHANNEL MANAGEMENT ──────────────────────────────────────────────────
@@ -254,10 +256,11 @@ export class WhatsAppService {
       content = msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || ''
     }
 
-    await this.prisma.message.create({
+    const savedMsg = await this.prisma.message.create({
       data: {
         conversationId: conversation.id,
         type: messageType.toUpperCase() as any,
+        direction: 'INBOUND',
         content, mediaUrl, externalId, status: 'DELIVERED',
       },
     })
@@ -266,6 +269,15 @@ export class WhatsAppService {
       where: { id: conversation.id },
       data: { lastMessage: content || `[${messageType}]`, lastMsgAt: new Date(), isRead: false },
     })
+
+    // Emit real-time events to agents in this org
+    const msgPayload = {
+      id: savedMsg.id, content, direction: 'INBOUND', type: messageType.toUpperCase(),
+      status: 'DELIVERED', createdAt: savedMsg.createdAt, conversationId: conversation.id,
+      contact: { id: contact.id, name: contact.name, phone: contact.phone },
+    }
+    this.gateway?.emitNewMessage(orgId, conversation.id, msgPayload)
+    if (!contact.id) this.gateway?.emitNewLead(orgId, contact)
 
     this.logger.log(`📨 WhatsApp ${messageType} from ${from} → org ${orgId}`)
     return { conversationId: conversation.id, contactId: contact.id, content }

@@ -36,7 +36,7 @@ import { AuditModule } from './modules/audit/audit.module'
 import { MarketplaceModule } from './modules/marketplace/marketplace.module'
 import { EmailModule } from './modules/email/email.module'
 import { DatabaseModule } from './database/database.module'
-import { RealtimeGateway } from './common/gateways/websocket.gateway'
+import { GatewayModule } from './common/gateways/gateway.module'
 
 @Module({
   imports: [
@@ -45,6 +45,9 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
     // Rate limiting (in-memory, single-instance; swap to Upstash at scale)
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+
+    // Real-time WebSocket (global — injected into services that need to emit events)
+    GatewayModule,
 
     // Core
     DatabaseModule,
@@ -76,7 +79,6 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     EmailModule,
   ],
   providers: [
-    RealtimeGateway,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
