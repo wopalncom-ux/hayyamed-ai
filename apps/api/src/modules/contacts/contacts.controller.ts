@@ -80,12 +80,12 @@ export class ContactsController {
     @CurrentUser() user: JwtPayload,
     @Body() body: { content: string },
   ) {
-    return this.contacts.addNote(id, user.orgId, user.userId, body.content)
+    return this.contacts.addNote(id, user.orgId, user.sub, body.content)
   }
 
   @Delete(':id/notes/:noteId')
   deleteNote(@Param('noteId') noteId: string, @CurrentUser() user: JwtPayload) {
-    return this.contacts.deleteNote(noteId, user.userId)
+    return this.contacts.deleteNote(noteId, user.sub)
   }
 
   // ─── IMPORT ──────────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ export class ContactsController {
     if (!mapping.name) throw new BadRequestException('Mapping must include a "name" column')
 
     return this.importer.import(
-      user.orgId, user.userId,
+      user.orgId, user.sub,
       file.buffer, file.originalname,
       mapping,
       { overwriteDuplicates: overwrite === 'true', defaultSource, defaultStatus },

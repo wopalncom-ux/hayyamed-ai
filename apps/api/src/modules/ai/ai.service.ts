@@ -160,7 +160,7 @@ Never promise specific prices without confirmation. Always end with a clear call
     const recentMessages = contact.conversations
       .flatMap(c => c.messages)
       .slice(0, 8)
-      .map(m => `[${m.direction}] ${m.content || `(${m.type})`}`)
+      .map(m => `[${m.senderId ? 'OUTBOUND' : 'INBOUND'}] ${m.content || `(${m.type})`}`)
       .join('\n')
     const daysSinceCreated = Math.floor((Date.now() - new Date(contact.createdAt).getTime()) / 86_400_000)
 

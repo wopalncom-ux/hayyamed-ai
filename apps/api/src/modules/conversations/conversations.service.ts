@@ -60,7 +60,7 @@ export class ConversationsService {
 
   async sendMessage(conversationId: string, content: string, senderId?: string) {
     const msg = await this.prisma.message.create({
-      data: { conversationId, content, senderId, type: 'TEXT', status: 'SENT', direction: 'OUTBOUND' },
+      data: { conversationId, content, senderId, type: 'TEXT', status: 'SENT' },
     })
     const conv = await this.prisma.conversation.update({
       where: { id: conversationId },

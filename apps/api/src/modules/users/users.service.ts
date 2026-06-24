@@ -69,7 +69,7 @@ export class UsersService {
     ])
 
     const loginUrl = `${this.config.get('FRONTEND_URL') || 'http://localhost:3000'}/login`
-    await this.email.sendTeamInvite(dto.email, dto.name, org?.name || 'your team', tempPassword, loginUrl)
+    await this.email.sendInvite(dto.email, { inviterName: 'Admin', orgName: org?.name || 'your team', role: dto.role, acceptUrl: loginUrl })
 
     return user
   }

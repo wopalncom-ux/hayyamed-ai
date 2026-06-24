@@ -1,7 +1,8 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { WhatsAppService } from '../whatsapp/whatsapp.service'
 import { AuditService } from '../audit/audit.service'
+import { RealtimeGateway } from '../../common/gateways/websocket.gateway'
 
 const SEND_DELAY_MS = 120 // ~8 msgs/sec — well under Meta's 80/sec tier-1 limit
 const BATCH_SIZE = 50
@@ -14,6 +15,7 @@ export class CampaignsService {
     private prisma: PrismaService,
     private whatsapp: WhatsAppService,
     private audit: AuditService,
+    @Optional() private gateway: RealtimeGateway,
   ) {}
 
   // ─── LIST / CRUD ─────────────────────────────────────────────────────────
@@ -251,7 +253,9 @@ export class CampaignsService {
   // ─── PRIVATE ENGINE ───────────────────────────────────────────────────────
 
   private async executeCampaign(campaignId: string, orgId: string, message: string) {
-    let offset = 0
+    let sentTotal = 0
+    let failedTotal = 0
+    const total = await this.prisma.campaignContact.count({ where: { campaignId } })
 
     while (true) {
       // Re-check campaign status in case it was paused
@@ -275,7 +279,8 @@ export class CampaignsService {
           where: { id: campaignId },
           data: { status: 'COMPLETED' },
         })
-        this.logger.log(`Campaign ${campaignId} completed`)
+        this.gateway?.emitCampaignProgress(orgId, campaignId, { sent: sentTotal, failed: failedTotal, total, status: 'COMPLETED' })
+        this.logger.log(`Campaign ${campaignId} completed — ${sentTotal}/${total} sent`)
         break
       }
 
@@ -286,6 +291,7 @@ export class CampaignsService {
 
         if (!cc.contact.phone) {
           await this.prisma.campaignContact.update({ where: { id: cc.id }, data: { status: 'failed' } })
+          failedTotal++
           continue
         }
 
@@ -300,18 +306,23 @@ export class CampaignsService {
             where: { id: campaignId },
             data: { sent: { increment: 1 } },
           })
+          sentTotal++
         } catch (err: any) {
           this.logger.warn(`Failed to send to ${cc.contact.phone}: ${err.message}`)
           await this.prisma.campaignContact.update({
             where: { id: cc.id },
             data: { status: 'failed' },
           })
+          failedTotal++
+        }
+
+        // Emit progress every 10 messages
+        if ((sentTotal + failedTotal) % 10 === 0) {
+          this.gateway?.emitCampaignProgress(orgId, campaignId, { sent: sentTotal, failed: failedTotal, total, status: 'RUNNING' })
         }
 
         await new Promise(r => setTimeout(r, SEND_DELAY_MS))
       }
-
-      offset += BATCH_SIZE
     }
   }
 

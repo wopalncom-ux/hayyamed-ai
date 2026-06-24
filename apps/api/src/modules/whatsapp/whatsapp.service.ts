@@ -203,7 +203,7 @@ export class WhatsAppService {
 
   async sendTestMessage(orgId: string, to: string) {
     const channel = await this.getActiveChannel(orgId)
-    return this.sendText(channel.identifier, to, '✅ Hayya AI WhatsApp connection test successful! Your channel is live.')
+    return this.sendText(channel.identifier, to, '✅ Hayya AI WhatsApp connection test successful! Your channel is live.', channel.accessToken!)
   }
 
   verifyWebhook(mode: string, token: string, challenge: string): string | null {
@@ -228,7 +228,9 @@ export class WhatsAppService {
     const externalId = msg.id
 
     let contact = await this.prisma.contact.findFirst({ where: { phone: from, orgId } })
+    let isNewContact = false
     if (!contact) {
+      isNewContact = true
       contact = await this.prisma.contact.create({
         data: {
           orgId, phone: from,
@@ -260,7 +262,7 @@ export class WhatsAppService {
       data: {
         conversationId: conversation.id,
         type: messageType.toUpperCase() as any,
-        direction: 'INBOUND',
+        // senderId: null means inbound (from customer)
         content, mediaUrl, externalId, status: 'DELIVERED',
       },
     })
@@ -277,7 +279,7 @@ export class WhatsAppService {
       contact: { id: contact.id, name: contact.name, phone: contact.phone },
     }
     this.gateway?.emitNewMessage(orgId, conversation.id, msgPayload)
-    if (!contact.id) this.gateway?.emitNewLead(orgId, contact)
+    if (isNewContact) this.gateway?.emitNewLead(orgId, contact)
 
     this.logger.log(`📨 WhatsApp ${messageType} from ${from} → org ${orgId}`)
     return { conversationId: conversation.id, contactId: contact.id, content }
