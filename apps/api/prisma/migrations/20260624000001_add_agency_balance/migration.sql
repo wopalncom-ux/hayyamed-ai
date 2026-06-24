@@ -1,0 +1,2 @@
+-- AlterTable: add agencyBalance column to organizations (added to schema after initial migration)
+ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "agencyBalance" DOUBLE PRECISION NOT NULL DEFAULT 0;
