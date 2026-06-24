@@ -246,6 +246,17 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Marketplace
+  getMarketplaceItems: (params = {}) =>
+    request('/marketplace?' + new URLSearchParams(params)),
+  getMarketplaceItem: (id) => request(`/marketplace/${id}`),
+  installMarketplaceItem: (id) => request(`/marketplace/${id}/install`, { method: 'POST' }),
+  uninstallMarketplaceItem: (id) => request(`/marketplace/${id}/install`, { method: 'DELETE' }),
+  getInstalledItems: () => request('/marketplace/installed'),
+  rateMarketplaceItem: (id, rating) =>
+    request(`/marketplace/${id}/rate`, { method: 'POST', body: JSON.stringify({ rating }) }),
+  getMarketplaceStats: () => request('/master-admin/marketplace/stats'),
+
   // Audit Dashboard
   getPlatformAuditLogs: (params = {}) =>
     request('/master-admin/audit?' + new URLSearchParams(params)),

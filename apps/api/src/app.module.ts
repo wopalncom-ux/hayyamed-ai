@@ -33,6 +33,7 @@ import { AIObservabilityModule } from './modules/ai-observability/ai-observabili
 import { CustomerHealthModule } from './modules/customer-health/customer-health.module'
 import { AIQualityModule } from './modules/ai-quality/ai-quality.module'
 import { AuditModule } from './modules/audit/audit.module'
+import { MarketplaceModule } from './modules/marketplace/marketplace.module'
 import { DatabaseModule } from './database/database.module'
 import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
@@ -70,6 +71,7 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     CustomerHealthModule,
     AIQualityModule,
     AuditModule,
+    MarketplaceModule,
   ],
   providers: [
     RealtimeGateway,
