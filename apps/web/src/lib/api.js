@@ -246,6 +246,14 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // AI Observability
+  getAIObservabilityStats: (days = 30) =>
+    request(`/ai/observability/stats?days=${days}`),
+  getMasterAIObservabilityStats: (days = 30) =>
+    request(`/master-admin/ai-observability/stats?days=${days}`),
+  recordAIFeedback: (id, feedback) =>
+    request(`/ai/observability/feedback/${id}`, { method: 'POST', body: JSON.stringify({ feedback }) }),
+
   // Feature Flags (Master Admin)
   getFeatureFlags: () =>
     request('/master-admin/feature-flags'),

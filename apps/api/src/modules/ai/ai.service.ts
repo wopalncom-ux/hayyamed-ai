@@ -4,6 +4,7 @@ import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { PrismaService } from '../../database/prisma.service'
+import { AIObservabilityService } from '../ai-observability/ai-observability.service'
 
 type Provider = 'openai' | 'anthropic' | 'gemini' | 'groq'
 
@@ -20,6 +21,7 @@ export class AIService {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    private obs: AIObservabilityService,
   ) {
     const openaiKey = this.config.get<string>('OPENAI_API_KEY')
     if (openaiKey) this.openai = new OpenAI({ apiKey: openaiKey })
@@ -42,68 +44,72 @@ export class AIService {
   }
 
   // ─── Multi-provider router ────────────────────────────────────────────────
-  private async complete(
+  async complete(
     messages: ChatMessage[],
-    opts: { provider?: Provider; model?: string; maxTokens?: number; temperature?: number } = {},
+    opts: { provider?: Provider; model?: string; maxTokens?: number; temperature?: number; orgId?: string; module?: string; action?: string } = {},
   ): Promise<string> {
-    const { provider, model, maxTokens = 400, temperature = 0.7 } = opts
+    const { provider, model, maxTokens = 400, temperature = 0.7, orgId, module = 'ai', action = 'complete' } = opts
 
     const systemMsg = messages.find(m => m.role === 'system')?.content || ''
     const chatMsgs  = messages.filter(m => m.role !== 'system')
 
-    // Determine provider priority (prefer specified, fallback in order)
     const priority: Provider[] = provider
       ? [provider, 'openai', 'anthropic', 'gemini', 'groq']
       : ['openai', 'anthropic', 'gemini', 'groq']
 
     for (const p of priority) {
       try {
-        if (p === 'anthropic' && this.anthropic) {
-          const resp = await this.anthropic.messages.create({
-            model: model || 'claude-haiku-4-5-20251001',
-            max_tokens: maxTokens,
-            system: systemMsg,
-            messages: chatMsgs.map(m => ({
-              role: m.role as 'user' | 'assistant',
-              content: m.content,
-            })),
-          })
-          return (resp.content[0] as any)?.text || ''
-        }
+        const start = Date.now()
+        let result = ''
+        let usedModel = model || ''
+        let promptTokens = 0, completionTokens = 0
 
-        if (p === 'gemini' && this.gemini) {
-          const genModel = this.gemini.getGenerativeModel({ model: model || 'gemini-1.5-flash' })
-          const history = chatMsgs.slice(0, -1).map(m => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }],
-          }))
+        if (p === 'anthropic' && this.anthropic) {
+          usedModel = model || 'claude-haiku-4-5-20251001'
+          const resp = await this.anthropic.messages.create({
+            model: usedModel, max_tokens: maxTokens, system: systemMsg,
+            messages: chatMsgs.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+          })
+          result = (resp.content[0] as any)?.text || ''
+          promptTokens = resp.usage.input_tokens
+          completionTokens = resp.usage.output_tokens
+        } else if (p === 'gemini' && this.gemini) {
+          usedModel = model || 'gemini-1.5-flash'
+          const genModel = this.gemini.getGenerativeModel({ model: usedModel })
+          const history = chatMsgs.slice(0, -1).map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
           const lastMsg = chatMsgs.at(-1)?.content || ''
           const chat = genModel.startChat({ history, systemInstruction: systemMsg })
-          const result = await chat.sendMessage(lastMsg)
-          return result.response.text()
+          const r = await chat.sendMessage(lastMsg)
+          result = r.response.text()
+          const meta = r.response.usageMetadata
+          promptTokens = meta?.promptTokenCount ?? 0
+          completionTokens = meta?.candidatesTokenCount ?? 0
+        } else if (p === 'groq' && this.groq) {
+          usedModel = model || 'llama-3.1-8b-instant'
+          const resp = await this.groq.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
+          result = resp.choices[0]?.message?.content || ''
+          promptTokens = resp.usage?.prompt_tokens ?? 0
+          completionTokens = resp.usage?.completion_tokens ?? 0
+        } else if (p === 'openai' && this.openai) {
+          usedModel = model || 'gpt-4o-mini'
+          const resp = await this.openai.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
+          result = resp.choices[0]?.message?.content || ''
+          promptTokens = resp.usage?.prompt_tokens ?? 0
+          completionTokens = resp.usage?.completion_tokens ?? 0
+        } else {
+          continue
         }
 
-        if (p === 'groq' && this.groq) {
-          const resp = await this.groq.chat.completions.create({
-            model: model || 'llama-3.1-8b-instant',
-            messages: messages as any,
-            max_tokens: maxTokens,
-            temperature,
-          })
-          return resp.choices[0]?.message?.content || ''
+        const latencyMs = Date.now() - start
+        if (orgId) {
+          this.obs.log({ orgId, module, action, provider: p, model: usedModel, promptTokens, completionTokens, latencyMs, success: true }).catch(() => {})
         }
-
-        if (p === 'openai' && this.openai) {
-          const resp = await this.openai.chat.completions.create({
-            model: model || 'gpt-4o-mini',
-            messages: messages as any,
-            max_tokens: maxTokens,
-            temperature,
-          })
-          return resp.choices[0]?.message?.content || ''
-        }
+        return result
       } catch (err: any) {
         this.logger.warn(`AI provider ${p} failed: ${err.message}`)
+        if (orgId) {
+          this.obs.log({ orgId, module, action, provider: p, model: model || p, latencyMs: 0, success: false, errorType: err.message?.slice(0, 100) }).catch(() => {})
+        }
       }
     }
 
@@ -133,8 +139,7 @@ Never promise specific prices without confirmation. Always end with a clear call
       })).filter(m => m.content),
     ]
 
-    // Use Groq for speed if available, fallback to openai
-    return this.complete(chatMessages, { provider: 'groq', maxTokens: 300, temperature: 0.7 })
+    return this.complete(chatMessages, { provider: 'groq', maxTokens: 300, temperature: 0.7, orgId, module: 'chatbot', action: 'reply' })
   }
 
   // ─── SCORE LEAD ───────────────────────────────────────────────────────────

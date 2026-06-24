@@ -29,6 +29,7 @@ import { WorkflowsModule } from './modules/workflows/workflows.module'
 import { AgencyModule } from './modules/agency/agency.module'
 import { IntegrationsModule } from './modules/integrations/integrations.module'
 import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module'
+import { AIObservabilityModule } from './modules/ai-observability/ai-observability.module'
 import { DatabaseModule } from './database/database.module'
 import { RealtimeGateway } from './common/gateways/websocket.gateway'
 
@@ -62,6 +63,7 @@ import { RealtimeGateway } from './common/gateways/websocket.gateway'
     AgencyModule,
     IntegrationsModule,
     FeatureFlagsModule,
+    AIObservabilityModule,
   ],
   providers: [
     RealtimeGateway,
