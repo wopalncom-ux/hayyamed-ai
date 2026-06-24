@@ -1,6 +1,8 @@
 'use client'
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import { api } from '@/lib/api'
 import { getAuth } from '@/lib/auth'
 
@@ -30,15 +32,20 @@ function toUiConv(c) {
 }
 
 function toUiMsg(m) {
+  // senderId null means customer sent it (inbound); isAI/isFromBot = AI-generated reply
+  const from = !m.senderId ? 'contact' : (m.isAI || m.isFromBot) ? 'ai' : 'agent'
   return {
     id: m.id,
-    from: m.direction === 'INBOUND' ? 'contact' : m.senderType === 'AI' ? 'ai' : 'agent',
+    from,
     text: m.content || '',
     time: m.createdAt ? new Date(m.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '',
   }
 }
 
-export default function Inbox() {
+function InboxInner() {
+  const searchParams = useSearchParams()
+  const targetConvId = searchParams.get('conv')
+
   const [contacts, setContacts] = useState([])
   const [convLoading, setConvLoading] = useState(true)
   const [selected, setSelected] = useState(null)
@@ -49,7 +56,7 @@ export default function Inbox() {
   const [sending, setSending] = useState(false)
   const [filterChannel, setFilterChannel] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
-  const [liveStatus, setLiveStatus] = useState('connecting') // connecting | live | offline
+  const [liveStatus, setLiveStatus] = useState('connecting')
   const [newMsgFlash, setNewMsgFlash] = useState(false)
   const bottomRef = useRef(null)
   const socketRef = useRef(null)
@@ -63,7 +70,10 @@ export default function Inbox() {
         const list = Array.isArray(res) ? res : (res?.data || [])
         const ui = list.map(toUiConv)
         setContacts(ui)
-        if (ui.length) selectConversation(ui[0])
+        // If ?conv= param present, jump to that conversation; else open first
+        const target = targetConvId ? ui.find(c => c.id === targetConvId) : null
+        if (target) selectConversation(target)
+        else if (ui.length) selectConversation(ui[0])
       })
       .catch(() => {})
       .finally(() => setConvLoading(false))
@@ -101,7 +111,7 @@ export default function Inbox() {
         setContacts(prev => {
           const idx = prev.findIndex(c => c.id === conversationId)
           if (idx === -1) return prev
-          const updated = { ...prev[idx], msg: message.content || prev[idx].msg, time: 'Now', unread: prev[idx].unread + (message.direction === 'INBOUND' ? 1 : 0), lastMsgAt: message.createdAt }
+          const updated = { ...prev[idx], msg: message.content || prev[idx].msg, time: 'Now', unread: prev[idx].unread + (!message.senderId ? 1 : 0), lastMsgAt: message.createdAt }
           const rest = prev.filter(c => c.id !== conversationId)
           return [updated, ...rest] // bump to top
         })
@@ -356,5 +366,17 @@ export default function Inbox() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Inbox() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0f1a', color: '#64748b', alignItems: 'center', justifyContent: 'center' }}>
+        Loading inbox…
+      </div>
+    }>
+      <InboxInner />
+    </Suspense>
   )
 }
