@@ -1,190 +1,357 @@
 'use client'
 import NavSidebar from '@/components/NavSidebar'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { api } from '@/lib/api'
 
-const CHANNEL_COLORS = ['#00e5a0', '#3b82f6', '#a78bfa', '#f97316', '#fbbf24']
+const fmt = (n) => n == null ? '—' : n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n)
+const fmtQar = (n) => (n || 0).toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 })
+const pct = (a, b) => b > 0 ? Math.round((a / b) * 100) : 0
 
-const fmt = (n) => n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n)
+const STAGE_COLOR = {
+  NEW: '#64748b', CONTACTED: '#3b82f6', QUALIFYING: '#f97316',
+  QUALIFIED: '#00e5a0', PROPOSAL: '#8b5cf6', NEGOTIATION: '#fbbf24',
+  WON: '#22c55e', LOST: '#ef4444',
+}
+
+const SOURCE_ICON = { whatsapp: '💬', instagram: '📸', web: '🌐', referral: '👥', manual: '✏️', import: '📊', email: '📧', facebook: '👤' }
+const SOURCE_COLOR = { whatsapp: '#22c55e', instagram: '#f97316', web: '#3b82f6', referral: '#8b5cf6', manual: '#64748b', import: '#00e5a0', email: '#fbbf24', facebook: '#3b82f6' }
+
+const ACTIVITY_LABELS = {
+  note_added: 'Added a note',
+  status_changed: 'Status changed',
+  contact_created: 'Contact created',
+  message_sent: 'Message sent',
+  campaign_sent: 'Campaign message sent',
+  workflow_triggered: 'Workflow triggered',
+  workflow_completed: 'Workflow completed',
+}
+
+function SvgAreaChart({ data, metrics, height = 180 }) {
+  const W = 800; const H = height
+  const pad = { top: 10, bottom: 28, left: 4, right: 4 }
+  const cw = W - pad.left - pad.right
+  const ch = H - pad.top - pad.bottom
+  const n = data.length
+  if (n === 0) return <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '12px' }}>No data yet</div>
+
+  const maxVal = Math.max(...data.flatMap(d => metrics.map(m => d[m.key] || 0)), 1)
+
+  const points = (key) => data.map((d, i) => {
+    const x = pad.left + (i / (n - 1 || 1)) * cw
+    const y = pad.top + ch - ((d[key] || 0) / maxVal) * ch
+    return `${x},${y}`
+  }).join(' ')
+
+  const area = (key) => {
+    const pts = data.map((d, i) => {
+      const x = pad.left + (i / (n - 1 || 1)) * cw
+      const y = pad.top + ch - ((d[key] || 0) / maxVal) * ch
+      return [x, y]
+    })
+    const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ')
+    const areaD = pathD + ` L${pts[pts.length - 1][0]},${pad.top + ch} L${pts[0][0]},${pad.top + ch} Z`
+    return areaD
+  }
+
+  const labels = data.map((d, i) => {
+    const dt = new Date(d.date)
+    const show = n <= 10 ? true : n <= 31 ? i % 3 === 0 : i % 7 === 0
+    if (!show) return null
+    const x = pad.left + (i / (n - 1 || 1)) * cw
+    return { x, label: n <= 8 ? ['Su','Mo','Tu','We','Th','Fr','Sa'][dt.getUTCDay()] : d.date.slice(5) }
+  }).filter(Boolean)
+
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(t => ({ v: Math.round(maxVal * (1 - t)), y: pad.top + ch * t }))
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height }} preserveAspectRatio="none">
+      {/* Grid lines */}
+      {ticks.map((t, i) => (
+        <g key={i}>
+          <line x1={pad.left} x2={W - pad.right} y1={t.y} y2={t.y} stroke="#1a2235" strokeWidth="1" />
+          <text x={pad.left + 2} y={t.y - 3} fontSize="9" fill="#475569">{fmt(t.v)}</text>
+        </g>
+      ))}
+      {/* Area fills */}
+      {metrics.map(m => (
+        <defs key={`g-${m.key}`}>
+          <linearGradient id={`grad-${m.key}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={m.color} stopOpacity="0.25" />
+            <stop offset="100%" stopColor={m.color} stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+      ))}
+      {metrics.map(m => <path key={`a-${m.key}`} d={area(m.key)} fill={`url(#grad-${m.key})`} />)}
+      {/* Lines */}
+      {metrics.map(m => <polyline key={`l-${m.key}`} points={points(m.key)} fill="none" stroke={m.color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />)}
+      {/* X labels */}
+      {labels.map((l, i) => (
+        <text key={i} x={l.x} y={H - 4} fontSize="9" fill="#475569" textAnchor="middle">{l.label}</text>
+      ))}
+    </svg>
+  )
+}
+
+function PipelineFunnel({ stages }) {
+  const maxCount = Math.max(...stages.map(s => s.count), 1)
+  const totalValue = stages.reduce((s, st) => s + st.value, 0)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      {stages.map(s => {
+        const barW = maxCount > 0 ? pct(s.count, maxCount) : 0
+        const color = STAGE_COLOR[s.status] || '#64748b'
+        return (
+          <div key={s.status} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '80px', fontSize: '10px', color: '#94a3b8', textAlign: 'right', flexShrink: 0 }}>{s.status}</div>
+            <div style={{ flex: 1, height: '18px', background: '#111622', borderRadius: '3px', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ height: '100%', width: `${barW}%`, background: color, borderRadius: '3px', transition: 'width .5s', opacity: 0.85 }} />
+            </div>
+            <div style={{ width: '28px', fontSize: '11px', fontWeight: '700', color, flexShrink: 0 }}>{s.count}</div>
+            {s.value > 0 && <div style={{ fontSize: '10px', color: '#64748b', flexShrink: 0, minWidth: '60px' }}>{fmtQar(s.value)}</div>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function SourceBreakdown({ sources }) {
+  const total = sources.reduce((s, x) => s + x.count, 0)
+  const COLORS = ['#00e5a0', '#3b82f6', '#f97316', '#8b5cf6', '#fbbf24', '#ef4444', '#22c55e', '#06b6d4']
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {sources.slice(0, 6).map((s, i) => {
+        const color = SOURCE_COLOR[s.source] || COLORS[i % COLORS.length]
+        const p = total > 0 ? Math.round((s.count / total) * 100) : 0
+        return (
+          <div key={s.source} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', width: '20px' }}>{SOURCE_ICON[s.source] || '🔗'}</span>
+            <div style={{ width: '70px', fontSize: '11px', color: '#94a3b8', textTransform: 'capitalize' }}>{s.source}</div>
+            <div style={{ flex: 1, height: '8px', background: '#111622', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${p}%`, background: color, borderRadius: '4px', transition: 'width .5s' }} />
+            </div>
+            <div style={{ fontSize: '11px', fontWeight: '700', color, width: '36px', textAlign: 'right' }}>{p}%</div>
+            <div style={{ fontSize: '10px', color: '#475569', width: '24px', textAlign: 'right' }}>{s.count}</div>
+          </div>
+        )
+      })}
+      {sources.length === 0 && <div style={{ fontSize: '12px', color: '#475569' }}>No source data yet</div>}
+    </div>
+  )
+}
+
+function CampaignTable({ campaigns }) {
+  if (campaigns.length === 0) return <div style={{ fontSize: '12px', color: '#475569', padding: '12px 0' }}>No campaigns run yet</div>
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+      <thead>
+        <tr style={{ borderBottom: '1px solid #1a2235' }}>
+          {['Campaign', 'Status', 'Sent', 'Delivered', 'Read', 'Read Rate'].map(h => (
+            <th key={h} style={{ padding: '6px 8px', textAlign: 'left', color: '#475569', fontWeight: '600', fontSize: '10px' }}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {campaigns.map(c => {
+          const delRate = pct(c.delivered, c.total)
+          const readRate = pct(c.read, c.total)
+          const statusColor = c.status === 'COMPLETED' ? '#22c55e' : c.status === 'RUNNING' ? '#00e5a0' : '#64748b'
+          return (
+            <tr key={c.id} style={{ borderBottom: '1px solid #111622' }}>
+              <td style={{ padding: '8px', color: '#e2e8f0', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</td>
+              <td style={{ padding: '8px' }}>
+                <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '3px', background: statusColor + '22', color: statusColor, fontWeight: '700' }}>{c.status}</span>
+              </td>
+              <td style={{ padding: '8px', color: '#94a3b8' }}>{c.total}</td>
+              <td style={{ padding: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '40px', height: '4px', background: '#1a2235', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${delRate}%`, background: '#3b82f6' }} />
+                  </div>
+                  <span style={{ color: '#3b82f6' }}>{c.delivered}</span>
+                </div>
+              </td>
+              <td style={{ padding: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '40px', height: '4px', background: '#1a2235', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${readRate}%`, background: '#00e5a0' }} />
+                  </div>
+                  <span style={{ color: '#00e5a0' }}>{c.read}</span>
+                </div>
+              </td>
+              <td style={{ padding: '8px', fontWeight: '700', color: readRate >= 40 ? '#22c55e' : readRate >= 20 ? '#fbbf24' : '#64748b' }}>
+                {readRate}%
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+}
+
+function ActivityFeed({ activities }) {
+  if (activities.length === 0) return <div style={{ fontSize: '12px', color: '#475569' }}>No recent activity</div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+      {activities.map((a, i) => (
+        <div key={a.id} style={{ display: 'flex', gap: '10px', padding: '8px 0', borderBottom: i < activities.length - 1 ? '1px solid #111622' : 'none' }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00e5a0', flexShrink: 0, marginTop: '5px' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '12px', color: '#e2e8f0' }}>
+              {ACTIVITY_LABELS[a.type] || a.type.replace(/_/g, ' ')}
+              {a.contactName && <> · <a href={a.contactId ? `/contacts/${a.contactId}` : '#'} style={{ color: '#3b82f6', textDecoration: 'none' }}>{a.contactName}</a></>}
+            </div>
+            <div style={{ fontSize: '10px', color: '#475569', marginTop: '2px' }}>
+              {a.userName && <span>{a.userName} · </span>}
+              {new Date(a.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function Analytics() {
-  const [period, setPeriod]   = useState('7days')
-  const [metric, setMetric]   = useState('messages')
-  const [kpis,   setKpis]     = useState(null)
-  const [chart,  setChart]    = useState([])
+  const [period, setPeriod] = useState('7days')
+  const [metric, setMetric] = useState('both')
+  const [full, setFull] = useState(null)
+  const [chart, setChart] = useState([])
   const [loading, setLoading] = useState(true)
+  const [chartLoading, setChartLoading] = useState(true)
 
   useEffect(() => {
-    api.getDashboard().then(setKpis).catch(() => {})
+    api.getFullStats().then(setFull).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    setLoading(true)
+    setChartLoading(true)
     api.getAnalytics(period)
-      .then(d => { setChart(d.days || []); setLoading(false) })
-      .catch(() => setLoading(false))
+      .then(d => setChart(d.days || []))
+      .catch(() => {})
+      .finally(() => setChartLoading(false))
   }, [period])
 
-  const chartData = chart.map(d => metric === 'contacts' ? d.contacts : d.messages)
-  const maxVal    = Math.max(...chartData, 1)
-  const labels    = chart.map(d => {
-    const dt = new Date(d.date)
-    return period === '7days'
-      ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getUTCDay()]
-      : d.date.slice(5)
-  })
+  const kpis = full?.kpis
+  const pipeline = full?.pipeline || []
+  const sources = full?.sources || []
+  const campaigns = full?.campaigns || []
+  const recentActivities = full?.recentActivities || []
 
-  const channels = kpis?.channels?.slice(0, 5).map((c, i) => ({
-    name: c.channelId ? `Channel ${i+1}` : ['WhatsApp','Instagram','Facebook','Telegram','Email'][i] || `Ch${i+1}`,
-    value: kpis.channels.length ? Math.round((c.count / kpis.channels.reduce((s,x) => s+x.count,0)) * 100) : 0,
-    color: CHANNEL_COLORS[i] || '#7a8fa6',
-  })) || [
-    { name:'WhatsApp', value:45, color:'#00e5a0' },
-    { name:'Instagram', value:25, color:'#3b82f6' },
-    { name:'Facebook', value:18, color:'#a78bfa' },
-    { name:'Telegram', value:8, color:'#f97316' },
-    { name:'Email', value:4, color:'#fbbf24' },
-  ]
+  const chartMetrics = useMemo(() => {
+    if (metric === 'messages') return [{ key: 'messages', color: '#3b82f6', label: 'Messages' }]
+    if (metric === 'contacts') return [{ key: 'contacts', color: '#00e5a0', label: 'Contacts' }]
+    return [{ key: 'messages', color: '#3b82f6', label: 'Messages' }, { key: 'contacts', color: '#00e5a0', label: 'Contacts' }]
+  }, [metric])
 
   const KPI_CARDS = [
-    { label:'TOTAL CONTACTS', value: kpis ? fmt(kpis.totalLeads) : '—', color:'#00e5a0' },
-    { label:'CONVERSATIONS',  value: kpis ? fmt(kpis.totalConvs) : '—', color:'#3b82f6' },
-    { label:'CONVERSION RATE',value: kpis ? `${kpis.conversionRate}%` : '—', color:'#a78bfa' },
-    { label:'BOOKING RATE',   value: kpis ? `${kpis.bookingRate}%` : '—', color:'#f97316' },
+    { label: 'Total Contacts', value: fmt(kpis?.totalContacts), sub: `+${kpis?.newContacts7d || 0} this week`, color: '#00e5a0' },
+    { label: 'Pipeline Value', value: fmtQar(kpis?.pipelineValue), sub: `${fmtQar(kpis?.wonValue)} won`, color: '#3b82f6' },
+    { label: 'Win Rate', value: `${kpis?.winRate ?? '—'}%`, sub: `${kpis?.wonContacts || 0} won`, color: '#8b5cf6' },
+    { label: 'Open Conversations', value: fmt(kpis?.openConvs), sub: `${fmt(kpis?.totalConvs)} total`, color: '#f97316' },
+    { label: 'Active Campaigns', value: fmt(kpis?.activeCampaigns), sub: `${kpis?.totalCampaigns || 0} total`, color: '#fbbf24' },
+    { label: 'Workflow Runs', value: fmt(kpis?.totalWorkflowRuns), sub: 'all time', color: '#06b6d4' },
   ]
 
   return (
-    <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0f1a', color: '#e2e8f0', fontFamily: 'system-ui,sans-serif' }}>
+      <NavSidebar current="analytics" />
 
-      <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
-        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
-      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      <div style={{display:'flex', flex:1, overflow:'hidden'}}>
-        <NavSidebar current="analytics" />
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0 }}>Analytics</h1>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>Real-time data across contacts, campaigns, pipeline, and activity</div>
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {['7days', '30days', '90days'].map(p => (
+              <button key={p} onClick={() => setPeriod(p)}
+                style={{ padding: '7px 13px', background: period === p ? '#00e5a0' : '#111622', border: `1px solid ${period === p ? '#00e5a0' : '#1a2235'}`, borderRadius: '6px', color: period === p ? '#0a0f1a' : '#64748b', fontSize: '12px', cursor: 'pointer', fontWeight: period === p ? '700' : '400' }}>
+                {p === '7days' ? '7D' : p === '30days' ? '30D' : '90D'}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <div style={{flex:1, overflowY:'auto', padding:'24px', display:'flex', flexDirection:'column', gap:'20px'}}>
-
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
-            <div>
-              <div style={{fontWeight:'800', fontSize:'20px'}}>Analytics</div>
-              <div style={{fontSize:'12px', color:'#7a8fa6', marginTop:'3px'}}>Track your growth and performance</div>
+        {/* KPI Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+          {KPI_CARDS.map((k, i) => (
+            <div key={i} style={{ background: '#111622', border: '1px solid #1a2235', borderTop: `2px solid ${k.color}`, borderRadius: '8px', padding: '16px' }}>
+              <div style={{ fontSize: '10px', color: '#475569', letterSpacing: '1px', marginBottom: '6px', textTransform: 'uppercase' }}>{k.label}</div>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: k.color }}>{loading ? '—' : k.value}</div>
+              <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>{k.sub}</div>
             </div>
-            <div style={{display:'flex', gap:'6px'}}>
-              {['7days','30days','90days'].map(p => (
-                <button key={p} onClick={() => setPeriod(p)}
-                  style={{padding:'6px 12px', background: period===p ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: period===p ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: period===p ? '700' : '400'}}>
-                  {p === '7days' ? '7 Days' : p === '30days' ? '30 Days' : '90 Days'}
+          ))}
+        </div>
+
+        {/* Area chart */}
+        <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontWeight: '700', fontSize: '14px' }}>Activity Over Time</div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {/* Legend */}
+              {[{ key: 'messages', color: '#3b82f6' }, { key: 'contacts', color: '#00e5a0' }].map(m => (
+                <div key={m.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748b' }}>
+                  <div style={{ width: '10px', height: '3px', background: m.color, borderRadius: '2px' }} />
+                  {m.key}
+                </div>
+              ))}
+              <div style={{ width: '1px', background: '#1a2235', margin: '0 4px' }} />
+              {['both', 'messages', 'contacts'].map(m => (
+                <button key={m} onClick={() => setMetric(m)}
+                  style={{ padding: '4px 9px', background: metric === m ? '#1a2235' : 'transparent', border: `1px solid ${metric === m ? '#253045' : 'transparent'}`, borderRadius: '4px', color: metric === m ? '#e2e8f0' : '#475569', fontSize: '11px', cursor: 'pointer', textTransform: 'capitalize' }}>
+                  {m}
                 </button>
               ))}
             </div>
           </div>
-
-          {/* KPI Cards */}
-          <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px'}}>
-            {KPI_CARDS.map((k,i) => (
-              <div key={i} style={{background:'#0f1520', border:'1px solid #1a2235', padding:'16px', borderTop:`2px solid ${k.color}`}}>
-                <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'8px'}}>{k.label}</div>
-                <div style={{fontSize:'24px', fontWeight:'800'}}>{k.value}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Main Chart */}
-          <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px'}}>
-            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'20px'}}>
-              <div style={{fontWeight:'700', fontSize:'13px'}}>Performance Over Time</div>
-              <div style={{display:'flex', gap:'6px'}}>
-                {['messages','contacts'].map(m => (
-                  <button key={m} onClick={() => setMetric(m)}
-                    style={{padding:'5px 10px', background: metric===m ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: metric===m ? '#07090f' : '#7a8fa6', fontSize:'10px', cursor:'pointer', fontWeight: metric===m ? '700' : '400', textTransform:'capitalize'}}>
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {loading ? (
-              <div style={{height:'160px', display:'flex', alignItems:'center', justifyContent:'center', color:'#3d4f63', fontSize:'12px'}}>Loading chart…</div>
-            ) : chartData.length === 0 ? (
-              <div style={{height:'160px', display:'flex', alignItems:'center', justifyContent:'center', color:'#3d4f63', fontSize:'12px'}}>No data yet</div>
-            ) : (
-              <div style={{display:'flex', alignItems:'flex-end', gap:'4px', height:'160px', marginBottom:'8px'}}>
-                {chartData.map((val, i) => (
-                  <div key={i} style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', height:'100%', justifyContent:'flex-end', gap:'4px'}}>
-                    {val > 0 && <div style={{fontSize:'8px', color:'#3d4f63'}}>{val}</div>}
-                    <div style={{width:'100%', borderRadius:'3px 3px 0 0', background:'linear-gradient(180deg, #00e5a0, #00b37e)', height:`${(val/maxVal)*100}%`, minHeight: val > 0 ? '4px' : '1px', background: val > 0 ? 'linear-gradient(180deg, #00e5a0, #00b37e)' : '#1a2235', transition:'height .3s'}}></div>
-                    {labels.length <= 31 && <div style={{fontSize:'8px', color:'#3d4f63', whiteSpace:'nowrap'}}>{labels[i]}</div>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-
-            {/* Channel Distribution */}
-            <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px'}}>
-              <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>Channel Distribution</div>
-              {channels.map(c => (
-                <div key={c.name} style={{marginBottom:'12px'}}>
-                  <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
-                    <div style={{fontSize:'12px', color:'#7a8fa6'}}>{c.name}</div>
-                    <div style={{fontSize:'12px', fontWeight:'600', color:c.color}}>{c.value}%</div>
-                  </div>
-                  <div style={{height:'6px', background:'#1a2235', borderRadius:'3px', overflow:'hidden'}}>
-                    <div style={{height:'100%', width:`${c.value}%`, background:c.color, borderRadius:'3px', transition:'width .5s'}}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Status Breakdown */}
-            <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px'}}>
-              <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>Lead Status Breakdown</div>
-              {(kpis?.statuses || [
-                {status:'NEW_LEAD', count: 0},
-                {status:'CONTACTED', count: 0},
-                {status:'QUALIFYING', count: 0},
-                {status:'WON', count: 0},
-              ]).map((s, i) => {
-                const total = kpis ? kpis.totalLeads || 1 : 1
-                const pct = Math.round((s.count / total) * 100)
-                const color = ['#fbbf24','#3b82f6','#a78bfa','#00e5a0','#f97316'][i] || '#7a8fa6'
-                return (
-                  <div key={s.status} style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px'}}>
-                    <div style={{fontSize:'10px', color:'#7a8fa6', width:'90px', textTransform:'capitalize'}}>{s.status.replace(/_/g,' ').toLowerCase()}</div>
-                    <div style={{flex:1, height:'8px', background:'#1a2235', borderRadius:'4px', overflow:'hidden'}}>
-                      <div style={{height:'100%', width:`${pct}%`, background:color, borderRadius:'4px', transition:'width .5s'}}></div>
-                    </div>
-                    <div style={{fontSize:'11px', color:'#e2e8f0', width:'28px', textAlign:'right'}}>{s.count}</div>
-                  </div>
-                )
-              })}
-            </div>
-
-          </div>
-
-          {/* Summary stats */}
-          <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px'}}>
-            <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>Summary</div>
-            <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px'}}>
-              {[
-                {label:'Active Campaigns', value: kpis ? kpis.activeCampaigns : '—', color:'#f97316'},
-                {label:'Open Conversations', value: kpis ? kpis.openConvs : '—', color:'#3b82f6'},
-                {label:'Won Leads', value: kpis ? kpis.wonLeads : '—', color:'#00e5a0'},
-                {label:'Booked', value: kpis ? kpis.booked : '—', color:'#a78bfa'},
-              ].map((s,i) => (
-                <div key={i} style={{textAlign:'center', padding:'16px', background:'#111622', borderRadius:'4px', border:'1px solid #1a2235'}}>
-                  <div style={{fontSize:'22px', fontWeight:'800', color:s.color, marginBottom:'6px'}}>{s.value}</div>
-                  <div style={{fontSize:'10px', color:'#3d4f63'}}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
+          {chartLoading
+            ? <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '12px' }}>Loading…</div>
+            : <SvgAreaChart data={chart} metrics={chartMetrics} height={180} />
+          }
         </div>
+
+        {/* Pipeline Funnel + Source Breakdown */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px' }}>
+            <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '16px' }}>
+              Pipeline Funnel
+              <span style={{ marginLeft: '8px', fontSize: '11px', fontWeight: '400', color: '#64748b' }}>drag cards at /pipeline</span>
+            </div>
+            {loading
+              ? <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div>
+              : <PipelineFunnel stages={pipeline} />
+            }
+          </div>
+
+          <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px' }}>
+            <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '16px' }}>Lead Sources</div>
+            {loading
+              ? <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div>
+              : <SourceBreakdown sources={sources} />
+            }
+          </div>
+        </div>
+
+        {/* Campaign Table + Activity Feed */}
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '16px' }}>
+          <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ fontWeight: '700', fontSize: '14px' }}>Campaign Performance</div>
+              <a href="/campaigns" style={{ fontSize: '11px', color: '#3b82f6', textDecoration: 'none' }}>View all →</a>
+            </div>
+            {loading ? <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div> : <CampaignTable campaigns={campaigns} />}
+          </div>
+
+          <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px' }}>
+            <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '14px' }}>Recent Activity</div>
+            {loading ? <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div> : <ActivityFeed activities={recentActivities} />}
+          </div>
+        </div>
+
       </div>
     </div>
   )

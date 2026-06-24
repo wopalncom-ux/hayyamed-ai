@@ -79,6 +79,8 @@ export const api = {
     request('/reports/dashboard'),
   getAnalytics: (period = '7days') =>
     request(`/reports/analytics?period=${period}`),
+  getFullStats: () =>
+    request('/reports/full'),
 
   // Chatbots
   getChatbots: () =>
