@@ -198,7 +198,7 @@ export default function Campaigns() {
                     const st = c.status || 'DRAFT'
                     const ch = c.channel || c.channelType || 'WhatsApp'
                     return (
-                      <div key={c.id} onClick={() => setSelectedCampaign(c)} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr 1fr 1fr', padding:'12px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', cursor:'pointer', background: selectedCampaign?.id===c.id ? '#0f1520' : 'none'}}>
+                      <div key={c.id} onClick={() => window.location.href = `/campaigns/${c.id}`} style={{display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr 1fr 1fr', padding:'12px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', cursor:'pointer', background: selectedCampaign?.id===c.id ? '#0f1520' : 'none'}}>
                         <div style={{fontSize:'12px', fontWeight:'600'}}>{c.name}</div>
                         <div style={{fontSize:'12px'}}>{channelIcons[ch] || '📤'}</div>
                         <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[st]||statusColors[st.charAt(0)+st.slice(1).toLowerCase()]||'#64748b'}20`, color:statusColors[st]||statusColors[st.charAt(0)+st.slice(1).toLowerCase()]||'#64748b'}}>{st}</span></div>

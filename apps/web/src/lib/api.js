@@ -246,6 +246,18 @@ export const api = {
   getMasterAuditLogs: (params = {}) =>
     request('/master-admin/audit-logs?' + new URLSearchParams(params)),
 
+  // Campaign Execution Engine
+  getCampaign: (id) => request(`/campaigns/${id}`),
+  updateCampaign: (id, body) => request(`/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  getCampaignAnalytics: (id) => request(`/campaigns/${id}/analytics`),
+  getCampaignContacts: (id, params = {}) => request(`/campaigns/${id}/contacts?` + new URLSearchParams(params)),
+  addContactsByFilter: (id, body) => request(`/campaigns/${id}/contacts/filter`, { method: 'POST', body: JSON.stringify(body) }),
+  addContactsToCampaign: (id, body) => request(`/campaigns/${id}/contacts`, { method: 'POST', body: JSON.stringify(body) }),
+  launchCampaign: (id) => request(`/campaigns/${id}/launch`, { method: 'POST' }),
+  pauseCampaign: (id) => request(`/campaigns/${id}/pause`, { method: 'POST' }),
+  resumeCampaign: (id) => request(`/campaigns/${id}/resume`, { method: 'POST' }),
+  scheduleCampaign: (id, body) => request(`/campaigns/${id}/schedule`, { method: 'POST', body: JSON.stringify(body) }),
+
   // WhatsApp
   getWhatsAppChannels: () => request('/whatsapp/channels'),
   connectWhatsApp: (body) => request('/whatsapp/channels', { method: 'POST', body: JSON.stringify(body) }),
