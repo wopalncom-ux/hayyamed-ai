@@ -116,6 +116,48 @@ export class AIService {
     throw new ServiceUnavailableException('All AI providers unavailable')
   }
 
+  // ─── SINGLE-PROVIDER DIAGNOSTIC (no fallback) ──────────────────────────────
+  // Used by the AI Command Center to test one provider/model in isolation and
+  // report exactly why it works or fails. Never falls back to another provider.
+  async testProvider(provider: Provider, model?: string, prompt = 'Reply with a one-sentence friendly greeting.') {
+    const clientPresent =
+      (provider === 'openai' && !!this.openai) ||
+      (provider === 'anthropic' && !!this.anthropic) ||
+      (provider === 'gemini' && !!this.gemini) ||
+      (provider === 'groq' && !!this.groq)
+
+    if (!clientPresent) {
+      return { provider, ok: false, configured: false, error: 'No API key configured for this provider', latencyMs: 0, reply: '', model: model || '' }
+    }
+
+    const start = Date.now()
+    try {
+      let reply = ''
+      let usedModel = model || ''
+      if (provider === 'anthropic' && this.anthropic) {
+        usedModel = model || 'claude-haiku-4-5-20251001'
+        const r = await this.anthropic.messages.create({ model: usedModel, max_tokens: 120, messages: [{ role: 'user', content: prompt }] })
+        reply = (r.content[0] as any)?.text || ''
+      } else if (provider === 'gemini' && this.gemini) {
+        usedModel = model || 'gemini-1.5-flash'
+        const m = this.gemini.getGenerativeModel({ model: usedModel })
+        const r = await m.generateContent(prompt)
+        reply = r.response.text()
+      } else if (provider === 'groq' && this.groq) {
+        usedModel = model || 'llama-3.1-8b-instant'
+        const r = await this.groq.chat.completions.create({ model: usedModel, messages: [{ role: 'user', content: prompt }], max_tokens: 120 })
+        reply = r.choices[0]?.message?.content || ''
+      } else if (provider === 'openai' && this.openai) {
+        usedModel = model || 'gpt-4o-mini'
+        const r = await this.openai.chat.completions.create({ model: usedModel, messages: [{ role: 'user', content: prompt }], max_tokens: 120 })
+        reply = r.choices[0]?.message?.content || ''
+      }
+      return { provider, ok: true, configured: true, error: '', latencyMs: Date.now() - start, reply, model: usedModel }
+    } catch (err: any) {
+      return { provider, ok: false, configured: true, error: err?.message?.slice(0, 160) || 'Unknown error', latencyMs: Date.now() - start, reply: '', model: model || '' }
+    }
+  }
+
   // ─── GENERATE AI REPLY ────────────────────────────────────────────────────
   async generateReply(conversationId: string, orgId: string): Promise<string> {
     const [org, messages, conversation] = await Promise.all([

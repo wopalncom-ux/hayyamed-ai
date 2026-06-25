@@ -195,6 +195,10 @@ export const api = {
     request('/ai/campaign-message', { method: 'POST', body: JSON.stringify({ prompt, tone, language }) }),
   getInsights: (metrics) =>
     request('/ai/insights', { method: 'POST', body: JSON.stringify({ metrics }) }),
+  getAiProviders: () =>
+    request('/ai/providers'),
+  testAiProvider: (provider, model, prompt) =>
+    request('/ai/test-provider', { method: 'POST', body: JSON.stringify({ provider, model, prompt }) }),
 
   // Branches
   getBranches: () =>

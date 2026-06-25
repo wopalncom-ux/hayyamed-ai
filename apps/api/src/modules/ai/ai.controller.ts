@@ -74,4 +74,11 @@ export class AIController {
   getProviders() {
     return this.ai.getProviderStatus()
   }
+
+  // AI Command Center — test a single provider/model in isolation (no fallback)
+  @Post('test-provider')
+  async testProvider(@Body() body: { provider: string; model?: string; prompt?: string }) {
+    if (!body.provider) throw new BadRequestException('provider required')
+    return this.ai.testProvider(body.provider as any, body.model, body.prompt)
+  }
 }
