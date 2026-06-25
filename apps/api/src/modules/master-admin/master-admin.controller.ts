@@ -18,6 +18,11 @@ export class MasterAdminController {
     return this.svc.getSystemHealth(user.sub)
   }
 
+  @Get('billing')
+  getBilling(@CurrentUser() user: JwtPayload) {
+    return this.svc.getPlatformBilling(user.sub)
+  }
+
   @Get('orgs')
   getAllOrgs(
     @CurrentUser() user: JwtPayload,

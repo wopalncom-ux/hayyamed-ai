@@ -261,6 +261,8 @@ export const api = {
     request('/master-admin/stats'),
   getSystemHealth: () =>
     request('/master-admin/health'),
+  getPlatformBilling: () =>
+    request('/master-admin/billing'),
   getMasterOrgs: (params = {}) =>
     request('/master-admin/orgs?' + new URLSearchParams(params)),
   getMasterOrg: (id) =>

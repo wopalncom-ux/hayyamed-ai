@@ -96,6 +96,70 @@ export class MasterAdminService {
     }
   }
 
+  // Platform-wide finance/billing — real MRR from active plans, invoices, AI cost vs revenue.
+  async getPlatformBilling(userId: string) {
+    await this.assertOwner(userId)
+
+    // Monthly price per plan tier (QAR) — keep in sync with BillingService PLANS
+    const PRICE: Record<string, number> = { STARTER: 299, GROWTH: 599, ENTERPRISE: 1299 }
+
+    const orgsByPlan = await this.prisma.organization.groupBy({
+      by: ['plan'],
+      where: { isActive: true },
+      _count: { _all: true },
+    })
+
+    const byPlan = ['STARTER', 'GROWTH', 'ENTERPRISE'].map(p => {
+      const row = orgsByPlan.find(o => o.plan === p)
+      const count = row?._count._all || 0
+      return { plan: p, count, price: PRICE[p], mrr: count * PRICE[p] }
+    })
+    const mrr = byPlan.reduce((s, p) => s + p.mrr, 0)
+
+    const [totalInvoices, paidAgg, recentInvoices, activeSubs] = await Promise.all([
+      this.prisma.invoice.count(),
+      this.prisma.invoice.aggregate({ where: { status: 'paid' }, _sum: { amount: true } }),
+      this.prisma.invoice.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: { org: { select: { name: true } } },
+      }),
+      this.prisma.subscription.count({ where: { status: 'active' } }),
+    ])
+
+    // AI spend last 30 days (cost is logged in ai_usage_logs)
+    let aiCost30d = 0
+    try {
+      const since = new Date(Date.now() - 30 * 86400000).toISOString()
+      const rows = await this.prisma.$queryRaw<{ total: number }[]>`
+        SELECT COALESCE(SUM("costUsd"), 0)::float AS total FROM ai_usage_logs WHERE "createdAt" >= ${since}::timestamp
+      `
+      aiCost30d = Number(rows?.[0]?.total || 0)
+    } catch { aiCost30d = 0 }
+
+    const lifetimeRevenueQar = Number(paidAgg._sum.amount || 0)
+
+    return {
+      mrr,
+      arr: mrr * 12,
+      currency: 'QAR',
+      byPlan,
+      activeSubscriptions: activeSubs,
+      totalInvoices,
+      lifetimeRevenueQar,
+      aiCost30dUsd: Math.round(aiCost30d * 10000) / 10000,
+      recentInvoices: recentInvoices.map(i => ({
+        id: i.id,
+        org: i.org?.name || '—',
+        amount: Number(i.amount),
+        currency: i.currency,
+        status: i.status,
+        description: i.description,
+        createdAt: i.createdAt,
+      })),
+    }
+  }
+
   async getAllOrgs(userId: string, query: { search?: string; plan?: string; page?: number; limit?: number } = {}) {
     await this.assertOwner(userId)
     const { search, plan, page = 1, limit = 20 } = query
