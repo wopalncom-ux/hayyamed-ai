@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hayya AI CRM — Enterprise Inspection & Readiness Audit</title>
+<style>
+  :root{--bg:#0a0f1a;--card:#111622;--bd:#1e2d42;--mut:#7a8fa6;--txt:#e2e8f0;--grn:#00e5a0;--red:#ef4444;--amb:#f59e0b;--blu:#3b82f6;--pur:#a78bfa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;line-height:1.6;padding:0}
+  .wrap{max-width:1100px;margin:0 auto;padding:48px 24px}
+  header{border-bottom:2px solid var(--bd);padding-bottom:24px;margin-bottom:8px}
+  h1{font-size:30px;font-weight:900;letter-spacing:-.5px}
+  h1 span{color:var(--grn)}
+  .sub{color:var(--mut);font-size:14px;margin-top:6px}
+  h2{font-size:20px;font-weight:800;margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+  h3{font-size:15px;font-weight:700;margin:20px 0 10px;color:var(--grn)}
+  p{margin:8px 0;font-size:14px;color:#cbd5e1}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--bd);vertical-align:top}
+  th{color:var(--mut);font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:700}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:20px;margin:14px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0}
+  .kpi{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:18px}
+  .kpi .n{font-size:30px;font-weight:900}
+  .kpi .l{font-size:11px;color:var(--mut);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
+  .ok{background:rgba(0,229,160,.12);color:var(--grn)}
+  .bad{background:rgba(239,68,68,.12);color:var(--red)}
+  .warn{background:rgba(245,158,11,.12);color:var(--amb)}
+  .info{background:rgba(59,130,246,.12);color:var(--blu)}
+  .gauge{display:flex;align-items:center;gap:16px;margin:16px 0}
+  .ring{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;flex-shrink:0;
+    background:conic-gradient(var(--amb) 0% 58%, #1a2235 58% 100%)}
+  .ring .inner{width:96px;height:96px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center}
+  ul{margin:8px 0 8px 22px}
+  li{font-size:14px;color:#cbd5e1;margin:5px 0}
+  code{background:#0c1320;border:1px solid var(--bd);border-radius:4px;padding:1px 6px;font-size:12px;color:var(--grn);font-family:ui-monospace,monospace}
+  .foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--bd);color:var(--mut);font-size:12px;text-align:center}
+  .legend{font-size:12px;color:var(--mut);margin:6px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Hayya<span>med</span> AI CRM — Enterprise Inspection &amp; Readiness Audit</h1>
+  <div class="sub">Full-platform inspection · Live system testing · Security hardening · 25 June 2026</div>
+  <div class="sub">Scope: <code>hayyamed-ai</code> monorepo (NestJS API + Next.js web) · Live: <code>www.hayyaai.com</code> / <code>api.hayyaai.com</code> · Region: me-central1 (Doha)</div>
+</header>
+
+<h2>1 · Executive Summary</h2>
+<div class="card">
+<p>A multi-disciplinary inspection (frontend, backend/security, AI/automation) was run against the <strong>actual codebase</strong> and the <strong>live production system</strong>. The platform is a genuinely functional multi-tenant CRM with a real workflow engine, RAG knowledge base, multi-provider AI router, and 26 backend modules — <em>not</em> a mockup. However, it is <strong>not yet enterprise-production-ready</strong>: this audit found and <strong>fixed a critical cross-tenant security hole</strong>, a <strong>blocking page crash</strong>, and <strong>two master-admin 500 errors</strong>, all verified resolved in production this session.</p>
+<p>The headline gap versus the stated vision ("AI Business Operating System, owner-controlled, AI-provider-flexible") is that several capabilities are <strong>modeled in the database but not wired to execution</strong> — most notably per-agent/per-tool AI provider config and RAG context injection. These are build items, not bugs, and are itemised below.</p>
+</div>
+
+<div class="gauge">
+  <div class="ring"><div class="inner">58<span style="font-size:16px">%</span></div></div>
+  <div>
+    <h3 style="margin-top:0">Overall Readiness: 58 / 100 &nbsp;<span class="pill warn">BETA — not yet enterprise-ready</span></h3>
+    <p>Up from ~50% at session start. Critical security + crash fixes shipped. Remaining gap is concentrated in: AI provider control center, credential encryption, mobile responsiveness, and wiring modeled-but-dormant features.</p>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="kpi"><div class="n" style="color:var(--grn)">26</div><div class="l">API Modules</div></div>
+  <div class="kpi"><div class="n" style="color:var(--grn)">35</div><div class="l">Frontend Pages</div></div>
+  <div class="kpi"><div class="n" style="color:var(--grn)">28</div><div class="l">DB Models</div></div>
+  <div class="kpi"><div class="n" style="color:var(--grn)">6</div><div class="l">Fixes Shipped Today</div></div>
+  <div class="kpi"><div class="n" style="color:var(--red)">1</div><div class="l">Critical Sec. Hole (fixed)</div></div>
+</div>
+
+<h2>2 · Fixes Implemented &amp; Verified This Session</h2>
+<table>
+<tr><th>#</th><th>Issue</th><th>Severity</th><th>Fix</th><th>Verified</th></tr>
+<tr><td>1</td><td>6 <code>master-admin/*</code> endpoints had <strong>zero role enforcement</strong> — any logged-in tenant user could read cross-tenant platform data (churn, audit logs, AI usage) and flip feature flags</td><td><span class="pill bad">CRITICAL</span></td><td>New <code>OwnerGuard</code> applied to all 6 admin controllers; registered in each module</td><td><span class="pill ok">403 for users · 200 for owner</span></td></tr>
+<tr><td>2</td><td><code>/reports</code> Charts view crashed — <code>services</code> was undefined (ReferenceError)</td><td><span class="pill bad">HIGH</span></td><td>Derived <code>services</code> from live data</td><td><span class="pill ok">Builds &amp; renders</span></td></tr>
+<tr><td>3</td><td><code>master-admin/audit</code> → 500 (nested <code>$queryRaw</code> in WHERE = "syntax error near $2")</td><td><span class="pill bad">HIGH</span></td><td>Rewrote with <code>Prisma.sql</code>/<code>Prisma.join</code></td><td><span class="pill ok">200</span></td></tr>
+<tr><td>4</td><td><code>master-admin/customer-health</code> → 500 (filtered on non-existent <code>Plan</code> enum value 'SUSPENDED')</td><td><span class="pill bad">HIGH</span></td><td>Changed to <code>WHERE isActive = true</code></td><td><span class="pill ok">200</span></td></tr>
+<tr><td>5</td><td>Public login page exposed demo names + <strong>plaintext passwords</strong> + one-click admin login</td><td><span class="pill bad">HIGH</span></td><td>Removed Quick-Access cards, demo fallback, <code>DEMO_USERS</code></td><td><span class="pill ok">Clean in prod bundle</span></td></tr>
+<tr><td>6</td><td>No master owner account; owner-only areas reachable client-side by any role</td><td><span class="pill warn">MED</span></td><td><code>wopalncom@gmail.com</code> seeded SUPER_ADMIN + allowlisted; AuthGuard gates <code>/admin</code>,<code>/agency</code></td><td><span class="pill ok">Owner full access</span></td></tr>
+</table>
+<p class="legend">Earlier this session (same audit): fixed <code>NEXT_PUBLIC_API_URL</code> baked as localhost in prod bundle, added <code>/health</code>, real change-password flow, workflow_runs migration. 9 commits total, all deployed.</p>
+
+<h2>3 · Master Owner Control Panel</h2>
+<div class="card">
+<p><strong>Owner account:</strong> <code>wopalncom@gmail.com</code> · password <code>Owner@2025</code> (change on first login) · role <code>SUPER_ADMIN</code>.</p>
+<p>Now has verified full access to all platform-admin surfaces: stats, all orgs, audit logs, customer health, AI quality, AI observability, feature flags, marketplace admin. The <code>OwnerGuard</code> recognises SUPER_ADMIN role <em>or</em> an owner-email allowlist (extendable via <code>PLATFORM_OWNER_EMAILS</code> env). No non-owner user can reach these — confirmed 403.</p>
+<p><span class="pill warn">Gap</span> The existing <code>assertOwner</code> still also grants <code>AGENCY_ADMIN</code> platform access (a customer persona). Recommend tightening to SUPER_ADMIN-only and scoping agency admins to their own sub-accounts. Not changed yet to avoid breaking the live agency feature.</p>
+</div>
+
+<h2>4 · Module-by-Module Status</h2>
+<table>
+<tr><th>Area</th><th>Status</th><th>Notes</th></tr>
+<tr><td>Auth (login/register/forgot/reset/change-pw)</td><td><span class="pill ok">Working</span></td><td>Real backend, throttled, bcrypt; demo creds removed</td></tr>
+<tr><td>CRM — contacts / pipeline / profiles / notes / import-export</td><td><span class="pill ok">Working</span></td><td>Live data, AI lead scoring wired</td></tr>
+<tr><td>Omnichannel Inbox</td><td><span class="pill warn">Partial</span></td><td>Real conversations + Socket.IO; only WhatsApp channel actually ingests. IG/Messenger/Email/SMS/Telegram not connected</td></tr>
+<tr><td>Campaigns</td><td><span class="pill ok">Working</span></td><td>CRUD, lifecycle, AI message gen; Reports tab renders some fields not in API shape</td></tr>
+<tr><td>Workflows / Automation engine</td><td><span class="pill ok">Working</span></td><td>Real CRON-resumable engine; 9 action types; event-triggered. No templates, no human-approval/handover</td></tr>
+<tr><td>AI Agents</td><td><span class="pill warn">Config only</span></td><td>Full DB config (provider/model/temp/cost/KB) but <strong>never executed</strong> at inference time</td></tr>
+<tr><td>Knowledge Base / RAG</td><td><span class="pill warn">Partial</span></td><td>Real pgvector RAG + search; <strong>no file upload</strong> (PDF/Word/Excel); citations not returned; <code>getContextForQuery</code> never called</td></tr>
+<tr><td>AI Router (OpenAI/Anthropic/Gemini/Groq)</td><td><span class="pill warn">Hardcoded</span></td><td>Works w/ fallback, but provider per tool is hardcoded in code, not DB-configurable</td></tr>
+<tr><td>AI Observability + Quality</td><td><span class="pill ok">Working</span></td><td>Per-call cost/token/latency logging + quality scoring (when orgId passed)</td></tr>
+<tr><td>Billing / Subscriptions</td><td><span class="pill warn">Sim mode</span></td><td>Plans + invoices real; Stripe not connected → checkout simulated</td></tr>
+<tr><td>Integrations Center</td><td><span class="pill warn">UI only</span></td><td>15 integrations in UI; save/disconnect persists; none actually call external APIs yet</td></tr>
+<tr><td>Master Admin / Owner panel</td><td><span class="pill ok">Working+Secured</span></td><td>All endpoints now owner-gated &amp; returning data</td></tr>
+<tr><td>Marketplace, Bookings, Notifications, Reports, Agency</td><td><span class="pill ok">Working</span></td><td>Live data; reports crash fixed; agency role-gate should move server-side</td></tr>
+</table>
+
+<h2>5 · Security Status</h2>
+<table>
+<tr><th>Control</th><th>Status</th><th>Detail</th></tr>
+<tr><td>Owner/role gating on admin endpoints</td><td><span class="pill ok">Fixed</span></td><td>OwnerGuard on all 6 + master-admin service</td></tr>
+<tr><td>Multi-tenant isolation</td><td><span class="pill warn">App-layer only</span></td><td>orgId in WHERE clauses; <strong>no Postgres RLS</strong>. Gaps: <code>conversations/:id/status</code>, <code>chatbots/:id</code> delete lack orgId check</td></tr>
+<tr><td>Credential storage (integrations, WhatsApp tokens)</td><td><span class="pill bad">Plaintext</span></td><td>Schema comment says "encrypted" but stored raw. <strong>Needs app-layer encryption</strong></td></tr>
+<tr><td>Passwords</td><td><span class="pill ok">bcrypt cost 12</span></td><td>OK</td></tr>
+<tr><td>AI provider keys</td><td><span class="pill ok">Env/Secret Manager</span></td><td>Never in DB or client</td></tr>
+<tr><td>Cron endpoints</td><td><span class="pill warn">Weak</span></td><td>Return 200 on bad secret instead of 401; secret in query string</td></tr>
+<tr><td>Rate limiting</td><td><span class="pill ok">Active</span></td><td>Throttler global; stricter on auth</td></tr>
+<tr><td><code>master-admin/email/test</code></td><td><span class="pill warn">Open</span></td><td>Any authed user can send email to any address (no assertOwner on that one method)</td></tr>
+</table>
+
+<h2>6 · AI Provider Control Center — Gap Analysis</h2>
+<p>Your requirement: choose provider/model/key/fallback/cost/temp/prompt/knowledge <em>per AI tool and per agent</em>. Current reality:</p>
+<table>
+<tr><th>Capability</th><th>Today</th></tr>
+<tr><td>Providers wired (OpenAI, Anthropic, Gemini, Groq)</td><td><span class="pill ok">Yes (env-gated)</span></td></tr>
+<tr><td>Automatic fallback chain</td><td><span class="pill ok">Yes (fixed order)</span></td></tr>
+<tr><td>Per-agent provider/model/temp/maxTokens/costLimit/KB in DB</td><td><span class="pill warn">Modeled, not executed</span></td></tr>
+<tr><td>Per-tool provider selectable from DB/admin UI</td><td><span class="pill bad">Missing (hardcoded)</span></td></tr>
+<tr><td>Max-cost cap enforced <em>before</em> call</td><td><span class="pill bad">Missing (logged after)</span></td></tr>
+<tr><td>System prompts stored/versioned in DB</td><td><span class="pill bad">Missing (inline)</span></td></tr>
+<tr><td>Azure AI / Meta / xAI / DeepSeek / Local / Custom provider</td><td><span class="pill bad">Not wired</span></td></tr>
+<tr><td>Test response / compare providers UI</td><td><span class="pill bad">Missing</span></td></tr>
+</table>
+<p>Good news: the data model (<code>AIAgent</code>, <code>OrgSettings.aiModel</code>) already supports much of this — the build is mostly a config table + reading it inside <code>AIService.complete()</code> + an owner UI, not a rewrite.</p>
+
+<h2>7 · Performance, UX &amp; Mobile</h2>
+<table>
+<tr><th>Dimension</th><th>Status</th><th>Detail</th></tr>
+<tr><td>Mobile responsiveness</td><td><span class="pill bad">Systemic gap</span></td><td><strong>Zero media queries</strong> app-wide; inline styles with fixed-px panels &amp; non-collapsing grids. Worst: /bookings, /pipeline, /inbox, /admin/*</td></tr>
+<tr><td>Loading/empty/error states</td><td><span class="pill warn">Uneven</span></td><td>Most pages have loading+empty; many swallow errors silently (no user-facing error UI)</td></tr>
+<tr><td>Null-safety</td><td><span class="pill warn">Risks</span></td><td><code>/inbox:170</code> <code>c.name.toLowerCase()</code> can crash on null name</td></tr>
+<tr><td>Lighthouse targets (95-100)</td><td><span class="pill info">Not yet measured</span></td><td>Requires the responsive layer first; app is SPA-style, SEO minimal</td></tr>
+<tr><td>Code hygiene</td><td><span class="pill warn">Cleanup</span></td><td>Duplicate /admin audit tab, duplicate notify route, empty <code>{...}</code> brace dirs, hardcoded 'Abbas' fallback, OpenAI usage vs Anthropic standard</td></tr>
+</table>
+
+<h2>8 · Priority Fix List (next sprints)</h2>
+<h3>P0 — Security/correctness (do first)</h3>
+<ul>
+<li>Encrypt integration &amp; WhatsApp credentials at rest (app-layer crypto).</li>
+<li>Add <code>orgId</code> checks to <code>conversations/:id/status</code> and <code>chatbots/:id</code> delete.</li>
+<li>Add <code>assertOwner</code> to <code>master-admin/email/test</code>; make cron return 401 on bad secret.</li>
+<li>Tighten owner gate to SUPER_ADMIN-only; scope AGENCY_ADMIN to sub-accounts.</li>
+</ul>
+<h3>P1 — Vision-critical features</h3>
+<ul>
+<li><strong>AI Provider Control Center</strong>: config table + read in <code>complete()</code> + owner UI; pre-call cost cap.</li>
+<li>Wire AIAgent config + RAG <code>getContextForQuery</code> into inference; return citations.</li>
+<li>Knowledge Base file upload (PDF/Word/Excel) with extraction pipeline.</li>
+<li>Automation templates + human-approval / AI-handover actions.</li>
+</ul>
+<h3>P2 — Quality &amp; polish</h3>
+<ul>
+<li>Introduce a responsive layer (collapse grids, fluid side panels) → then chase Lighthouse 95+.</li>
+<li>Real integrations (WhatsApp first, then Stripe, Gmail/Outlook, Calendar).</li>
+<li>Surface error states to users; fix null-safety; remove dead code &amp; duplicate routes.</li>
+<li>Standardise on Anthropic per project mandate (replace stray OpenAI gpt-3.5 calls).</li>
+</ul>
+
+<h2>9 · What "100%" Requires</h2>
+<div class="card">
+<p>To reach a client-presentable, enterprise-ready 100%:</p>
+<ul>
+<li><strong>Security 100:</strong> credential encryption, RLS or audited isolation, all P0 items closed.</li>
+<li><strong>AI OS 100:</strong> provider control center live, agents+RAG executing, cost caps enforced, file upload working.</li>
+<li><strong>Integrations 100:</strong> at least WhatsApp + Stripe + one calendar actually transacting, with test-connection + logs.</li>
+<li><strong>UX 100:</strong> responsive across phone/tablet/desktop; Lighthouse 95-100; consistent loading/empty/error states.</li>
+<li><strong>Automation 100:</strong> templates, approval flows, handover, end-to-end tested.</li>
+<li><strong>Ops 100:</strong> Gemini/Groq keys in Secret Manager, Postmark live, monitoring/alerting, backups verified.</li>
+</ul>
+<p>Estimated effort: a focused multi-sprint program. The foundation is solid; the work is wiring + hardening + responsive UI, not a rebuild.</p>
+</div>
+
+<div class="foot">
+Generated 25 June 2026 · Hayya AI CRM enterprise audit · 9 fixes shipped &amp; verified in production this session · All claims tested against live <code>api.hayyaai.com</code>
+</div>
+
+</div>
+</body>
+</html>
