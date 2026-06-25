@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Post, Body } from '@nestjs/common'
+import { Controller, Get, Patch, Post, Body, HttpCode, HttpStatus } from '@nestjs/common'
 import { UsersService } from './users.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
@@ -15,6 +15,12 @@ export class UsersController {
   @Patch('me')
   updateMe(@CurrentUser() user: JwtPayload, @Body() dto: any) {
     return this.users.updateMe(user.sub, dto)
+  }
+
+  @Post('me/change-password')
+  @HttpCode(HttpStatus.OK)
+  changePassword(@CurrentUser() user: JwtPayload, @Body() body: { currentPassword: string; newPassword: string }) {
+    return this.users.changePassword(user.sub, body.currentPassword, body.newPassword)
   }
 
   @Get('team')

@@ -115,6 +115,8 @@ export const api = {
     request('/users/me'),
   updateProfile: (dto) =>
     request('/users/me', { method: 'PATCH', body: JSON.stringify(dto) }),
+  changePassword: (currentPassword, newPassword) =>
+    request('/users/me/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) }),
   getTeam: () =>
     request('/users/team'),
   inviteTeamMember: (email, role) =>

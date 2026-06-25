@@ -114,6 +114,10 @@ export default function Settings() {
   const [addCredit, setAddCredit]   = useState('100')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [liveUsage, setLiveUsage]   = useState(null)
+  const [curPwd, setCurPwd]         = useState('')
+  const [newPwd, setNewPwd]         = useState('')
+  const [confPwd, setConfPwd]       = useState('')
+  const [pwdSaving, setPwdSaving]   = useState(false)
 
   useEffect(() => {
     api.getSettings().then(s => {
@@ -174,6 +178,22 @@ export default function Settings() {
   }, [])
 
   const saveMsg = (msg) => { setSaved(msg); setTimeout(() => setSaved(''), 2000) }
+
+  const changePassword = async () => {
+    if (!curPwd || !newPwd || !confPwd) return saveMsg('⚠️ Fill in all password fields')
+    if (newPwd.length < 8) return saveMsg('⚠️ New password must be at least 8 characters')
+    if (newPwd !== confPwd) return saveMsg('⚠️ New passwords do not match')
+    setPwdSaving(true)
+    try {
+      await api.changePassword(curPwd, newPwd)
+      setCurPwd(''); setNewPwd(''); setConfPwd('')
+      saveMsg('✓ Password updated successfully')
+    } catch (e) {
+      saveMsg('⚠️ ' + (e.message || 'Failed to update password'))
+    } finally {
+      setPwdSaving(false)
+    }
+  }
 
   const togglePerm = (role, key) => {
     if (role === 'owner') return
@@ -603,10 +623,10 @@ export default function Settings() {
                 <div style={{fontSize:'12px', color:'#7a8fa6'}}>Protect your account</div>
               </div>
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px', display:'flex', flexDirection:'column', gap:'14px'}}>
-                <div><label style={lbl}>CURRENT PASSWORD</label><input type="password" placeholder="••••••••" style={inp}/></div>
-                <div><label style={lbl}>NEW PASSWORD</label><input type="password" placeholder="••••••••" style={inp}/></div>
-                <div><label style={lbl}>CONFIRM NEW PASSWORD</label><input type="password" placeholder="••••••••" style={inp}/></div>
-                <button onClick={() => saveMsg('Password updated!')} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Update Password</button>
+                <div><label style={lbl}>CURRENT PASSWORD</label><input type="password" value={curPwd} onChange={e => setCurPwd(e.target.value)} placeholder="••••••••" style={inp}/></div>
+                <div><label style={lbl}>NEW PASSWORD</label><input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} placeholder="At least 8 characters" style={inp}/></div>
+                <div><label style={lbl}>CONFIRM NEW PASSWORD</label><input type="password" value={confPwd} onChange={e => setConfPwd(e.target.value)} placeholder="••••••••" style={inp} onKeyDown={e => e.key==='Enter' && changePassword()}/></div>
+                <button onClick={changePassword} disabled={pwdSaving} style={{alignSelf:'flex-start', padding:'9px 20px', background: pwdSaving ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'4px', color: pwdSaving ? '#7a8fa6' : '#07090f', fontWeight:'700', fontSize:'12px', cursor: pwdSaving ? 'not-allowed' : 'pointer'}}>{pwdSaving ? 'Updating…' : 'Update Password'}</button>
               </div>
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px'}}>
                 <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'4px'}}>Two-Factor Authentication</div>
