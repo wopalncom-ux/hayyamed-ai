@@ -155,6 +155,8 @@ export const api = {
     request(`/ai-agents/${id}`, { method: 'DELETE' }),
   toggleAgent: (id, isActive) =>
     request(`/ai-agents/${id}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
+  testAgent: (id, message, history = []) =>
+    request(`/ai-agents/${id}/test`, { method: 'POST', body: JSON.stringify({ message, history }) }),
 
   // Knowledge Base
   getKnowledgeBases: () =>

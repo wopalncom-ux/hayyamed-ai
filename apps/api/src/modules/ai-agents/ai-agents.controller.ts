@@ -36,4 +36,14 @@ export class AIAgentsController {
   toggle(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() body: { isActive: boolean }) {
     return this.svc.toggle(id, user.orgId, body.isActive)
   }
+
+  // Test the agent live: send it a message, get its reply using its config + knowledge base
+  @Post(':id/test')
+  test(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { message: string; history?: { role: 'user' | 'assistant'; content: string }[] },
+  ) {
+    return this.svc.runAgent(id, user.orgId, body.message, body.history || [])
+  }
 }

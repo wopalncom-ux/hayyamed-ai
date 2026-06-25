@@ -43,6 +43,7 @@ const DEFAULT_AGENT = {
   channels: ['WhatsApp'],
   allowedActions: ['reply', 'collect_info'],
   costLimitDaily: '',
+  knowledgeBaseId: '',
   isActive: false,
 }
 
@@ -104,13 +105,41 @@ export default function AIAgentBuilder() {
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
   const [tab, setTab] = useState('identity')
+  const [knowledgeBases, setKnowledgeBases] = useState([])
+
+  // Test chat state
+  const [testMsgs, setTestMsgs] = useState([])
+  const [testInput, setTestInput] = useState('')
+  const [testLoading, setTestLoading] = useState(false)
+  const [testMeta, setTestMeta] = useState(null)
 
   useEffect(() => {
     api.getAgents()
       .then(d => setAgents(Array.isArray(d) ? d : []))
       .catch(() => {})
       .finally(() => setLoading(false))
+    api.getKnowledgeBases()
+      .then(d => setKnowledgeBases(Array.isArray(d) ? d : []))
+      .catch(() => {})
   }, [])
+
+  const runTest = async () => {
+    const msg = testInput.trim()
+    if (!msg || !editing?.id) return
+    setTestInput('')
+    setTestMsgs(m => [...m, { role: 'user', content: msg }])
+    setTestLoading(true)
+    try {
+      const history = testMsgs.slice(-6).map(m => ({ role: m.role, content: m.content }))
+      const res = await api.testAgent(editing.id, msg, history)
+      setTestMsgs(m => [...m, { role: 'assistant', content: res.reply }])
+      setTestMeta({ provider: res.provider, model: res.model, kb: res.knowledgeBase, used: res.knowledgeUsed })
+    } catch (e) {
+      setTestMsgs(m => [...m, { role: 'assistant', content: '⚠️ ' + (e?.message || 'Agent failed to respond'), error: true }])
+    } finally {
+      setTestLoading(false)
+    }
+  }
 
   const openNew  = () => { setEditing({ ...DEFAULT_AGENT }); setTab('identity') }
   const openEdit = (a)  => { setEditing({ ...DEFAULT_AGENT, ...a }); setTab('identity') }
@@ -248,6 +277,7 @@ export default function AIAgentBuilder() {
                 { id:'behavior', label:'🧠 AI Behavior' },
                 { id:'channels', label:'📡 Channels' },
                 { id:'limits',   label:'🛡 Limits' },
+                { id:'test',     label:'🧪 Test Live' },
               ].map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)}
                   style={{ padding:'11px 18px', background:'none', border:'none', borderBottom: tab===t.id ? '2px solid #00e5a0' : '2px solid transparent', color: tab===t.id ? '#e2e8f0' : '#64748b', fontSize:'12px', fontWeight:'600', cursor:'pointer' }}
@@ -358,6 +388,19 @@ export default function AIAgentBuilder() {
                   </div>
 
                   <div>
+                    <label style={{ fontSize:'11px', color:'#64748b', display:'block', marginBottom:'6px', fontWeight:'700', letterSpacing:'0.04em' }}>🧠 KNOWLEDGE BASE (AI BRAIN)</label>
+                    <select value={editing.knowledgeBaseId || ''} onChange={e => setEditing({...editing, knowledgeBaseId:e.target.value})}
+                      style={{ width:'100%', padding:'10px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#e2e8f0', fontSize:'13px', cursor:'pointer' }}
+                    >
+                      <option value="">— No knowledge base (general AI) —</option>
+                      {knowledgeBases.map(kb => <option key={kb.id} value={kb.id}>{kb.name}</option>)}
+                    </select>
+                    <div style={{ fontSize:'10px', color:'#3d4f63', marginTop:'4px' }}>
+                      The agent answers using this knowledge base. Create one in <strong style={{color:'#a78bfa'}}>Knowledge</strong> (upload FAQ, pricing, services).
+                    </div>
+                  </div>
+
+                  <div>
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
                       <label style={{ fontSize:'11px', color:'#64748b', fontWeight:'700', letterSpacing:'0.04em' }}>TEMPERATURE (Creativity)</label>
                       <span style={{ fontSize:'12px', color:'#00e5a0', fontWeight:'700' }}>{editing.temperature}</span>
@@ -449,6 +492,76 @@ export default function AIAgentBuilder() {
                       🔄 Advanced escalation rules (after N tries, angry sentiment detection) are coming soon. Enable "Escalate to human agent" in Actions to route complex queries now.
                     </div>
                   </div>
+                </div>
+              )}
+
+              {tab === 'test' && (
+                <div style={{ maxWidth:'640px', display:'flex', flexDirection:'column', height:'100%' }}>
+                  {!editing.id ? (
+                    <div style={{ background:'rgba(245,158,11,.06)', border:'1px solid rgba(245,158,11,.2)', borderRadius:'8px', padding:'16px', fontSize:'13px', color:'#f59e0b' }}>
+                      💾 Save the agent first, then come back here to test it live.
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }}>
+                        <div style={{ fontSize:'12px', color:'#64748b' }}>
+                          Talk to <strong style={{ color:'#e2e8f0' }}>{editing.name}</strong> exactly as a customer would. It replies using its provider + knowledge base.
+                        </div>
+                        {testMsgs.length > 0 && (
+                          <button onClick={() => { setTestMsgs([]); setTestMeta(null) }}
+                            style={{ padding:'5px 10px', background:'#111622', border:'1px solid #1a2235', borderRadius:'5px', color:'#64748b', fontSize:'11px', cursor:'pointer' }}>
+                            Clear
+                          </button>
+                        )}
+                      </div>
+
+                      {testMeta && (
+                        <div style={{ display:'flex', gap:'6px', marginBottom:'12px', flexWrap:'wrap' }}>
+                          <Badge label={`Provider: ${testMeta.provider}`} color="#00e5a0" />
+                          <Badge label={`Model: ${testMeta.model}`} color="#3b82f6" />
+                          <Badge label={testMeta.kb ? `KB: ${testMeta.kb} (${testMeta.used} used)` : 'No knowledge base'} color={testMeta.kb ? '#a78bfa' : '#64748b'} />
+                        </div>
+                      )}
+
+                      <div style={{ flex:1, minHeight:'300px', maxHeight:'440px', overflow:'auto', background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'10px', padding:'16px', display:'flex', flexDirection:'column', gap:'10px', marginBottom:'12px' }}>
+                        {testMsgs.length === 0 ? (
+                          <div style={{ margin:'auto', textAlign:'center', color:'#3d4f63', fontSize:'12px' }}>
+                            <div style={{ fontSize:'28px', marginBottom:'8px' }}>{editing.avatar || '🤖'}</div>
+                            Send a message to test your agent.<br/>
+                            e.g. "What are your opening hours?" / "كم سعر تنظيف الأسنان؟"
+                          </div>
+                        ) : testMsgs.map((m, i) => (
+                          <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth:'78%' }}>
+                            <div style={{
+                              padding:'9px 13px', borderRadius:'12px', fontSize:'13px', lineHeight:'1.55', whiteSpace:'pre-wrap',
+                              background: m.role === 'user' ? '#00e5a0' : m.error ? 'rgba(239,68,68,.1)' : '#1a2235',
+                              color: m.role === 'user' ? '#07090f' : m.error ? '#ef4444' : '#e2e8f0',
+                              border: m.role === 'user' ? 'none' : `1px solid ${m.error ? 'rgba(239,68,68,.3)' : '#253045'}`,
+                            }}>
+                              {m.content}
+                            </div>
+                          </div>
+                        ))}
+                        {testLoading && (
+                          <div style={{ alignSelf:'flex-start', padding:'9px 13px', borderRadius:'12px', background:'#1a2235', border:'1px solid #253045', color:'#64748b', fontSize:'13px' }}>
+                            {editing.avatar || '🤖'} typing…
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display:'flex', gap:'8px' }}>
+                        <input value={testInput} onChange={e => setTestInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && !testLoading && runTest()}
+                          placeholder="Type a customer message…"
+                          style={{ flex:1, padding:'11px 14px', background:'#111622', border:'1px solid #1a2235', borderRadius:'8px', color:'#e2e8f0', fontSize:'13px', outline:'none' }}
+                        />
+                        <button onClick={runTest} disabled={testLoading || !testInput.trim()}
+                          style={{ padding:'11px 20px', background: testLoading || !testInput.trim() ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'8px', color: testLoading || !testInput.trim() ? '#64748b' : '#07090f', fontWeight:'700', fontSize:'13px', cursor: testLoading || !testInput.trim() ? 'not-allowed' : 'pointer' }}>
+                          {testLoading ? '…' : 'Send'}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
