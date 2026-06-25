@@ -36,6 +36,66 @@ export class MasterAdminService {
     return { totalOrgs, totalUsers, totalContacts, totalMessages, totalCampaigns, recentOrgs }
   }
 
+  // Live system health — real checks against DB + configured service credentials.
+  // A key counts as "configured" only if present and not an obvious placeholder.
+  async getSystemHealth(userId: string) {
+    await this.assertOwner(userId)
+
+    const isReal = (v?: string, prefix?: string) => {
+      if (!v) return false
+      const low = v.toLowerCase()
+      if (low.includes('placeholder') || low.includes('your-') || low.includes('set-later') || low.includes('here')) return false
+      if (prefix && !v.startsWith(prefix)) return false
+      return v.length > 12
+    }
+
+    // Database — real round-trip with latency
+    let db = { name: 'Database (PostgreSQL)', status: 'down', detail: '', latencyMs: 0 }
+    try {
+      const t = Date.now()
+      await this.prisma.$queryRaw`SELECT 1`
+      db = { name: 'Database (PostgreSQL)', status: 'operational', detail: 'Cloud SQL me-central1', latencyMs: Date.now() - t }
+    } catch (e: any) {
+      db = { name: 'Database (PostgreSQL)', status: 'down', detail: e?.message?.slice(0, 80) || 'unreachable', latencyMs: 0 }
+    }
+
+    // Active WhatsApp channels in DB
+    let waChannels = 0
+    try { waChannels = await this.prisma.channel.count({ where: { type: 'WHATSAPP', isActive: true } }) } catch {}
+
+    const env = process.env
+    const openaiOk = isReal(env.OPENAI_API_KEY, 'sk-')
+    const anthropicOk = isReal(env.ANTHROPIC_API_KEY, 'sk-ant-')
+    const geminiOk = isReal(env.GEMINI_API_KEY) || isReal(env.GOOGLE_AI_API_KEY)
+    const groqOk = isReal(env.GROQ_API_KEY)
+    const anyAi = openaiOk || anthropicOk || geminiOk || groqOk
+
+    const services = [
+      { name: 'API Server', status: 'operational', detail: 'Cloud Run · responding', latencyMs: 0 },
+      db,
+      { name: 'AI — OpenAI', status: openaiOk ? 'operational' : 'not_configured', detail: openaiOk ? 'key present' : 'placeholder/missing key' },
+      { name: 'AI — Anthropic', status: anthropicOk ? 'operational' : 'not_configured', detail: anthropicOk ? 'key present' : 'placeholder/missing key' },
+      { name: 'AI — Gemini', status: geminiOk ? 'operational' : 'not_configured', detail: geminiOk ? 'key present' : 'not set' },
+      { name: 'AI — Groq', status: groqOk ? 'operational' : 'not_configured', detail: groqOk ? 'key present' : 'not set' },
+      { name: 'Email (Postmark)', status: isReal(env.POSTMARK_SERVER_TOKEN) ? 'operational' : 'not_configured', detail: isReal(env.POSTMARK_SERVER_TOKEN) ? 'token present' : 'dry-run mode (logs only)' },
+      { name: 'Payments (Stripe)', status: isReal(env.STRIPE_SECRET_KEY, 'sk_') ? 'operational' : 'not_configured', detail: isReal(env.STRIPE_SECRET_KEY, 'sk_') ? 'key present' : 'simulated checkout' },
+      { name: 'WhatsApp Business', status: waChannels > 0 ? 'operational' : 'not_configured', detail: waChannels > 0 ? `${waChannels} active channel(s)` : 'no channel connected' },
+      { name: 'Storage', status: 'not_configured', detail: 'no bucket configured yet' },
+      { name: 'Backups', status: 'operational', detail: 'Cloud SQL automated backups' },
+    ]
+
+    const operational = services.filter(s => s.status === 'operational').length
+    const overall = db.status === 'down' ? 'degraded' : anyAi ? 'operational' : 'attention'
+
+    return {
+      overall,
+      operational,
+      total: services.length,
+      checkedAt: new Date().toISOString(),
+      services,
+    }
+  }
+
   async getAllOrgs(userId: string, query: { search?: string; plan?: string; page?: number; limit?: number } = {}) {
     await this.assertOwner(userId)
     const { search, plan, page = 1, limit = 20 } = query

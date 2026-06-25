@@ -255,6 +255,8 @@ export const api = {
   // Master Admin (SUPER_ADMIN only)
   getMasterStats: () =>
     request('/master-admin/stats'),
+  getSystemHealth: () =>
+    request('/master-admin/health'),
   getMasterOrgs: (params = {}) =>
     request('/master-admin/orgs?' + new URLSearchParams(params)),
   getMasterOrg: (id) =>
