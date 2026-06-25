@@ -51,7 +51,7 @@ export class CustomerHealthService {
            JOIN conversations cv3 ON cv3.id = m2."conversationId"
            WHERE cv3."orgId" = o.id) as "lastActivity"
         FROM organizations o
-        WHERE o.plan != 'SUSPENDED'
+        WHERE o."isActive" = true
         ORDER BY o."createdAt" DESC
       `,
 

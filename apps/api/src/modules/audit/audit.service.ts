@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '../../database/prisma.service'
 
 export type AuditCategory = 'auth' | 'user' | 'contact' | 'conversation' | 'campaign' | 'workflow' | 'ai' | 'billing' | 'admin' | 'security' | 'api' | 'integration' | 'system'
@@ -49,15 +50,20 @@ export class AuditService {
     const offset = (page - 1) * limit
     const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
 
+    const conds: Prisma.Sql[] = [
+      Prisma.sql`l."orgId" = ${orgId}`,
+      Prisma.sql`l."createdAt" >= ${since}::timestamp`,
+    ]
+    if (action) conds.push(Prisma.sql`l.action LIKE ${`%${action}%`}`)
+    if (userId) conds.push(Prisma.sql`l."userId" = ${userId}`)
+    const where = Prisma.join(conds, ' AND ')
+
     const [logs, total] = await Promise.all([
       this.prisma.$queryRaw<any[]>`
         SELECT l.*, u.name as "userName", u.email as "userEmail"
         FROM audit_logs l
         LEFT JOIN users u ON u.id = l."userId"
-        WHERE l."orgId" = ${orgId}
-          AND l."createdAt" >= ${since}::timestamp
-          ${action ? this.prisma.$queryRaw`AND l.action LIKE ${`%${action}%`}` : this.prisma.$queryRaw``}
-          ${userId ? this.prisma.$queryRaw`AND l."userId" = ${userId}` : this.prisma.$queryRaw``}
+        WHERE ${where}
         ORDER BY l."createdAt" DESC
         LIMIT ${limit} OFFSET ${offset}
       `,
@@ -74,15 +80,18 @@ export class AuditService {
     const offset = (page - 1) * limit
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
+    const conds: Prisma.Sql[] = [Prisma.sql`l."createdAt" >= ${since}::timestamp`]
+    if (orgId) conds.push(Prisma.sql`l."orgId" = ${orgId}`)
+    if (action) conds.push(Prisma.sql`l.action LIKE ${`%${action}%`}`)
+    const where = Prisma.join(conds, ' AND ')
+
     const [logs, total, stats] = await Promise.all([
       this.prisma.$queryRaw<any[]>`
         SELECT l.*, u.name as "userName", u.email as "userEmail", o.name as "orgName"
         FROM audit_logs l
         LEFT JOIN users u ON u.id = l."userId"
         LEFT JOIN organizations o ON o.id = l."orgId"
-        WHERE l."createdAt" >= ${since}::timestamp
-          ${orgId ? this.prisma.$queryRaw`AND l."orgId" = ${orgId}` : this.prisma.$queryRaw``}
-          ${action ? this.prisma.$queryRaw`AND l.action LIKE ${`%${action}%`}` : this.prisma.$queryRaw``}
+        WHERE ${where}
         ORDER BY l."createdAt" DESC
         LIMIT ${limit} OFFSET ${offset}
       `,
