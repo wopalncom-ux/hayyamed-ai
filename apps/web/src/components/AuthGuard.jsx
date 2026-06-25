@@ -11,6 +11,13 @@ export default function AuthGuard({ children }) {
     if (path === '/login') { setStatus('ok'); return }
     if (!loggedIn) { setStatus('redirecting'); window.location.replace('/login'); return }
     if (role === 'client' && path !== '/client') { setStatus('redirecting'); window.location.replace('/client'); return }
+
+    // Owner-only areas — defense in depth (server also enforces via OwnerGuard)
+    const ownerRoles = ['owner', 'super_admin', 'admin', 'agency_admin']
+    const isOwner = ownerRoles.includes(String(role || '').toLowerCase())
+    if ((path.startsWith('/admin') || path.startsWith('/agency')) && !isOwner) {
+      setStatus('redirecting'); window.location.replace('/dashboard'); return
+    }
     setStatus('ok')
   }, [])
 

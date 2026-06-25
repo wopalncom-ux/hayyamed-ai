@@ -1,6 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common'
+import { Controller, Get, Param, UseGuards } from '@nestjs/common'
 import { CustomerHealthService } from './customer-health.service'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 
+@UseGuards(OwnerGuard)
 @Controller('master-admin/customer-health')
 export class CustomerHealthController {
   constructor(private svc: CustomerHealthService) {}

@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Query, Param, Body } from '@nestjs/common'
+import { Controller, Get, Post, Query, Param, Body, UseGuards } from '@nestjs/common'
 import { AIObservabilityService } from './ai-observability.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 
 @Controller('ai/observability')
 export class AIObservabilityController {
@@ -17,6 +18,7 @@ export class AIObservabilityController {
   }
 }
 
+@UseGuards(OwnerGuard)
 @Controller('master-admin/ai-observability')
 export class AdminAIObservabilityController {
   constructor(private svc: AIObservabilityService) {}

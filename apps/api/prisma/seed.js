@@ -30,6 +30,15 @@ async function main() {
   });
   console.log(`[seed] Admin: ${admin.email}`);
 
+  // Platform owner — full master control. Change this password after first login.
+  const ownerHash = await bcrypt.hash('Owner@2025', 12);
+  const owner = await prisma.user.upsert({
+    where: { email: 'wopalncom@gmail.com' },
+    update: { role: 'SUPER_ADMIN' },
+    create: { orgId: org.id, email: 'wopalncom@gmail.com', name: 'Platform Owner', role: 'SUPER_ADMIN', password: ownerHash },
+  });
+  console.log(`[seed] Owner: ${owner.email}`);
+
   const channel = await prisma.channel.upsert({
     where: { id: 'demo-channel-1' },
     update: {},

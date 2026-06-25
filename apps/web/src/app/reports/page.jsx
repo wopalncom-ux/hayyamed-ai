@@ -70,6 +70,9 @@ export default function Reports() {
   const booked = filtered.filter(d => d.booked === 'Yes').length
   const bookingRate = totalLeads > 0 ? Math.round((booked/totalLeads)*100) : 0
 
+  // Derived from live data — first element is an 'All' placeholder to match .slice(1) usage below
+  const services = ['All', ...Array.from(new Set(filtered.map(d => d.service).filter(Boolean)))]
+
   const channelStats = channels.slice(1).map(ch => ({
     name: ch,
     count: filtered.filter(d => d.channel === ch).length,

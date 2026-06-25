@@ -1,6 +1,7 @@
-import { Controller, Get, Query } from '@nestjs/common'
+import { Controller, Get, Query, UseGuards } from '@nestjs/common'
 import { AuditService } from './audit.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 
 @Controller('audit')
 export class AuditController {
@@ -22,6 +23,7 @@ export class AuditController {
   }
 }
 
+@UseGuards(OwnerGuard)
 @Controller('master-admin/audit')
 export class AdminAuditController {
   constructor(private svc: AuditService) {}

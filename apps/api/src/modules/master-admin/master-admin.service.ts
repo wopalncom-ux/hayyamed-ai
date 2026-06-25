@@ -7,9 +7,15 @@ export class MasterAdminService {
 
   private async assertOwner(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } })
-    if (!user || !['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(user.role)) {
-      throw new ForbiddenException('Super admin access required')
-    }
+    if (!user) throw new ForbiddenException('Super admin access required')
+
+    const ownerEmails = [
+      'wopalncom@gmail.com',
+      ...(process.env.PLATFORM_OWNER_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean),
+    ]
+    const isOwner = ['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(user.role)
+      || ownerEmails.includes((user.email || '').toLowerCase())
+    if (!isOwner) throw new ForbiddenException('Super admin access required')
     return user
   }
 

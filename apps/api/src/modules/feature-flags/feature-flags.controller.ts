@@ -1,6 +1,7 @@
-import { Controller, Get, Patch, Post, Delete, Body, Param } from '@nestjs/common'
+import { Controller, Get, Patch, Post, Delete, Body, Param, UseGuards } from '@nestjs/common'
 import { FeatureFlagsService } from './feature-flags.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 
 @Controller('feature-flags')
 export class FeatureFlagsController {
@@ -20,6 +21,7 @@ export class FeatureFlagsController {
   }
 }
 
+@UseGuards(OwnerGuard)
 @Controller('master-admin/feature-flags')
 export class AdminFeatureFlagsController {
   constructor(private svc: FeatureFlagsService) {}

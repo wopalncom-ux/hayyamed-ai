@@ -1,6 +1,7 @@
-import { Controller, Get, Query, Param } from '@nestjs/common'
+import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common'
 import { AIQualityService } from './ai-quality.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 
 @Controller('ai/quality')
 export class AIQualityController {
@@ -12,6 +13,7 @@ export class AIQualityController {
   }
 }
 
+@UseGuards(OwnerGuard)
 @Controller('master-admin/ai-quality')
 export class AdminAIQualityController {
   constructor(private svc: AIQualityService) {}

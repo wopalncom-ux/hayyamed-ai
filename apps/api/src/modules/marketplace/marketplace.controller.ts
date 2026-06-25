@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Delete, Patch, Param, Query, Body } from '@nestjs/common'
+import { Controller, Get, Post, Delete, Patch, Param, Query, Body, UseGuards } from '@nestjs/common'
 import { MarketplaceService } from './marketplace.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 
 @Controller('marketplace')
 export class MarketplaceController {
@@ -42,6 +43,7 @@ export class MarketplaceController {
   }
 }
 
+@UseGuards(OwnerGuard)
 @Controller('master-admin/marketplace')
 export class AdminMarketplaceController {
   constructor(private svc: MarketplaceService) {}
