@@ -28,6 +28,10 @@ steps:
       - 'me-central1-docker.pkg.dev/$PROJECT_ID/hayyamed-ai/web:latest'
       - '-f'
       - 'apps/web/Dockerfile'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_API_URL=https://api.hayyaai.com'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_WS_URL=wss://api.hayyaai.com'
       - 'apps/web'
     waitFor: [auth-docker]
     id: build-web

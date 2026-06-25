@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common'
+import { Controller, Post, Body, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import { AuthService } from './auth.service'
 import { Public } from '../../common/decorators/public.decorator'
@@ -18,8 +18,12 @@ export class AuthController {
 
   @Post('register')
   @Throttle(AUTH_LIMIT)
-  register(@Body() dto: any) {
-    return this.auth.register(dto)
+  register(@Body() body: any) {
+    const { name, email, password, orgName, phone, industry, country, language } = body || {}
+    if (!name || !email || !password || !orgName) {
+      throw new BadRequestException('name, email, password, and orgName are required')
+    }
+    return this.auth.register({ name, email, password, orgName, phone, industry, country, language })
   }
 
   @Post('login')

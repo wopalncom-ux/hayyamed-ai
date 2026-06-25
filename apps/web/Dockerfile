@@ -1,5 +1,12 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# NEXT_PUBLIC_* vars must be baked in at build time — they are NOT overridable at runtime
+ARG NEXT_PUBLIC_API_URL=https://api.hayyaai.com
+ARG NEXT_PUBLIC_WS_URL=wss://api.hayyaai.com
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
 COPY package*.json ./
 RUN npm install
 COPY . .

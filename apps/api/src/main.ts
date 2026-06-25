@@ -14,6 +14,10 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log'],
   })
 
+  // Health check (outside global prefix — Cloud Run pings this)
+  const httpAdapter = app.getHttpAdapter()
+  httpAdapter.get('/health', (_req: any, res: any) => res.json({ status: 'ok', ts: Date.now() }))
+
   // Global prefix
   app.setGlobalPrefix('api/v1')
 
