@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { getAuth } from '@/lib/auth'
+import { getAuth, isOwnerRole } from '@/lib/auth'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
@@ -173,7 +173,7 @@ export default function Integrations() {
 
   useEffect(() => {
     const { role } = getAuth()
-    if (role && role !== 'owner') { setAuthorized(false); return }
+    if (role && !isOwnerRole(role)) { setAuthorized(false); return }
 
     api.getIntegrations().then(list => {
       if (!Array.isArray(list)) return

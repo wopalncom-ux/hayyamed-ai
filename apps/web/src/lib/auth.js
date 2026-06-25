@@ -3,6 +3,23 @@ export function getAuth() {
   try { return JSON.parse(localStorage.getItem('hayyamed_auth') || '{}') } catch { return {} }
 }
 
+// Backend roles are uppercase (SUPER_ADMIN, ADMIN, ...); the UI uses lowercase
+// nav roles (owner, manager, ...). Normalize so both formats resolve correctly.
+export function normalizeRole(role) {
+  const r = String(role || '').toLowerCase()
+  if (['owner', 'super_admin', 'admin', 'agency_admin'].includes(r)) return 'owner'
+  if (r === 'manager') return 'manager'
+  if (r === 'marketing') return 'marketing'
+  if (['receptionist', 'agent', 'viewer'].includes(r)) return 'receptionist'
+  if (r === 'client') return 'client'
+  return r || 'manager'
+}
+
+// True for any owner-level role, regardless of stored format.
+export function isOwnerRole(role) {
+  return normalizeRole(role) === 'owner'
+}
+
 export function logout() {
   if (typeof window === 'undefined') return
   localStorage.removeItem('hayyamed_auth')
@@ -21,7 +38,7 @@ export const ROLE_NAV = {
 
 export function canSee(page) {
   const { role = 'owner' } = getAuth()
-  const allowed = ROLE_NAV[role] || ROLE_NAV.owner
+  const allowed = ROLE_NAV[normalizeRole(role)] || ROLE_NAV.owner
   return allowed.includes(page)
 }
 

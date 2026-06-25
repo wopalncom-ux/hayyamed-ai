@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { api } from '@/lib/api'
+import { normalizeRole } from '@/lib/auth'
 
 export default function Login() {
   const [email,    setEmail]    = useState('')
@@ -17,7 +18,7 @@ export default function Login() {
 
     try {
       const data = await api.login(em, pw)
-      const role = data.user?.role || 'manager'
+      const role = normalizeRole(data.user?.role || 'manager')
       localStorage.setItem('hayyamed_auth', JSON.stringify({
         email: em, loggedIn: true,
         accessToken:  data.accessToken,
