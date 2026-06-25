@@ -84,25 +84,35 @@ export class AIAgentsService {
       knowledgeBlock,
     ].filter(Boolean).join(' ')
 
-    // 3. Generate the reply using the agent's configured provider/model
+    // 3. Generate the reply using the agent's configured provider/model.
+    // If no valid AI key is configured, fall back to a clearly-labelled test mode
+    // so the flow is demonstrable; it upgrades to real AI automatically once a key is set.
     const messages = [
       { role: 'system' as const, content: systemPrompt },
       ...history,
       { role: 'user' as const, content: userMessage },
     ]
 
-    const reply = await this.ai.complete(messages, {
-      provider: agent.aiProvider as any,
-      model: agent.aiModel,
-      temperature: agent.temperature,
-      maxTokens: agent.maxTokens,
-      orgId,
-      module: 'ai-agent',
-      action: 'reply',
-    })
+    let reply: string
+    let testMode = false
+    try {
+      reply = await this.ai.complete(messages, {
+        provider: agent.aiProvider as any,
+        model: agent.aiModel,
+        temperature: agent.temperature,
+        maxTokens: agent.maxTokens,
+        orgId,
+        module: 'ai-agent',
+        action: 'reply',
+      })
+    } catch {
+      testMode = true
+      reply = this.testModeReply(agent, userMessage, knowledgeSnippets)
+    }
 
     return {
       reply,
+      testMode,
       agentId: agent.id,
       agentName: agent.name,
       provider: agent.aiProvider,
@@ -111,5 +121,18 @@ export class AIAgentsService {
       knowledgeUsed: knowledgeSnippets.length,
       snippets: knowledgeSnippets.map(s => s.slice(0, 220)),
     }
+  }
+
+  // Deterministic fallback when no valid AI provider key is configured.
+  // Clearly labelled so it is never mistaken for a real AI response.
+  private testModeReply(agent: any, userMessage: string, snippets: string[]): string {
+    const greeting = agent.language === 'ar'
+      ? `مرحباً، أنا ${agent.name}.`
+      : `Hi, I'm ${agent.name}.`
+    if (snippets.length) {
+      const top = snippets[0].slice(0, 280)
+      return `${greeting}\n\nBased on our knowledge base, here is the most relevant info for "${userMessage.slice(0, 60)}":\n\n"${top}"\n\n[⚙️ TEST MODE — no AI provider key configured. This is a knowledge-base preview, not a generated reply. Add a valid OpenAI/Anthropic key to enable full AI responses.]`
+    }
+    return `${greeting}\n\nI received: "${userMessage.slice(0, 80)}". I'd normally answer using AI here.\n\n[⚙️ TEST MODE — no AI provider key configured and no knowledge base attached. Add a valid AI key and a knowledge base to enable real replies.]`
   }
 }

@@ -133,7 +133,7 @@ export default function AIAgentBuilder() {
       const history = testMsgs.slice(-6).map(m => ({ role: m.role, content: m.content }))
       const res = await api.testAgent(editing.id, msg, history)
       setTestMsgs(m => [...m, { role: 'assistant', content: res.reply }])
-      setTestMeta({ provider: res.provider, model: res.model, kb: res.knowledgeBase, used: res.knowledgeUsed })
+      setTestMeta({ provider: res.provider, model: res.model, kb: res.knowledgeBase, used: res.knowledgeUsed, testMode: res.testMode })
     } catch (e) {
       setTestMsgs(m => [...m, { role: 'assistant', content: '⚠️ ' + (e?.message || 'Agent failed to respond'), error: true }])
     } finally {
@@ -517,6 +517,7 @@ export default function AIAgentBuilder() {
 
                       {testMeta && (
                         <div style={{ display:'flex', gap:'6px', marginBottom:'12px', flexWrap:'wrap' }}>
+                          {testMeta.testMode && <Badge label="⚙️ TEST MODE — no AI key" color="#f59e0b" />}
                           <Badge label={`Provider: ${testMeta.provider}`} color="#00e5a0" />
                           <Badge label={`Model: ${testMeta.model}`} color="#3b82f6" />
                           <Badge label={testMeta.kb ? `KB: ${testMeta.kb} (${testMeta.used} used)` : 'No knowledge base'} color={testMeta.kb ? '#a78bfa' : '#64748b'} />
