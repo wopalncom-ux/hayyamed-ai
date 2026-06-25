@@ -8,6 +8,7 @@ const ALL_NAV = [
   { page:'inbox',         href:'/inbox',         icon:'💬', label:'Inbox' },
   { page:'contacts',      href:'/contacts',      icon:'👥', label:'Contacts' },
   { page:'pipeline',      href:'/pipeline',      icon:'📊', label:'Pipeline' },
+  { page:'sales',         href:'/sales',         icon:'💰', label:'Sales' },
   { page:'analytics',     href:'/analytics',     icon:'📈', label:'Analytics' },
   { page:'reports',       href:'/reports',       icon:'📑', label:'Reports' },
   { page:'campaigns',     href:'/campaigns',     icon:'📣', label:'Campaigns' },

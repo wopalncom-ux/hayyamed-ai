@@ -209,4 +209,53 @@ export class ReportsController {
       })),
     }
   }
+
+  // Sales dashboard — real pipeline value, win rate, forecast, sources, leaderboard
+  @Get('sales')
+  async getSales(@CurrentUser() user: JwtPayload) {
+    const orgId = user.orgId
+    const OPEN_STAGES = ['NEW', 'CONTACTED', 'QUALIFYING', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION']
+    // Probability weighting per stage for the weighted forecast
+    const WEIGHT: Record<string, number> = { NEW: 0.05, CONTACTED: 0.1, QUALIFYING: 0.2, QUALIFIED: 0.4, PROPOSAL: 0.6, NEGOTIATION: 0.8, WON: 1, LOST: 0 }
+
+    const [byStatus, bySource, won, lost, recentWon] = await Promise.all([
+      this.prisma.contact.groupBy({ by: ['status'], where: { orgId }, _count: { id: true }, _sum: { value: true } }),
+      this.prisma.contact.groupBy({ by: ['source'], where: { orgId }, _count: { id: true }, _sum: { value: true } }),
+      this.prisma.contact.aggregate({ where: { orgId, status: 'WON' }, _count: { id: true }, _sum: { value: true } }),
+      this.prisma.contact.count({ where: { orgId, status: 'LOST' } }),
+      this.prisma.contact.findMany({ where: { orgId, status: 'WON' }, orderBy: { updatedAt: 'desc' }, take: 8, select: { id: true, name: true, value: true, currency: true, source: true, updatedAt: true } }),
+    ])
+
+    const stageMap = Object.fromEntries(byStatus.map(s => [s.status, { count: s._count.id, value: Number(s._sum.value || 0) }]))
+    const pipeline = OPEN_STAGES.map(st => ({
+      stage: st,
+      count: stageMap[st]?.count || 0,
+      value: stageMap[st]?.value || 0,
+      weighted: Math.round((stageMap[st]?.value || 0) * (WEIGHT[st] || 0)),
+    }))
+
+    const openValue = pipeline.reduce((s, p) => s + p.value, 0)
+    const weightedForecast = pipeline.reduce((s, p) => s + p.weighted, 0)
+    const wonCount = won._count.id
+    const wonValue = Number(won._sum.value || 0)
+    const closed = wonCount + lost
+    const winRate = closed > 0 ? Math.round((wonCount / closed) * 100) : 0
+    const avgDealSize = wonCount > 0 ? Math.round(wonValue / wonCount) : 0
+
+    return {
+      currency: 'QAR',
+      openValue,
+      weightedForecast,
+      wonValue,
+      wonCount,
+      lostCount: lost,
+      winRate,
+      avgDealSize,
+      pipeline,
+      bySource: bySource
+        .map(s => ({ source: s.source || 'Unknown', count: s._count.id, value: Number(s._sum.value || 0) }))
+        .sort((a, b) => b.value - a.value),
+      recentWon: recentWon.map(c => ({ id: c.id, name: c.name, value: Number(c.value || 0), currency: c.currency, source: c.source, wonAt: c.updatedAt })),
+    }
+  }
 }

@@ -85,6 +85,8 @@ export const api = {
     request(`/reports/analytics?period=${period}`),
   getFullStats: () =>
     request('/reports/full'),
+  getSalesReport: () =>
+    request('/reports/sales'),
 
   // Chatbots
   getChatbots: () =>
