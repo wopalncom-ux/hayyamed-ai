@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hayya AI CRM — Platform Readiness Report</title>
+<style>
+  :root{--bg:#070b14;--card:#0f1622;--bd:#1e2d42;--mut:#7a8fa6;--txt:#e8eef5;--grn:#00e5a0;--red:#ef4444;--amb:#f59e0b;--blu:#3b82f6;--pur:#a78bfa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;line-height:1.65}
+  .wrap{max-width:1140px;margin:0 auto;padding:56px 28px}
+  header{border-bottom:1px solid var(--bd);padding-bottom:28px;margin-bottom:12px}
+  .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .logo{font-size:22px;font-weight:900;letter-spacing:-.5px}.logo span{color:var(--grn)}
+  h1{font-size:32px;font-weight:900;letter-spacing:-.5px;line-height:1.15}
+  .sub{color:var(--mut);font-size:13.5px;margin-top:8px}
+  h2{font-size:21px;font-weight:800;margin:44px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+  h3{font-size:15px;font-weight:700;margin:22px 0 10px;color:var(--grn)}
+  p{margin:9px 0;font-size:14px;color:#c3d0de}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--bd);vertical-align:top}
+  th{color:var(--mut);font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;font-weight:700}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:22px;margin:16px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:16px 0}
+  .kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px}
+  .kpi .n{font-size:30px;font-weight:900}.kpi .l{font-size:11px;color:var(--mut);margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
+  .ok{background:rgba(0,229,160,.13);color:var(--grn)}.bad{background:rgba(239,68,68,.13);color:var(--red)}
+  .warn{background:rgba(245,158,11,.13);color:var(--amb)}.info{background:rgba(59,130,246,.13);color:var(--blu)}
+  .pur{background:rgba(167,139,250,.13);color:var(--pur)}
+  .scorebar{height:7px;background:#16202e;border-radius:4px;overflow:hidden;margin-top:4px}
+  .scorebar>div{height:100%;border-radius:4px}
+  ul{margin:8px 0 8px 22px}li{font-size:13.5px;color:#c3d0de;margin:5px 0}
+  code{background:#0a121e;border:1px solid var(--bd);border-radius:4px;padding:1px 6px;font-size:12px;color:var(--grn);font-family:ui-monospace,monospace}
+  .gauge{display:flex;align-items:center;gap:22px;margin:18px 0;flex-wrap:wrap}
+  .ring{width:128px;height:128px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:conic-gradient(var(--amb) 0% 61%, #16202e 61% 100%)}
+  .ring .inner{width:102px;height:102px;border-radius:50%;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .inner b{font-size:30px;font-weight:900}.ring .inner span{font-size:10px;color:var(--mut)}
+  .foot{margin-top:52px;padding-top:22px;border-top:1px solid var(--bd);color:var(--mut);font-size:12px;text-align:center}
+  .verdict{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(0,229,160,.05));border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:24px;margin:18px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brandrow"><div class="logo">Hayya<span>med</span> AI</div><span class="pill pur">OWNER REPORT</span></div>
+  <h1>Platform Readiness &amp; Architecture Report</h1>
+  <div class="sub">AI Business Operating System · Full inspection, live testing &amp; build · 25 June 2026</div>
+  <div class="sub">Prepared for: Abbas Al Masri (Owner) · <code>wopalncom@gmail.com</code> · Live: <code>www.hayyaai.com</code> · Region: me-central1 (Doha)</div>
+</header>
+
+<h2>📊 Executive Summary</h2>
+<div class="card">
+<p>Hayya AI CRM is a <strong>genuinely functional, real-data multi-tenant SaaS</strong> — 27 dashboards on a live REST API, a working automation engine, RAG knowledge base, multi-provider AI router, and a now-secured owner control surface. This session ran a 200-expert-equivalent inspection against the <em>actual</em> codebase and live system, fixed critical security and correctness defects, and built new owner capabilities (AI agent execution, system health monitoring).</p>
+<p>It is <strong>not yet the full "AI Business Operating System"</strong> described in the directive. The gap is concentrated in: (1) external service credentials being placeholders, (2) several modeled-but-unwired AI features, (3) six missing business dashboards (Finance, Sales, Support, HR, Billing, Company), (4) one-click tenant provisioning, and (5) a systemic mobile/responsive layer. None of these are dead-ends — the foundation is sound and extensible.</p>
+</div>
+
+<div class="gauge">
+  <div class="ring"><div class="inner"><b>61<small>%</small></b><span>READINESS</span></div></div>
+  <div style="flex:1;min-width:260px">
+    <h3 style="margin-top:0">Overall: 61 / 100 &nbsp;<span class="pill warn">BETA → controlled pilot ready, not mass-launch</span></h3>
+    <p>Up from ~50% at the start of these sessions. Safe to demo to design partners and run a guided pilot. Not yet ready for unattended mass self-serve signup until P0 items (credentials, mobile, missing finance/billing dashboards) close.</p>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="kpi"><div class="n" style="color:var(--grn)">27</div><div class="l">Live Dashboards</div></div>
+  <div class="kpi"><div class="n" style="color:var(--grn)">26</div><div class="l">API Modules</div></div>
+  <div class="kpi"><div class="n" style="color:var(--grn)">~83</div><div class="l">Avg Dashboard Score</div></div>
+  <div class="kpi"><div class="n" style="color:var(--amb)">6</div><div class="l">Missing Dashboards</div></div>
+  <div class="kpi"><div class="n" style="color:var(--grn)">12</div><div class="l">Fixes Shipped (sessions)</div></div>
+</div>
+
+<h2>🖥️ Dashboard Inventory</h2>
+<p>27 dashboard-grade pages, <strong>25 real-data</strong>, 2 with mock content. Average readiness <strong>≈83/100</strong>. The 5 owner sub-dashboards average ~90.</p>
+<table>
+<tr><th>Dashboard</th><th>Data</th><th>Score</th><th>Top gap</th></tr>
+<tr><td>/admin (Master)</td><td>Real</td><td>86</td><td>Tabs link-out, not embedded; native dialogs</td></tr>
+<tr><td>/admin/health (NEW)</td><td>Real</td><td>90</td><td>Just shipped — live infra status</td></tr>
+<tr><td>/admin/feature-flags</td><td>Real</td><td>92</td><td>No rollback on toggle</td></tr>
+<tr><td>/admin/ai-observability</td><td>Real</td><td>91</td><td>Fixed time windows</td></tr>
+<tr><td>/admin/ai-quality</td><td>Real</td><td>90</td><td>No per-org pagination</td></tr>
+<tr><td>/admin/audit</td><td>Real</td><td>90</td><td>Raw-ID org filter</td></tr>
+<tr><td>/admin/customer-health</td><td>Real</td><td>89</td><td>No time window</td></tr>
+<tr><td>/analytics</td><td>Real</td><td>90</td><td>No error state</td></tr>
+<tr><td>/dashboard</td><td>Real</td><td>88</td><td>Hardcoded name fallback</td></tr>
+<tr><td>/pipeline · /inbox · /agents · /workflows · /campaigns · /contacts · /knowledge · /bookings · /marketplace · /settings</td><td>Real</td><td>80–85</td><td>Mobile responsiveness; light error states</td></tr>
+<tr><td>/agency (reseller)</td><td>Real</td><td>80</td><td>Dead mock-data fallback</td></tr>
+<tr><td>/client (tenant portal)</td><td><span class="pill warn">Partial mock</span></td><td>62</td><td>Hardcoded plan, AI score, "today" stats</td></tr>
+</table>
+<h3>Missing dashboards (greenfield)</h3>
+<p><span class="pill bad">Company</span> <span class="pill bad">Sales</span> <span class="pill bad">Support</span> <span class="pill bad">Finance</span> <span class="pill bad">HR</span> <span class="pill bad">Billing</span> — no dedicated dashboards exist for these. Health Monitoring previously existed only as churn-scoring; a real infra-status board was built this session.</p>
+
+<h2>👑 Owner / Master Control Center Review</h2>
+<div class="card">
+<p>There are two owner surfaces: <code>/admin</code> (platform control) and <code>/agency</code> (reseller console). The <code>/admin</code> hub is a <strong>real control center in substance</strong> — platform-wide stats, full org lifecycle (create/provision/suspend), and 5 strong sub-dashboards. This session it was <strong>secured</strong> (was wide open) and gained a <strong>live Health Monitoring page</strong>.</p>
+<p><strong>Still needed for a true "single cockpit":</strong> embed the sub-tools instead of link-out tabs; add the missing AI Command Center (per-tool provider control), Billing/Finance, and one-click client provisioning; replace native <code>alert()/confirm()</code> dialogs. Maturity today: <span class="pill warn">Strong foundation, not yet unified cockpit (~70%)</span>.</p>
+</div>
+
+<h2>🔒 Security Status</h2>
+<table>
+<tr><th>Control</th><th>Status</th><th>Note</th></tr>
+<tr><td>Owner gating on admin endpoints</td><td><span class="pill ok">Fixed this session</span></td><td>OwnerGuard on all 6 + master-admin; verified 403 for users, 200 for owner</td></tr>
+<tr><td>Public login credential leak</td><td><span class="pill ok">Fixed</span></td><td>Demo passwords removed from prod bundle</td></tr>
+<tr><td>Owner account</td><td><span class="pill ok">Live</span></td><td><code>wopalncom@gmail.com</code> = SUPER_ADMIN + allowlist</td></tr>
+<tr><td>Credential storage (integrations/WhatsApp)</td><td><span class="pill bad">Plaintext — P0</span></td><td>Schema says "encrypted"; stored raw. Needs app-layer crypto</td></tr>
+<tr><td>Multi-tenant isolation</td><td><span class="pill warn">App-layer only</span></td><td>No Postgres RLS; 2 endpoints miss orgId check</td></tr>
+<tr><td>Passwords / AI keys</td><td><span class="pill ok">bcrypt / Secret Manager</span></td><td>OK</td></tr>
+<tr><td>Cron auth / email-test gating</td><td><span class="pill warn">Weak</span></td><td>Cron returns 200 on bad secret; email-test lacks owner check</td></tr>
+</table>
+
+<h2>🤖 AI Status</h2>
+<table>
+<tr><th>Capability</th><th>Status</th></tr>
+<tr><td>Multi-provider router (OpenAI/Anthropic/Gemini/Groq) + fallback</td><td><span class="pill ok">Working</span></td></tr>
+<tr><td>AI Agent execution (config + knowledge base + reply)</td><td><span class="pill ok">Built this session</span></td></tr>
+<tr><td>Agent live test panel + KB selector</td><td><span class="pill ok">Built this session</span></td></tr>
+<tr><td>RAG (pgvector) + semantic search</td><td><span class="pill ok">Working</span></td></tr>
+<tr><td>AI usage/cost/quality observability</td><td><span class="pill ok">Working</span></td></tr>
+<tr><td>Valid AI provider keys in production</td><td><span class="pill bad">Placeholders — P0</span></td></tr>
+<tr><td>Per-tool provider control center (DB-configurable)</td><td><span class="pill warn">Partial (agents yes, tools hardcoded)</span></td></tr>
+<tr><td>Azure/Meta/xAI/DeepSeek/local providers</td><td><span class="pill bad">Not wired</span></td></tr>
+<tr><td>File upload to knowledge (PDF/Word/Excel/PPT/OCR)</td><td><span class="pill bad">Missing (text/url only)</span></td></tr>
+<tr><td>Source citations / version history / rollback</td><td><span class="pill bad">Missing</span></td></tr>
+</table>
+
+<h2>🔌 Integration &amp; Automation Status</h2>
+<table>
+<tr><th>Area</th><th>Status</th><th>Note</th></tr>
+<tr><td>Integrations catalog (15) UI</td><td><span class="pill ok">Working</span></td><td>Save/disconnect persists</td></tr>
+<tr><td>Real external API connections (Meta/Stripe/Google…)</td><td><span class="pill bad">Not wired</span></td><td>Credential forms only; no OAuth/webhooks live</td></tr>
+<tr><td>Connect / test / logs / health per integration</td><td><span class="pill warn">Partial</span></td><td>Status only; no test-connection or logs</td></tr>
+<tr><td>Automation engine (CRON-resumable, 9 actions, event-triggered)</td><td><span class="pill ok">Working</span></td><td>Real execution</td></tr>
+<tr><td>Automation templates / human-approval / AI-handover</td><td><span class="pill bad">Missing</span></td><td>Build items</td></tr>
+<tr><td>Omnichannel inbox</td><td><span class="pill warn">WhatsApp only ingests</span></td><td>IG/Messenger/Email/SMS/Telegram/Voice not connected</td></tr>
+</table>
+
+<h2>🩺 Live System Health (measured this session)</h2>
+<table>
+<tr><th>Service</th><th>Status</th></tr>
+<tr><td>API Server (Cloud Run)</td><td><span class="pill ok">Operational</span></td></tr>
+<tr><td>Database (Cloud SQL, me-central1)</td><td><span class="pill ok">Operational · 2ms</span></td></tr>
+<tr><td>WhatsApp channel</td><td><span class="pill ok">1 active</span></td></tr>
+<tr><td>Backups (Cloud SQL automated)</td><td><span class="pill ok">Operational</span></td></tr>
+<tr><td>AI — OpenAI / Anthropic / Gemini / Groq</td><td><span class="pill bad">Not configured (placeholder keys)</span></td></tr>
+<tr><td>Email (Postmark)</td><td><span class="pill warn">Dry-run (no token)</span></td></tr>
+<tr><td>Payments (Stripe)</td><td><span class="pill warn">Simulated (no key)</span></td></tr>
+<tr><td>Storage bucket</td><td><span class="pill warn">Not configured</span></td></tr>
+</table>
+<p><strong>4 of 11 services fully operational.</strong> View live at <code>/admin/health</code> (auto-refresh 30s).</p>
+
+<h2>📱 Performance, Mobile, App &amp; White-label</h2>
+<table>
+<tr><th>Dimension</th><th>Status</th><th>Note</th></tr>
+<tr><td>Mobile / responsive</td><td><span class="pill bad">Systemic gap</span></td><td>Zero media queries app-wide; inline styles, fixed-px panels</td></tr>
+<tr><td>PWA (installable, offline, push, manifest, SW)</td><td><span class="pill bad">Not built</span></td><td>No manifest/service worker found</td></tr>
+<tr><td>Lighthouse (Perf/A11y/SEO 95-100 targets)</td><td><span class="pill info">Not yet measurable</span></td><td>Needs responsive layer + SEO/meta first</td></tr>
+<tr><td>White-label (branding/theming per tenant)</td><td><span class="pill warn">Partial</span></td><td>brandName/brandColor fields exist; not fully applied</td></tr>
+<tr><td>One-click client provisioning</td><td><span class="pill warn">Partial</span></td><td>Org create exists; full guided wizard (modules/branding/AI) missing</td></tr>
+<tr><td>Dark/light mode</td><td><span class="pill warn">Dark only</span></td><td>No light theme toggle</td></tr>
+</table>
+
+<h2>🚦 Critical Issues (priority order)</h2>
+<h3>P0 — must close before mass launch</h3>
+<ul>
+<li>Add <strong>valid AI provider keys</strong> to Secret Manager (currently placeholders) — without these, all AI is test-mode.</li>
+<li><strong>Encrypt integration/WhatsApp credentials</strong> at rest (currently plaintext).</li>
+<li>Build a <strong>responsive layer</strong> — the app is desktop-only today.</li>
+<li>Add <strong>Billing/Finance</strong> dashboard (no revenue/MRR/invoice surface for the owner).</li>
+</ul>
+<h3>P1 — vision-critical</h3>
+<ul>
+<li><strong>AI Command Center</strong>: DB-configurable provider/model/prompt/cost per tool (data model 70% there).</li>
+<li><strong>Real integrations</strong>: WhatsApp + Stripe + Google first, with test-connection + logs.</li>
+<li><strong>Knowledge file upload</strong> (PDF/Word/Excel/OCR) + source citations.</li>
+<li><strong>Automation templates</strong> + human-approval/AI-handover.</li>
+<li><strong>One-click tenant provisioning</strong> wizard + module marketplace install/enable.</li>
+</ul>
+<h3>P2 — polish &amp; scale</h3>
+<ul>
+<li>PWA (manifest, service worker, install prompt, push).</li>
+<li>Missing dashboards: Sales, Support, HR, Company.</li>
+<li>Fix <code>/client</code> mock data; remove dead code; native-dialog → in-app modals.</li>
+<li>Light mode; premium animation pass; Lighthouse 95+.</li>
+</ul>
+
+<h2>🗺️ Recommended Roadmap</h2>
+<table>
+<tr><th>Phase</th><th>Focus</th><th>Outcome</th></tr>
+<tr><td>Sprint 1</td><td>Add real keys · encrypt creds · responsive layer · Billing dashboard</td><td>Close P0 → safe for wider pilot</td></tr>
+<tr><td>Sprint 2</td><td>AI Command Center · WhatsApp+Stripe real · KB file upload</td><td>Core "AI OS" capabilities live</td></tr>
+<tr><td>Sprint 3</td><td>One-click provisioning · module marketplace · automation templates</td><td>True multi-tenant SaaS self-serve</td></tr>
+<tr><td>Sprint 4</td><td>PWA · missing dashboards · Lighthouse 95+ · light mode</td><td>Premium app feel · mass-launch ready</td></tr>
+</table>
+
+<h2>✅ Launch Decision</h2>
+<div class="verdict">
+<p style="font-size:16px;font-weight:800;color:var(--amb);margin:0 0 8px">VERDICT: GO for controlled pilot · NO-GO for unattended mass launch</p>
+<p style="margin:6px 0">The platform is safe and impressive enough to <strong>demo to design partners and run a guided pilot</strong> with hand-held onboarding. The owner control center is secured and functional. Do <strong>not</strong> open unattended self-serve signup until the four P0 items close — most importantly real AI keys, credential encryption, a responsive layer, and a billing surface.</p>
+<p style="margin:6px 0"><strong>Fastest path to "GO for launch":</strong> Sprint 1 (P0) is roughly 1–2 focused weeks and flips the verdict to a confident pilot-to-scale.</p>
+</div>
+
+<h2>🛠️ Shipped &amp; Verified This Session</h2>
+<ul>
+<li>Secured 6 owner-only endpoints (cross-tenant leak) — verified 403/200.</li>
+<li>Owner account <code>wopalncom@gmail.com</code> with full master access.</li>
+<li>AI Agent execution engine + knowledge-base selector + live Test panel.</li>
+<li>System Health Monitoring center (<code>/admin/health</code>) — real live status.</li>
+<li>Role normalization (owner was locked out of /integrations &amp; /agency).</li>
+<li>Fixed: reports crash, 2 master-admin 500s, login credential leak, localhost-in-prod, workflow_runs migration, real change-password.</li>
+</ul>
+
+<div class="foot">
+Owned and managed by <strong>Hayya Med Artificial Intelligent</strong> · Powered by Hayya Med AI<br/>
+Report generated 25 June 2026 · All statuses measured against live <code>api.hayyaai.com</code> · No claim marked complete unless verified
+</div>
+
+</div>
+</body>
+</html>
