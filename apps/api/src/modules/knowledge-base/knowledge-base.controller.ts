@@ -1,8 +1,22 @@
-import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common'
+import { Controller, Get, Post, Delete, Body, Param, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
 import { KnowledgeBaseService } from './knowledge-base.service'
 import { RagService } from './rag.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
+
+// Extract plain text from an uploaded knowledge file.
+async function extractText(file: Express.Multer.File): Promise<string> {
+  const name = (file.originalname || '').toLowerCase()
+  const mime = file.mimetype || ''
+  if (name.endsWith('.pdf') || mime === 'application/pdf') {
+    const pdfParse = require('pdf-parse')
+    const data = await pdfParse(file.buffer)
+    return data.text || ''
+  }
+  // txt, csv, md, json and other text types — decode the buffer
+  return file.buffer.toString('utf-8')
+}
 
 @Controller('knowledge-bases')
 export class KnowledgeBaseController {
@@ -33,6 +47,28 @@ export class KnowledgeBaseController {
     if (source?.id && dto.content) {
       this.rag.indexSource(source.id).catch(() => {})
     }
+    return source
+  }
+
+  // Upload a file (PDF/TXT/CSV/MD/JSON) → extract text → index into the knowledge base.
+  @Post(':id/upload')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 15 * 1024 * 1024 } }))
+  async upload(@Param('id') id: string, @CurrentUser() user: JwtPayload, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file uploaded')
+    let content = ''
+    try {
+      content = await extractText(file)
+    } catch {
+      throw new BadRequestException('Could not read this file. Supported: PDF, TXT, CSV, MD, JSON.')
+    }
+    if (!content.trim()) throw new BadRequestException('No readable text found in the file.')
+
+    const source = await this.svc.addSource(id, user.orgId, {
+      type: 'file',
+      name: file.originalname || 'Uploaded file',
+      content: content.slice(0, 200000), // cap to keep indexing fast
+    })
+    if (source?.id) this.rag.indexSource(source.id).catch(() => {})
     return source
   }
 

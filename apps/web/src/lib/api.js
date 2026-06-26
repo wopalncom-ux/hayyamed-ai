@@ -183,6 +183,19 @@ export const api = {
     request(`/knowledge-bases/${id}/sources/${sourceId}`, { method: 'DELETE' }),
   reindexKnowledge: (id) =>
     request(`/knowledge-bases/${id}/reindex`, { method: 'POST' }),
+  uploadKnowledgeFile: (id, file) => {
+    const auth = getAuth()
+    const form = new FormData()
+    form.append('file', file)
+    return fetch(`${BASE}/api/v1/knowledge-bases/${id}/upload`, {
+      method: 'POST', body: form,
+      headers: {
+        ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}),
+        ...(auth.orgId ? { 'x-org-id': auth.orgId } : {}),
+        ...(auth.userId ? { 'x-user-id': auth.userId } : {}),
+      },
+    }).then(async r => { if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Upload failed'); return r.json() })
+  },
   searchKnowledge: (id, query, topK = 5) =>
     request(`/knowledge-bases/${id}/search`, { method: 'POST', body: JSON.stringify({ query, topK }) }),
 

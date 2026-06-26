@@ -48,6 +48,28 @@ export default function KnowledgeBasePage() {
   const [searchResults, setSearchResults] = useState(null)
   const [searching, setSearching] = useState(false)
   const [reindexing, setReindexing] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef(null)
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !selected) return
+    setUploading(true)
+    try {
+      await api.uploadKnowledgeFile(selected.id, file)
+      await api.getKnowledgeBases().then(d => {
+        const list = Array.isArray(d) ? d : []
+        setKbs(list)
+        setSelected(list.find(k => k.id === selected.id) || selected)
+      })
+      alert(`✅ "${file.name}" uploaded and indexing started.`)
+    } catch (err) {
+      alert('❌ ' + (err?.message || 'Upload failed'))
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
 
   const loadKBs = () => {
     api.getKnowledgeBases()
@@ -198,6 +220,12 @@ export default function KnowledgeBasePage() {
                   style={{ padding:'7px 14px', background:'rgba(167,139,250,.1)', border:'1px solid rgba(167,139,250,.2)', borderRadius:'6px', color:'#a78bfa', fontSize:'11px', cursor:'pointer', fontWeight:'700' }}
                 >
                   {reindexing ? '⏳ Indexing...' : '🔄 Reindex All'}
+                </button>
+                <input ref={fileRef} type="file" accept=".pdf,.txt,.csv,.md,.json" onChange={handleFileUpload} style={{ display:'none' }} />
+                <button onClick={() => fileRef.current?.click()} disabled={uploading}
+                  style={{ padding:'7px 14px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.25)', borderRadius:'6px', color:'#00e5a0', fontSize:'12px', cursor: uploading ? 'wait' : 'pointer', fontWeight:'700' }}
+                >
+                  {uploading ? '⏳ Uploading…' : '📎 Upload File'}
                 </button>
                 <button onClick={() => setAddSource(true)}
                   style={{ padding:'7px 14px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}
