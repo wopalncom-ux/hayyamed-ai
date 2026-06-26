@@ -9,8 +9,18 @@ import { useIsMobile } from '@/lib/useIsMobile'
 
 const COLORS = ['#00e5a0', '#3b82f6', '#a78bfa', '#f97316', '#ef4444', '#fbbf24', '#06b6d4']
 const statusColors = { 'Hot Lead': '#ef4444', 'Cold Lead': '#3b82f6', 'New Lead': '#f97316', 'Customer': '#00e5a0' }
-const channelIcons = { 'WhatsApp': '💬', 'Instagram': '📸', 'Facebook': '👤', 'Telegram': '✈️', 'Email': '📧' }
-const channelColors = { 'WhatsApp': '#00e5a0', 'Instagram': '#a78bfa', 'Facebook': '#3b82f6', 'Telegram': '#f97316', 'Email': '#fbbf24' }
+
+// Keyed by the backend ChannelType enum (what conversations actually return),
+// not friendly labels — fixes blank icons + a channel filter that matched nothing.
+const CHANNEL_META = {
+  WHATSAPP:  { label: 'WhatsApp',  icon: '💬', color: '#00e5a0' },
+  LIVE_CHAT: { label: 'Web Chat',  icon: '🌐', color: '#3b82f6' },
+  TELEGRAM:  { label: 'Telegram',  icon: '✈️', color: '#06b6d4' },
+  INSTAGRAM: { label: 'Instagram', icon: '📸', color: '#a78bfa' },
+  MESSENGER: { label: 'Messenger', icon: '👤', color: '#3b82f6' },
+  EMAIL:     { label: 'Email',     icon: '📧', color: '#fbbf24' },
+}
+const channelMeta = (type) => CHANNEL_META[type] || { label: type || 'Unknown', icon: '💬', color: '#64748b' }
 
 function toUiConv(c) {
   const name = c.contact?.name || c.contactId?.slice(0, 8) || 'Unknown'
@@ -22,7 +32,7 @@ function toUiConv(c) {
     unread: c.unreadCount || 0,
     avatar: name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
     color: COLORS[(name.charCodeAt(0) || 0) % COLORS.length],
-    channel: c.channel?.type || c.channelType || 'WhatsApp',
+    channel: c.channel?.type || c.channelType || 'WHATSAPP',
     status: c.contact?.status === 'WON' ? 'Customer' : c.contact?.status === 'QUALIFYING' ? 'Hot Lead' : c.contact?.status === 'CONTACTED' ? 'Cold Lead' : 'New Lead',
     score: c.contact?.score || 0,
     isNew: c.status === 'OPEN',
@@ -317,12 +327,17 @@ function InboxInner() {
               style={{ width: '100%', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '7px 10px', color: '#e2e8f0', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' }}>
-              {['All', 'WhatsApp', 'Instagram', 'Facebook'].map(ch => (
-                <button key={ch} onClick={() => setFilterChannel(ch)}
-                  style={{ padding: '3px 8px', background: filterChannel === ch ? (channelColors[ch] || '#00e5a0') + '22' : '#111622', border: `1px solid ${filterChannel === ch ? channelColors[ch] || '#00e5a0' : '#1a2235'}`, borderRadius: '4px', color: filterChannel === ch ? channelColors[ch] || '#00e5a0' : '#475569', fontSize: '10px', cursor: 'pointer' }}>
-                  {ch === 'All' ? 'All' : channelIcons[ch] + ' ' + ch}
-                </button>
-              ))}
+              {['All', ...Array.from(new Set(contacts.map(c => c.channel)))].map(ch => {
+                const meta = ch === 'All' ? null : channelMeta(ch)
+                const active = filterChannel === ch
+                const col = meta ? meta.color : '#00e5a0'
+                return (
+                  <button key={ch} onClick={() => setFilterChannel(ch)}
+                    style={{ padding: '3px 8px', background: active ? col + '22' : '#111622', border: `1px solid ${active ? col : '#1a2235'}`, borderRadius: '4px', color: active ? col : '#475569', fontSize: '10px', cursor: 'pointer' }}>
+                    {ch === 'All' ? 'All' : meta.icon + ' ' + meta.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -340,7 +355,7 @@ function InboxInner() {
                   <div style={{ display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
                     <div style={{ position: 'relative', flexShrink: 0 }}>
                       <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800', color: '#0a0f1a' }}>{c.avatar}</div>
-                      <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', fontSize: '9px', background: '#0c0f1a', borderRadius: '50%', padding: '1px' }}>{channelIcons[c.channel]}</div>
+                      <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', fontSize: '9px', background: '#0c0f1a', borderRadius: '50%', padding: '1px' }} title={channelMeta(c.channel).label}>{channelMeta(c.channel).icon}</div>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px', alignItems: 'center' }}>
@@ -379,7 +394,7 @@ function InboxInner() {
                 )}
                 <div style={{ position: 'relative' }}>
                   <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: selected.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800', color: '#0a0f1a' }}>{selected.avatar}</div>
-                  <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', fontSize: '10px', background: '#0c0f1a', borderRadius: '50%', padding: '1px' }}>{channelIcons[selected.channel]}</div>
+                  <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', fontSize: '10px', background: '#0c0f1a', borderRadius: '50%', padding: '1px' }} title={channelMeta(selected.channel).label}>{channelMeta(selected.channel).icon}</div>
                 </div>
                 <div>
                   <div style={{ fontWeight: '700', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
