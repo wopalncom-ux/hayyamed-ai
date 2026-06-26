@@ -28,6 +28,9 @@ function toUiConv(c) {
     isNew: c.status === 'OPEN',
     convId: c.id,
     contactId: c.contact?.id,
+    convStatus: c.status || 'OPEN',
+    assigneeId: c.assigneeId || '',
+    tags: c.tags || [],
     lastMsgAt: c.lastMsgAt,
   }
 }
@@ -59,6 +62,43 @@ function InboxInner() {
   const [summary, setSummary] = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [suggesting, setSuggesting] = useState(false)
+  const [showActions, setShowActions] = useState(false)
+  const [team, setTeam] = useState([])
+  const [notes, setNotes] = useState([])
+  const [newTag, setNewTag] = useState('')
+  const [noteInput, setNoteInput] = useState('')
+
+  useEffect(() => { api.getTeam().then(t => setTeam(Array.isArray(t) ? t : [])).catch(() => {}) }, [])
+
+  const loadNotes = async (convId) => {
+    try { setNotes(await api.getConversationNotes(convId) || []) } catch { setNotes([]) }
+  }
+
+  const assignTo = async (assigneeId) => {
+    if (!selected) return
+    try { await api.assignConversation(selected.convId, assigneeId || null); setSelected(s => ({ ...s, assigneeId })) } catch {}
+  }
+
+  const addTag = async () => {
+    const t = newTag.trim()
+    if (!t || !selected) return
+    const tags = Array.from(new Set([...(selected.tags || []), t]))
+    setNewTag('')
+    try { await api.setConversationTags(selected.convId, tags); setSelected(s => ({ ...s, tags })) } catch {}
+  }
+
+  const removeTag = async (t) => {
+    if (!selected) return
+    const tags = (selected.tags || []).filter(x => x !== t)
+    try { await api.setConversationTags(selected.convId, tags); setSelected(s => ({ ...s, tags })) } catch {}
+  }
+
+  const addNote = async () => {
+    const c = noteInput.trim()
+    if (!c || !selected) return
+    setNoteInput('')
+    try { const n = await api.addConversationNote(selected.convId, c); if (n) setNotes(prev => [n, ...prev]) } catch {}
+  }
 
   const runSummary = async () => {
     if (!selected) return
@@ -191,6 +231,8 @@ function InboxInner() {
     setSelected(c)
     setMessages([])
     setSummary(null)
+    setShowActions(false)
+    loadNotes(c.convId)
     api.getMessages(c.convId)
       .then(res => {
         const list = Array.isArray(res) ? res : (res?.data || [])
@@ -361,6 +403,10 @@ function InboxInner() {
                     style={{ padding: '6px 11px', background: 'rgba(167,139,250,.08)', border: '1px solid rgba(167,139,250,.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>
                     {summaryLoading ? '⟳ Summarizing…' : '✨ AI Summary'}
                   </button>
+                  <button onClick={() => setShowActions(v => !v)}
+                    style={{ padding: '6px 11px', background: showActions ? '#1a2235' : '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>
+                    ⚙ Manage
+                  </button>
                   {selected.contactId && (
                     <a href={`/contacts/${selected.contactId}`}
                       style={{ padding: '6px 11px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', fontSize: '11px', textDecoration: 'none' }}>
@@ -382,6 +428,65 @@ function InboxInner() {
                     <button onClick={() => setSummary(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px' }}>×</button>
                   </div>
                   <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{summary}</div>
+                </div>
+              )}
+
+              {/* Manage panel — assign, tags, internal notes, create lead */}
+              {showActions && (
+                <div style={{ padding: '14px 16px', background: '#0c0f1a', borderBottom: '1px solid #1a2235', flexShrink: 0, maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Assign + Create lead */}
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>ASSIGN</span>
+                      <select value={selected.assigneeId || ''} onChange={e => assignTo(e.target.value)}
+                        style={{ padding: '6px 8px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#e2e8f0', fontSize: '11px', cursor: 'pointer' }}>
+                        <option value="">Unassigned</option>
+                        {team.map(m => <option key={m.id} value={m.id}>{m.name || m.email}</option>)}
+                      </select>
+                    </div>
+                    {selected.contactId && (
+                      <a href={`/contacts/${selected.contactId}`}
+                        style={{ padding: '6px 11px', background: 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.25)', borderRadius: '6px', color: '#00e5a0', fontSize: '11px', fontWeight: 700, textDecoration: 'none' }}>
+                        👤 Open lead in CRM →
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, display: 'block', marginBottom: '6px' }}>TAGS</span>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      {(selected.tags || []).map(t => (
+                        <span key={t} style={{ fontSize: '11px', padding: '3px 8px', background: 'rgba(59,130,246,.12)', border: '1px solid rgba(59,130,246,.25)', borderRadius: '12px', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          {t}<span onClick={() => removeTag(t)} style={{ cursor: 'pointer', color: '#64748b' }}>×</span>
+                        </span>
+                      ))}
+                      <input value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTag()}
+                        placeholder="+ add tag"
+                        style={{ padding: '5px 9px', background: '#111622', border: '1px solid #1a2235', borderRadius: '12px', color: '#e2e8f0', fontSize: '11px', outline: 'none', width: '100px' }} />
+                    </div>
+                  </div>
+
+                  {/* Internal notes */}
+                  <div>
+                    <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, display: 'block', marginBottom: '6px' }}>INTERNAL NOTES (team-only)</span>
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                      <input value={noteInput} onChange={e => setNoteInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNote()}
+                        placeholder="Add a private note…"
+                        style={{ flex: 1, padding: '7px 10px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#e2e8f0', fontSize: '12px', outline: 'none' }} />
+                      <button onClick={addNote} style={{ padding: '0 14px', background: '#1a2235', border: 'none', borderRadius: '6px', color: '#e2e8f0', fontSize: '12px', cursor: 'pointer', fontWeight: 700 }}>Add</button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {notes.length === 0 ? (
+                        <div style={{ fontSize: '11px', color: '#475569' }}>No notes yet.</div>
+                      ) : notes.map(n => (
+                        <div key={n.id} style={{ padding: '8px 10px', background: 'rgba(251,191,36,.05)', border: '1px solid rgba(251,191,36,.12)', borderRadius: '6px' }}>
+                          <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: 1.5 }}>{n.content}</div>
+                          <div style={{ fontSize: '9px', color: '#64748b', marginTop: '3px' }}>{n.author?.name || 'Agent'} · {new Date(n.createdAt).toLocaleString()}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 

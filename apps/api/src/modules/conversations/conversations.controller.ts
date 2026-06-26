@@ -54,6 +54,26 @@ export class ConversationsController {
     return this.conversations.updateStatus(id, body.status)
   }
 
+  @Patch(':id/assign')
+  assign(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() body: { assigneeId: string | null }) {
+    return this.conversations.assign(id, user.orgId, body.assigneeId)
+  }
+
+  @Patch(':id/tags')
+  setTags(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() body: { tags: string[] }) {
+    return this.conversations.setTags(id, user.orgId, body.tags)
+  }
+
+  @Get(':id/notes')
+  listNotes(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.conversations.listNotes(id, user.orgId)
+  }
+
+  @Post(':id/notes')
+  addNote(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() body: { content: string }) {
+    return this.conversations.addNote(id, user.orgId, user.sub, body.content)
+  }
+
   // AI summary of the conversation thread
   @Post(':id/summarize')
   summarize(@Param('id') id: string, @CurrentUser() user: JwtPayload) {

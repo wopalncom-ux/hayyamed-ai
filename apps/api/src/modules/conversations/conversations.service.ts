@@ -11,6 +11,40 @@ export class ConversationsService {
     @Optional() private gateway?: RealtimeGateway,
   ) {}
 
+  // Assign the conversation to a team member (scoped to org).
+  async assign(id: string, orgId: string, assigneeId: string | null) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId } })
+    if (!conv) return null
+    return this.prisma.conversation.update({ where: { id }, data: { assigneeId: assigneeId || null } })
+  }
+
+  // Replace the conversation's tags.
+  async setTags(id: string, orgId: string, tags: string[]) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId } })
+    if (!conv) return null
+    return this.prisma.conversation.update({ where: { id }, data: { tags: Array.isArray(tags) ? tags.slice(0, 20) : [] } })
+  }
+
+  // Internal notes on a conversation.
+  async listNotes(id: string, orgId: string) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId }, select: { id: true } })
+    if (!conv) return []
+    return this.prisma.note.findMany({
+      where: { conversationId: id },
+      orderBy: { createdAt: 'desc' },
+      include: { author: { select: { name: true } } },
+    })
+  }
+
+  async addNote(id: string, orgId: string, authorId: string, content: string) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId }, select: { id: true } })
+    if (!conv || !content?.trim()) return null
+    return this.prisma.note.create({
+      data: { conversationId: id, authorId, content: content.trim() },
+      include: { author: { select: { name: true } } },
+    })
+  }
+
   // AI summary of a conversation — pulls the thread and produces a short brief.
   async summarize(id: string, orgId: string) {
     const conv = await this.prisma.conversation.findFirst({

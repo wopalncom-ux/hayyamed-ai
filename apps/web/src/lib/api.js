@@ -79,6 +79,14 @@ export const api = {
     request(`/conversations/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   summarizeConversation: (id) =>
     request(`/conversations/${id}/summarize`, { method: 'POST' }),
+  assignConversation: (id, assigneeId) =>
+    request(`/conversations/${id}/assign`, { method: 'PATCH', body: JSON.stringify({ assigneeId }) }),
+  setConversationTags: (id, tags) =>
+    request(`/conversations/${id}/tags`, { method: 'PATCH', body: JSON.stringify({ tags }) }),
+  getConversationNotes: (id) =>
+    request(`/conversations/${id}/notes`),
+  addConversationNote: (id, content) =>
+    request(`/conversations/${id}/notes`, { method: 'POST', body: JSON.stringify({ content }) }),
 
   // Reports / Dashboard
   getDashboard: () =>

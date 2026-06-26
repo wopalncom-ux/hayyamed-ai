@@ -141,17 +141,6 @@ const INTEGRATIONS = [
     ],
     docs:'https://docs.sendgrid.com',
   },
-  {
-    id:'twilio', category:'Email', color:'#ef4444',
-    name:'Twilio SMS', icon:'📱',
-    desc:'Send SMS messages and receive SMS replies for contacts who prefer text over WhatsApp.',
-    badge:'Twilio API', fields:[
-      { key:'twilio_sid',   label:'ACCOUNT SID', placeholder:'ACxxxxxxxxxx', type:'text' },
-      { key:'twilio_token', label:'AUTH TOKEN',  placeholder:'Your auth token', type:'password' },
-      { key:'twilio_phone', label:'FROM NUMBER', placeholder:'+19XXXXXXXXX', type:'text' },
-    ],
-    docs:'https://www.twilio.com/docs',
-  },
 ]
 
 const CATEGORIES = [...new Set(INTEGRATIONS.map(i => i.category))]
