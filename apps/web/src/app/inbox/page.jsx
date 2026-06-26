@@ -105,6 +105,48 @@ function InboxInner() {
     try { await api.deleteQuickReply(id); setQuickReplies(prev => prev.filter(q => q.id !== id)) } catch {}
   }
 
+  // ── Request Payment (MyFatoorah) ──────────────────────────────────────────
+  const [mfConfigured, setMfConfigured] = useState(false)
+  const [showPay, setShowPay] = useState(false)
+  const [payAmount, setPayAmount] = useState('')
+  const [payCurrency, setPayCurrency] = useState('QAR')
+  const [payLoading, setPayLoading] = useState(false)
+  useEffect(() => { api.getMyFatoorahStatus().then(s => setMfConfigured(!!s?.configured)).catch(() => {}) }, [])
+
+  // Send arbitrary text into the open conversation (used for the payment link).
+  const sendText = async (text) => {
+    if (!text || !selected) return
+    const tmpId = `tmp-${Date.now()}`
+    setMessages(prev => [...prev, { id: tmpId, from: 'agent', text, time: 'Now' }])
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    try {
+      const saved = await api.sendMessage(selected.convId, text)
+      setMessages(prev => prev.map(m => m.id === tmpId ? { ...m, id: saved.id } : m))
+      setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, msg: text, time: 'Now' } : c))
+    } catch {
+      setMessages(prev => prev.filter(m => m.id !== tmpId))
+    }
+  }
+
+  const requestPayment = async () => {
+    const amt = Number(payAmount)
+    if (!amt || amt <= 0 || !selected) return
+    setPayLoading(true)
+    try {
+      const r = await api.createMyFatoorahPayment({
+        amount: amt, currency: payCurrency,
+        customerName: selected.name, customerMobile: selected.phone || undefined,
+        reference: selected.contactId || selected.convId,
+      })
+      if (r?.paymentUrl) {
+        await sendText(`💳 Here is your secure payment link for ${payCurrency} ${amt}:\n${r.paymentUrl}`)
+        setShowPay(false); setPayAmount('')
+      }
+    } catch (e) {
+      alert('Could not create payment: ' + (e?.message || 'error'))
+    } finally { setPayLoading(false) }
+  }
+
   const loadNotes = async (convId) => {
     try { setNotes(await api.getConversationNotes(convId) || []) } catch { setNotes([]) }
   }
@@ -555,6 +597,34 @@ function InboxInner() {
               <div style={{ padding: '12px 16px', borderTop: '1px solid #1a2235', background: '#0c0f1a', flexShrink: 0, position: 'relative' }}>
                 {aiMode && <div style={{ padding: '5px 10px', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.2)', borderRadius: '5px', marginBottom: '8px', fontSize: '11px', color: '#8b5cf6' }}>🤖 AI Mode — messages will also trigger AI reply</div>}
 
+                {/* Request Payment popover */}
+                {showPay && (
+                  <div style={{ position: 'absolute', bottom: '100%', left: '16px', right: '16px', maxWidth: '360px', background: '#0c0f1a', border: '1px solid #253045', borderRadius: '10px', boxShadow: '0 -8px 30px rgba(0,0,0,.5)', padding: '12px', marginBottom: '8px', zIndex: 50 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#e2e8f0' }}>💳 Request payment from {selected?.name}</span>
+                      <button onClick={() => setShowPay(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px' }}>×</button>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>AMOUNT</div>
+                        <input value={payAmount} onChange={e => setPayAmount(e.target.value)} type="number" min="0.1" step="0.1" placeholder="0.00" autoFocus
+                          style={{ width: '100%', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '8px 10px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+                      </div>
+                      <div style={{ width: '90px' }}>
+                        <div style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>CURRENCY</div>
+                        <select value={payCurrency} onChange={e => setPayCurrency(e.target.value)} style={{ width: '100%', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '8px', color: '#e2e8f0', fontSize: '12px', cursor: 'pointer' }}>
+                          {['QAR','KWD','SAR','AED','BHD','OMR','EGP','USD'].map(c => <option key={c}>{c}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <button onClick={requestPayment} disabled={payLoading || !(Number(payAmount) > 0)}
+                      style={{ width: '100%', marginTop: '10px', padding: '9px', background: payLoading || !(Number(payAmount) > 0) ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '6px', color: payLoading || !(Number(payAmount) > 0) ? '#475569' : '#07090f', fontWeight: 700, fontSize: '12px', cursor: payLoading ? 'wait' : 'pointer' }}>
+                      {payLoading ? 'Creating link…' : 'Create & send payment link'}
+                    </button>
+                    <div style={{ fontSize: '10px', color: '#475569', marginTop: '6px' }}>A MyFatoorah payment link is created and sent into this conversation.</div>
+                  </div>
+                )}
+
                 {/* Saved Replies popover */}
                 {showReplies && (
                   <div style={{ position: 'absolute', bottom: '100%', left: '16px', right: '16px', maxWidth: '420px', background: '#0c0f1a', border: '1px solid #253045', borderRadius: '10px', boxShadow: '0 -8px 30px rgba(0,0,0,.5)', padding: '12px', marginBottom: '8px', maxHeight: '320px', overflowY: 'auto', zIndex: 50 }}>
@@ -601,6 +671,12 @@ function InboxInner() {
                     onFocus={e => e.target.style.borderColor = '#253045'}
                     onBlur={e => e.target.style.borderColor = '#1a2235'}
                   />
+                  {mfConfigured && (
+                    <button onClick={() => { setShowPay(v => !v); setShowReplies(false) }} title="Request payment"
+                      style={{ height: '40px', padding: '0 13px', background: showPay ? 'rgba(251,191,36,.18)' : 'rgba(251,191,36,.08)', border: '1px solid rgba(251,191,36,.3)', borderRadius: '8px', color: '#fbbf24', fontWeight: '700', fontSize: '14px', cursor: 'pointer', flexShrink: 0 }}>
+                      💳
+                    </button>
+                  )}
                   <button onClick={() => setShowReplies(v => !v)} title="Saved replies"
                     style={{ height: '40px', padding: '0 13px', background: showReplies ? 'rgba(0,229,160,.15)' : 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '8px', color: '#00e5a0', fontWeight: '700', fontSize: '12px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                     ⚡
