@@ -138,6 +138,9 @@ export default function AIAgentBuilder() {
   const [tab, setTab] = useState('identity')
   const [knowledgeBases, setKnowledgeBases] = useState([])
 
+  // Inline knowledge-base creation (so owners never leave the page)
+  const [kbForm, setKbForm] = useState({ open: false, name: '', content: '', saving: false })
+
   // Test chat state
   const [testMsgs, setTestMsgs] = useState([])
   const [testInput, setTestInput] = useState('')
@@ -192,6 +195,26 @@ export default function AIAgentBuilder() {
     const hasContent = (editing.objective || '').trim() || (editing.personality || '').trim()
     if (hasContent && !confirm('Replace the current objective and personality with the expert template for this role?')) return
     setEditing({ ...editing, objective: t.objective, personality: t.personality })
+  }
+
+  // Create a knowledge base inline, seed it with pasted text, and select it.
+  const createInlineKB = async () => {
+    const name = kbForm.name.trim()
+    const content = kbForm.content.trim()
+    if (!name) return alert('Give the knowledge base a name.')
+    setKbForm(f => ({ ...f, saving: true }))
+    try {
+      const kb = await api.createKnowledgeBase({ name, description: 'Created from agent builder' })
+      if (content) {
+        await api.addKnowledgeSource(kb.id, { type: 'text', name: 'Business info', content })
+      }
+      setKnowledgeBases(list => [kb, ...list])
+      setEditing(e => ({ ...e, knowledgeBaseId: kb.id }))
+      setKbForm({ open: false, name: '', content: '', saving: false })
+    } catch (err) {
+      setKbForm(f => ({ ...f, saving: false }))
+      alert('❌ ' + (err?.message || 'Could not create knowledge base'))
+    }
   }
 
   const save = async () => {
@@ -469,16 +492,46 @@ export default function AIAgentBuilder() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize:'11px', color:'#64748b', display:'block', marginBottom:'6px', fontWeight:'700', letterSpacing:'0.04em' }}>🧠 KNOWLEDGE BASE (AI BRAIN)</label>
-                    <select value={editing.knowledgeBaseId || ''} onChange={e => setEditing({...editing, knowledgeBaseId:e.target.value})}
-                      style={{ width:'100%', padding:'10px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#e2e8f0', fontSize:'13px', cursor:'pointer' }}
-                    >
-                      <option value="">— No knowledge base (general AI) —</option>
-                      {knowledgeBases.map(kb => <option key={kb.id} value={kb.id}>{kb.name}</option>)}
-                    </select>
-                    <div style={{ fontSize:'10px', color:'#3d4f63', marginTop:'4px' }}>
-                      The agent answers using this knowledge base. Create one in <strong style={{color:'#a78bfa'}}>Knowledge</strong> (upload FAQ, pricing, services).
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
+                      <label style={{ fontSize:'11px', color:'#64748b', fontWeight:'700', letterSpacing:'0.04em' }}>🧠 KNOWLEDGE BASE (AI BRAIN)</label>
+                      <button type="button" onClick={() => setKbForm(f => ({ ...f, open: !f.open }))}
+                        style={{ padding:'4px 10px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.3)', borderRadius:'5px', color:'#00e5a0', fontSize:'10px', fontWeight:'700', cursor:'pointer' }}>
+                        {kbForm.open ? '✕ Cancel' : '+ Create new'}
+                      </button>
                     </div>
+
+                    {kbForm.open ? (
+                      <div style={{ background:'#0c0f1a', border:'1px solid rgba(0,229,160,.2)', borderRadius:'8px', padding:'12px', display:'flex', flexDirection:'column', gap:'8px' }}>
+                        <input value={kbForm.name} onChange={e => setKbForm(f => ({ ...f, name: e.target.value }))}
+                          placeholder="Knowledge base name — e.g. Clinic Info"
+                          style={{ width:'100%', padding:'9px 11px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#e2e8f0', fontSize:'12px', outline:'none', boxSizing:'border-box' }}
+                        />
+                        <textarea value={kbForm.content} onChange={e => setKbForm(f => ({ ...f, content: e.target.value }))}
+                          placeholder="Paste your business info: services, prices, working hours, location, FAQ… The agent will answer from this."
+                          rows={5}
+                          style={{ width:'100%', padding:'9px 11px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#e2e8f0', fontSize:'12px', outline:'none', boxSizing:'border-box', resize:'vertical', lineHeight:'1.6' }}
+                        />
+                        <button onClick={createInlineKB} disabled={kbForm.saving}
+                          style={{ padding:'9px', background: kbForm.saving ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'6px', color: kbForm.saving ? '#64748b' : '#07090f', fontWeight:'700', fontSize:'12px', cursor: kbForm.saving ? 'wait' : 'pointer' }}>
+                          {kbForm.saving ? 'Creating & indexing…' : '✓ Create & link to this agent'}
+                        </button>
+                        <div style={{ fontSize:'10px', color:'#3d4f63' }}>Tip: you can add more files later in <strong style={{color:'#a78bfa'}}>Knowledge</strong> (PDF, CSV, TXT).</div>
+                      </div>
+                    ) : (
+                      <>
+                        <select value={editing.knowledgeBaseId || ''} onChange={e => setEditing({...editing, knowledgeBaseId:e.target.value})}
+                          style={{ width:'100%', padding:'10px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#e2e8f0', fontSize:'13px', cursor:'pointer' }}
+                        >
+                          <option value="">— No knowledge base (general AI) —</option>
+                          {knowledgeBases.map(kb => <option key={kb.id} value={kb.id}>{kb.name}</option>)}
+                        </select>
+                        <div style={{ fontSize:'10px', color:'#3d4f63', marginTop:'4px' }}>
+                          {knowledgeBases.length === 0
+                            ? 'No knowledge base yet — click “+ Create new” to give your agent a brain.'
+                            : 'The agent answers using this knowledge base. Add more in Knowledge (upload FAQ, pricing, services).'}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div>
