@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hayya AI CRM — Meta Channel Setup Guide</title>
+<style>
+  :root{--bg:#070b14;--card:#0f1622;--bd:#1e2d42;--mut:#7a8fa6;--txt:#e8eef5;--grn:#00e5a0;--red:#ef4444;--amb:#f59e0b;--blu:#3b82f6;--pur:#a78bfa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;line-height:1.7}
+  .wrap{max-width:920px;margin:0 auto;padding:54px 26px}
+  header{border-bottom:1px solid var(--bd);padding-bottom:24px;margin-bottom:8px}
+  .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .logo{font-size:21px;font-weight:900}.logo span{color:var(--grn)}
+  h1{font-size:29px;font-weight:900;letter-spacing:-.5px}
+  .sub{color:var(--mut);font-size:13.5px;margin-top:8px}
+  h2{font-size:20px;font-weight:800;margin:40px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+  h3{font-size:15px;font-weight:700;margin:22px 0 8px;color:var(--grn)}
+  p{margin:9px 0;font-size:14px;color:#c3d0de}
+  ol,ul{margin:10px 0 10px 22px}li{font-size:14px;color:#c3d0de;margin:7px 0}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px 22px;margin:16px 0}
+  code{background:#0a121e;border:1px solid var(--bd);border-radius:4px;padding:2px 7px;font-size:12.5px;color:var(--grn);font-family:ui-monospace,monospace;word-break:break-all}
+  .kv{background:#0a121e;border:1px solid var(--bd);border-radius:8px;padding:14px 16px;margin:10px 0;font-size:13px}
+  .kv b{color:var(--txt)}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
+  .ok{background:rgba(0,229,160,.13);color:var(--grn)}.warn{background:rgba(245,158,11,.13);color:var(--amb)}.info{background:rgba(59,130,246,.13);color:var(--blu)}
+  .note{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px 18px;font-size:13px;color:#d9c08a;margin:14px 0}
+  .you{background:rgba(0,229,160,.05);border-left:3px solid var(--grn);padding:10px 16px;margin:10px 0;font-size:13.5px}
+  .me{background:rgba(167,139,250,.05);border-left:3px solid var(--pur);padding:10px 16px;margin:10px 0;font-size:13.5px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+  th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--bd);vertical-align:top}
+  th{color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}
+  .foot{margin-top:46px;padding-top:20px;border-top:1px solid var(--bd);color:var(--mut);font-size:12px;text-align:center}
+  a{color:var(--blu)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brandrow"><div class="logo">Hayya<span>med</span> AI</div><span class="pill info">SETUP GUIDE</span></div>
+  <h1>Meta Channel Setup Guide</h1>
+  <div class="sub">Connect WhatsApp · Instagram · Messenger to your Hayya AI CRM omnichannel inbox</div>
+  <div class="sub">For: Abbas Al Masri (Owner) · <code>wopalncom@gmail.com</code></div>
+</header>
+
+<h2>📋 What you'll end up with</h2>
+<div class="card">
+<p>Once this is done, messages from your WhatsApp Business number, Instagram DMs, and Facebook Page Messenger all land in <strong>one inbox</strong> in Hayya AI CRM — with AI replies grounded in your Knowledge Base, automation, and CRM, exactly like WhatsApp + Website Chat already work.</p>
+<p><span class="pill ok">Green</span> = your platform already supports it. <span class="pill warn">Build step</span> = a small piece I finish once you have the Meta app.</p>
+</div>
+
+<h2>🟢 Legend — who does what</h2>
+<div class="you"><strong>YOU</strong> — create accounts on Meta (only you can, they're your business assets) and paste the resulting keys into GCP Secret Manager.</div>
+<div class="me"><strong>CLAUDE (me)</strong> — wire the webhook handlers, finish Instagram/Messenger ingestion, and deploy. I do this once you give me the "go" + keys are in place.</div>
+
+<h2>STEP 1 · Create your Meta foundation <span class="pill warn">YOU · ~20 min</span></h2>
+<ol>
+<li>Go to <a href="https://business.facebook.com">business.facebook.com</a> → create a <strong>Meta Business Account</strong> (if you don't have one).</li>
+<li>Add your <strong>Facebook Page</strong> and <strong>Instagram Business account</strong> to the Business Account (Instagram must be a <em>Business/Professional</em> account, linked to the Page).</li>
+<li>Go to <a href="https://developers.facebook.com">developers.facebook.com</a> → <strong>My Apps → Create App</strong> → type <strong>"Business"</strong> → name it e.g. <code>Hayya AI CRM</code>.</li>
+<li>In the app, note your <strong>App ID</strong> and <strong>App Secret</strong> (Settings → Basic).</li>
+</ol>
+<div class="note">⚠️ Meta requires <strong>App Review</strong> before these work for real customers (not just test numbers). You can build & test in <em>Development mode</em> immediately; submit for review when ready to go live. Permissions to request: <code>whatsapp_business_messaging</code>, <code>instagram_manage_messages</code>, <code>pages_messaging</code>.</div>
+
+<h2>STEP 2 · WhatsApp Business (Cloud API) <span class="pill ok">Platform ready now</span></h2>
+<p>Your platform already has a working WhatsApp webhook — this is the fastest channel to light up.</p>
+<h3>2a. In the Meta app</h3>
+<ol>
+<li>Add the <strong>WhatsApp</strong> product to your app.</li>
+<li>Under WhatsApp → API Setup, you'll get a test number + a temporary token. For production, add your real business number and generate a <strong>permanent access token</strong> (via a System User in Business Settings).</li>
+<li>Copy three things: the <strong>Phone Number ID</strong>, the <strong>permanent access token</strong>, and your <strong>App Secret</strong> (from Step 1).</li>
+</ol>
+<h3>2b. Configure the webhook (in Meta → WhatsApp → Configuration)</h3>
+<div class="kv">
+<b>Callback URL:</b> <code>https://api.hayyaai.com/api/v1/whatsapp/webhook</code><br>
+<b>Verify token:</b> a phrase you invent, e.g. <code>hayya-verify-2026</code> — you'll set the same value in Secret Manager (Step 2c)<br>
+<b>Subscribe to:</b> the <code>messages</code> field
+</div>
+<h3>2c. Put the keys in GCP Secret Manager <span class="pill warn">YOU</span></h3>
+<p>Go to <a href="https://console.cloud.google.com/security/secret-manager?project=hayyamed-ai-crm">Secret Manager</a> (project <code>hayyamed-ai-crm</code>) → for each secret, click it → <strong>+ New Version</strong> → paste → Add:</p>
+<table>
+<tr><th>Secret</th><th>Value to paste</th></tr>
+<tr><td><code>hayyamed-whatsapp-token</code></td><td>Your permanent WhatsApp access token</td></tr>
+<tr><td><code>hayyamed-whatsapp-webhook-token</code></td><td>The verify token you invented (must match Meta exactly)</td></tr>
+<tr><td><code>hayyamed-meta-app-secret</code></td><td>Your Meta App Secret</td></tr>
+</table>
+<div class="me">Then tell me <strong>"WhatsApp keys are in"</strong> — I roll a new API revision and connect your number in <code>/integrations/whatsapp</code> (enter the Phone Number ID). We send a test message to confirm 2-way flow.</div>
+
+<h2>STEP 3 · Instagram DMs <span class="pill warn">Build step + YOU</span></h2>
+<h3>3a. In the Meta app <span class="pill warn">YOU</span></h3>
+<ol>
+<li>Add the <strong>Instagram</strong> product (Instagram Graph API / Messaging).</li>
+<li>Connect your Instagram Business account (linked to your Page).</li>
+<li>Generate a <strong>Page access token</strong> with Instagram messaging permissions.</li>
+<li>In Webhooks, subscribe the app to <code>instagram</code> → field <code>messages</code>.</li>
+</ol>
+<h3>3b. What I build</h3>
+<div class="me">The platform has the Instagram channel model + integrations UI, but the <strong>inbound webhook handler</strong> for Instagram isn't wired yet. Once your app + token exist, I add an <code>/api/v1/instagram/webhook</code> handler (mirrors the WhatsApp one) so IG DMs flow into the same inbox with AI replies. ~1 focused build + deploy.</div>
+
+<h2>STEP 4 · Facebook Messenger <span class="pill warn">Build step + YOU</span></h2>
+<h3>4a. In the Meta app <span class="pill warn">YOU</span></h3>
+<ol>
+<li>Add the <strong>Messenger</strong> product.</li>
+<li>Generate a <strong>Page access token</strong> for your Facebook Page.</li>
+<li>In Messenger → Webhooks, subscribe to <code>messages</code> and <code>messaging_postbacks</code>.</li>
+</ol>
+<h3>4b. What I build</h3>
+<div class="me">Same as Instagram — I add a Messenger webhook handler so Page messages land in your inbox. (Instagram + Messenger share Meta's Graph webhook, so I build them together.)</div>
+
+<h2>🔑 Keys checklist</h2>
+<table>
+<tr><th>Channel</th><th>What you collect from Meta</th><th>Where it goes</th></tr>
+<tr><td>WhatsApp</td><td>Phone Number ID, permanent token, App Secret</td><td>Secret Manager + /integrations/whatsapp</td></tr>
+<tr><td>Instagram</td><td>IG Business account, Page token</td><td>Secret Manager (I'll add the secret name)</td></tr>
+<tr><td>Messenger</td><td>Page token, Page ID</td><td>Secret Manager (I'll add the secret name)</td></tr>
+</table>
+
+<h2>✅ Recommended order</h2>
+<ol>
+<li><strong>WhatsApp first</strong> — your platform is already built for it; fastest win.</li>
+<li><strong>Instagram + Messenger together</strong> — once you have the Meta app, I build both handlers in one go.</li>
+<li><strong>Submit for Meta App Review</strong> when you're ready to serve real (non-test) customers.</li>
+</ol>
+
+<div class="note">💡 You can start <strong>today</strong> in Meta Development mode using a test phone number — no app review needed — to see the whole flow work before going live.</div>
+
+<h2>📞 When you're ready</h2>
+<div class="card">
+<p>Do Step 1 + Step 2 (WhatsApp) at your pace. When the three WhatsApp keys are in Secret Manager, message me <strong>"WhatsApp keys are in"</strong> and I'll connect it live and we'll test it together. Then we tackle Instagram + Messenger.</p>
+</div>
+
+<div class="foot">
+Owned and managed by <strong>Hayya Med Artificial Intelligent</strong> · Powered by Hayya Med AI<br>
+Setup guide · Webhook base: <code>https://api.hayyaai.com</code> · GCP project: <code>hayyamed-ai-crm</code> (me-central1)
+</div>
+
+</div>
+</body>
+</html>
