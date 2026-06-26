@@ -2,6 +2,7 @@
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 // ── Permission matrix per role ──────────────────────────────────────────────
 const ALL_PERMISSIONS = [
@@ -89,6 +90,7 @@ const inp = {width:'100%', background:'#111622', border:'1px solid #1a2235', bor
 const lbl = {fontSize:'10px', color:'#7a8fa6', marginBottom:'6px', display:'block'}
 
 export default function Settings() {
+  const isMobile = useIsMobile()
   const [activeTab, setActiveTab]   = useState('usage')
   const [saved, setSaved]           = useState('')
   const [team, setTeam]             = useState([])
@@ -250,24 +252,24 @@ export default function Settings() {
         <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
       </div>
 
-      <div style={{display:'flex', flex:1, overflow:'hidden'}}>
+      <div style={{display:'flex', flexDirection: isMobile ? 'column' : 'row', flex:1, overflow:'hidden'}}>
 
         {/* Side nav */}
         <NavSidebar current="settings" />
 
-        {/* Settings sidebar */}
-        <div style={{width:'200px', borderRight:'1px solid #1a2235', background:'#0c0f1a', padding:'16px 0', flexShrink:0}}>
-          <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', padding:'0 16px', marginBottom:'10px'}}>SETTINGS</div>
+        {/* Settings sidebar — horizontal scrolling tab strip on mobile */}
+        <div style={{width: isMobile ? '100%' : '200px', borderRight: isMobile ? 'none' : '1px solid #1a2235', borderBottom: isMobile ? '1px solid #1a2235' : 'none', background:'#0c0f1a', padding: isMobile ? '8px' : '16px 0', flexShrink:0, display: isMobile ? 'flex' : 'block', overflowX: isMobile ? 'auto' : 'visible', gap: isMobile ? '4px' : 0}}>
+          {!isMobile && <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', padding:'0 16px', marginBottom:'10px'}}>SETTINGS</div>}
           {tabs.map(t => (
             <div key={t.id} onClick={() => setActiveTab(t.id)}
-              style={{padding:'10px 16px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', gap:'10px', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', background: activeTab===t.id ? 'rgba(0,229,160,.07)' : 'none', borderLeft: activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent'}}>
+              style={{padding: isMobile ? '8px 12px' : '10px 16px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', gap:'8px', whiteSpace:'nowrap', flexShrink:0, borderRadius: isMobile ? '6px' : 0, color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', background: activeTab===t.id ? 'rgba(0,229,160,.07)' : 'none', borderLeft: isMobile ? 'none' : (activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent'), border: isMobile && activeTab===t.id ? '1px solid rgba(0,229,160,.25)' : (isMobile ? '1px solid transparent' : undefined)}}>
               <span>{t.icon}</span>
               <span>{t.label}</span>
             </div>
           ))}
         </div>
 
-        <div style={{flex:1, overflowY:'auto', padding:'28px', maxWidth:'900px'}}>
+        <div style={{flex:1, overflowY:'auto', padding: isMobile ? '16px' : '28px', maxWidth:'900px'}}>
 
           {/* ── USAGE & BALANCE ─────────────────────────────────── */}
           {activeTab === 'usage' && (
@@ -278,7 +280,7 @@ export default function Settings() {
               </div>
 
               {/* Plan + Balance banner */}
-              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+              <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:'12px'}}>
                 {(() => {
                   const u = liveUsage || { plan:'—', planColor:'#3b82f6', nextBilling:'—' }
                   return (
@@ -439,8 +441,9 @@ export default function Settings() {
                   <button onClick={() => saveMsg('Permissions saved!')} style={{padding:'6px 14px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>Save Permissions</button>
                 </div>
 
+                <div style={{overflowX: isMobile ? 'auto' : 'visible'}}>
                 {/* Header row */}
-                <div style={{display:'grid', gridTemplateColumns:'220px repeat(4, 1fr)', padding:'10px 16px', borderBottom:'1px solid #1a2235', background:'#0c0f1a', gap:'4px'}}>
+                <div style={{display:'grid', gridTemplateColumns:'220px repeat(4, 1fr)', minWidth: isMobile ? '560px' : 'auto', padding:'10px 16px', borderBottom:'1px solid #1a2235', background:'#0c0f1a', gap:'4px'}}>
                   <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>PERMISSION</div>
                   {Object.entries(ROLE_LABELS).map(([k,v]) => (
                     <div key={k} style={{fontSize:'9px', color:v.color, letterSpacing:'1px', textAlign:'center', fontWeight:'700'}}>{v.label.toUpperCase()}</div>
@@ -449,9 +452,9 @@ export default function Settings() {
 
                 {groups.map(group => (
                   <div key={group}>
-                    <div style={{padding:'7px 16px', background:'#0c0f1a', fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', borderBottom:'1px solid #1a2235'}}>{group.toUpperCase()}</div>
+                    <div style={{padding:'7px 16px', background:'#0c0f1a', fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', borderBottom:'1px solid #1a2235', minWidth: isMobile ? '560px' : 'auto'}}>{group.toUpperCase()}</div>
                     {ALL_PERMISSIONS.filter(p => p.group === group).map(perm => (
-                      <div key={perm.key} style={{display:'grid', gridTemplateColumns:'220px repeat(4, 1fr)', padding:'9px 16px', borderBottom:'1px solid #0c0f1a', alignItems:'center', gap:'4px'}}>
+                      <div key={perm.key} style={{display:'grid', gridTemplateColumns:'220px repeat(4, 1fr)', minWidth: isMobile ? '560px' : 'auto', padding:'9px 16px', borderBottom:'1px solid #0c0f1a', alignItems:'center', gap:'4px'}}>
                         <div style={{fontSize:'11px', color:'#7a8fa6'}}>{perm.label}</div>
                         {Object.keys(ROLE_LABELS).map(role => {
                           const has = rolePerms[role]?.has(perm.key)
@@ -469,6 +472,7 @@ export default function Settings() {
                     ))}
                   </div>
                 ))}
+                </div>
               </div>
             </div>
           )}
@@ -481,7 +485,7 @@ export default function Settings() {
                 <div style={{fontSize:'12px', color:'#7a8fa6'}}>Choose a plan that fits your business size</div>
               </div>
 
-              <div style={{display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:'14px'}}>
+              <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap:'14px'}}>
                 {PLANS.map(plan => (
                   <div key={plan.id} style={{background:'#0f1520', border:`1px solid ${plan.popular ? plan.color : '#1a2235'}`, borderRadius:'4px', padding:'20px', position:'relative', borderTop:`2px solid ${plan.color}`}}>
                     {plan.popular && <div style={{position:'absolute', top:'-1px', right:'16px', fontSize:'9px', padding:'3px 8px', background:plan.color, color:'#07090f', fontWeight:'800', borderRadius:'0 0 4px 4px', letterSpacing:'1px'}}>POPULAR</div>}
@@ -520,7 +524,7 @@ export default function Settings() {
                 <div style={{fontSize:'12px', color:'#7a8fa6'}}>Business information shown to your clients</div>
               </div>
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px', display:'flex', flexDirection:'column', gap:'14px'}}>
-                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px'}}>
+                <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:'14px'}}>
                   <div><label style={lbl}>ORGANIZATION NAME</label><input value={orgName} onChange={e=>setOrgName(e.target.value)} style={inp}/></div>
                   <div><label style={lbl}>CITY</label><input value={orgCity} onChange={e=>setOrgCity(e.target.value)} style={inp}/></div>
                   <div><label style={lbl}>PHONE</label><input value={orgPhone} onChange={e=>setOrgPhone(e.target.value)} style={inp}/></div>

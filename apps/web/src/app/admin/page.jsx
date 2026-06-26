@@ -169,12 +169,12 @@ export default function MasterAdminPanel() {
             </div>
             <div style={{ fontSize:'20px', fontWeight:'800', marginTop:'2px' }}>Platform Control Center</div>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            style={{ padding:'8px 16px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'13px', cursor:'pointer' }}
+          <a
+            href="/admin/clients/new"
+            style={{ padding:'8px 16px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'13px', cursor:'pointer', textDecoration:'none' }}
           >
-            + New Organization
-          </button>
+            + Add New Client
+          </a>
         </div>
 
         {/* Tab bar */}
