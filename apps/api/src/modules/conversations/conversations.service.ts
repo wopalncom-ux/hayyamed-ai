@@ -119,7 +119,10 @@ export class ConversationsService {
     })
   }
 
-  async getMessages(conversationId: string) {
+  async getMessages(conversationId: string, orgId: string) {
+    // Verify the conversation belongs to this org before returning messages.
+    const conv = await this.prisma.conversation.findFirst({ where: { id: conversationId, orgId }, select: { id: true } })
+    if (!conv) return []
     return this.prisma.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
@@ -142,7 +145,9 @@ export class ConversationsService {
     return msg
   }
 
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, orgId: string, status: string) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId }, select: { id: true } })
+    if (!conv) return null
     return this.prisma.conversation.update({ where: { id }, data: { status: status as any } })
   }
 

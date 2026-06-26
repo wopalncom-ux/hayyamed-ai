@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { MasterAdminService } from './master-admin.service'
 import { EmailService } from '../email/email.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 
 @Controller('master-admin')
 export class MasterAdminController {
@@ -58,6 +59,7 @@ export class MasterAdminController {
     return this.svc.createOrg(user.sub, dto)
   }
 
+  @UseGuards(OwnerGuard)
   @Post('email/test')
   async testEmail(@CurrentUser() user: JwtPayload, @Body() body: { to: string; template: string }) {
     const to = body.to || 'test@hayyaai.com'

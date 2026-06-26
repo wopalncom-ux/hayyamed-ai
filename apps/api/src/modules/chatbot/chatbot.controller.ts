@@ -39,8 +39,8 @@ export class ChatbotController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.chatbots.remove(id)
+  remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.chatbots.remove(id, user.orgId)
   }
 
   @Get(':id/knowledge')

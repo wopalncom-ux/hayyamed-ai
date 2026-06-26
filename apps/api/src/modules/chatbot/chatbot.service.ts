@@ -53,8 +53,9 @@ export class ChatbotService {
     })
   }
 
-  async remove(id: string) {
-    return this.prisma.chatbot.delete({ where: { id } })
+  async remove(id: string, orgId: string) {
+    // Scope to org so a user can only delete their own org's chatbot.
+    return this.prisma.chatbot.deleteMany({ where: { id, orgId } })
   }
 
   async getKnowledge(id: string, orgId: string) {

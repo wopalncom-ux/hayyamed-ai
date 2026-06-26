@@ -33,8 +33,8 @@ export class ConversationsController {
   }
 
   @Get(':id/messages')
-  getMessages(@Param('id') id: string) {
-    return this.conversations.getMessages(id)
+  getMessages(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.conversations.getMessages(id, user.orgId)
   }
 
   @Post(':id/messages')
@@ -49,9 +49,10 @@ export class ConversationsController {
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
     @Body() body: { status: string },
   ) {
-    return this.conversations.updateStatus(id, body.status)
+    return this.conversations.updateStatus(id, user.orgId, body.status)
   }
 
   @Patch(':id/assign')

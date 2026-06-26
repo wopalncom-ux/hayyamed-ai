@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UnauthorizedException } from '@nestjs/common'
 import { CampaignsService } from './campaigns.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
@@ -112,7 +112,7 @@ export class CampaignsController {
   @Public()
   @Post('cron/process-scheduled')
   processDue(@Query('secret') secret: string) {
-    if (secret !== process.env.CRON_SECRET) return { error: 'Unauthorized' }
+    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) throw new UnauthorizedException()
     return this.campaigns.processDueCampaigns()
   }
 }
