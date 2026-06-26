@@ -70,7 +70,7 @@ export class RagService {
         if (embedding) {
           // Use raw SQL to insert the vector type (Prisma does not support Unsupported types in create)
           await this.prisma.$executeRawUnsafe(
-            `INSERT INTO knowledge_chunks (id, source_id, knowledge_base_id, org_id, content, embedding, chunk_index, created_at)
+            `INSERT INTO knowledge_chunks (id, "sourceId", "knowledgeBaseId", "orgId", content, embedding, "chunkIndex", "createdAt")
              VALUES (gen_random_uuid(), $1, $2, $3, $4, $5::vector, $6, now())`,
             sourceId,
             source.knowledgeBaseId,
@@ -81,7 +81,7 @@ export class RagService {
           )
         } else {
           await this.prisma.$executeRawUnsafe(
-            `INSERT INTO knowledge_chunks (id, source_id, knowledge_base_id, org_id, content, chunk_index, created_at)
+            `INSERT INTO knowledge_chunks (id, "sourceId", "knowledgeBaseId", "orgId", content, "chunkIndex", "createdAt")
              VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, now())`,
             sourceId,
             source.knowledgeBaseId,
@@ -113,7 +113,7 @@ export class RagService {
       // Fallback: keyword search when no embedding key
       const chunks = await this.prisma.$queryRawUnsafe<{ content: string }[]>(
         `SELECT content FROM knowledge_chunks
-         WHERE knowledge_base_id = $1
+         WHERE "knowledgeBaseId" = $1
          AND content ILIKE $2
          LIMIT $3`,
         knowledgeBaseId,
@@ -129,7 +129,7 @@ export class RagService {
     const results = await this.prisma.$queryRawUnsafe<{ content: string }[]>(
       `SELECT content
        FROM knowledge_chunks
-       WHERE knowledge_base_id = $1
+       WHERE "knowledgeBaseId" = $1
        ORDER BY embedding <=> $2::vector
        LIMIT $3`,
       knowledgeBaseId,
