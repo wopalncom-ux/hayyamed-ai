@@ -21,6 +21,35 @@ const ROLES = [
   { id:'lead_qualifier',    label:'Lead Qualifier',     emoji:'🎯' },
 ]
 
+// Expert starter prompts per role — gives a non-technical owner a great agent
+// instantly. Auto-applied when creating a fresh agent; re-appliable on demand.
+const ROLE_TEMPLATES = {
+  receptionist: {
+    objective: 'Greet every visitor warmly, answer questions about our services, working hours, and location, help them book an appointment, and collect their name and contact number.',
+    personality: 'Warm, polite, and professional. Replies in the customer’s language (Arabic or English). Opens with a friendly greeting, keeps answers short and clear, and always offers a helpful next step.',
+  },
+  sales_agent: {
+    objective: 'Understand what the customer needs, recommend the right service or package, explain pricing and the value behind it, handle objections, and guide them toward a purchase or booking.',
+    personality: 'Confident, persuasive, and genuinely helpful — never pushy. Leads with benefits, creates gentle urgency, and always moves the conversation toward a clear next step.',
+  },
+  customer_support: {
+    objective: 'Resolve customer questions and issues quickly using the knowledge base, give accurate step-by-step help, and escalate to a human agent when the issue is complex.',
+    personality: 'Patient, empathetic, and solution-focused. Acknowledges the concern first, gives clear instructions, and confirms the problem is fully resolved before closing.',
+  },
+  booking_assistant: {
+    objective: 'Help customers book, reschedule, or cancel appointments. Collect the service, preferred date and time, and contact details, then confirm the booking back to them.',
+    personality: 'Efficient and friendly. Asks one question at a time, repeats details back to avoid mistakes, and ends with a clear confirmation.',
+  },
+  faq_bot: {
+    objective: 'Answer frequently asked questions accurately from the knowledge base — services, pricing, hours, location, and policies. If the answer isn’t known, say so rather than guessing.',
+    personality: 'Concise, factual, and friendly. Gives direct answers, points to the next step, and never invents information.',
+  },
+  lead_qualifier: {
+    objective: 'Qualify incoming leads by naturally asking about their needs, budget, timeline, and decision authority, then route hot leads to the sales team and collect contact details.',
+    personality: 'Curious and professional. Weaves qualifying questions into a natural conversation without sounding like an interrogation.',
+  },
+}
+
 const ALLOWED_ACTIONS = [
   { id:'reply',            label:'Send replies' },
   { id:'collect_info',     label:'Collect contact info' },
@@ -125,10 +154,11 @@ export default function AIAgentBuilder() {
       .catch(() => {})
   }, [])
 
-  const runTest = async () => {
-    const msg = testInput.trim()
-    if (!msg || !editing?.id) return
-    setTestInput('')
+  const runTest = async (preset) => {
+    // `preset` is a string when a suggested prompt is clicked; otherwise read the input.
+    const msg = (typeof preset === 'string' ? preset : testInput).trim()
+    if (!msg || !editing?.id || testLoading) return
+    if (typeof preset !== 'string') setTestInput('')
     setTestMsgs(m => [...m, { role: 'user', content: msg }])
     setTestLoading(true)
     try {
@@ -145,6 +175,24 @@ export default function AIAgentBuilder() {
 
   const openNew  = () => { setEditing({ ...DEFAULT_AGENT }); setTab('identity') }
   const openEdit = (a)  => { setEditing({ ...DEFAULT_AGENT, ...a }); setTab('identity') }
+
+  // Selecting a role on a blank agent auto-fills an expert objective + personality.
+  const selectRole = (roleId) => {
+    setEditing(prev => {
+      const t = ROLE_TEMPLATES[roleId]
+      const blank = t && !(prev.objective || '').trim() && !(prev.personality || '').trim()
+      return { ...prev, role: roleId, ...(blank ? { objective: t.objective, personality: t.personality } : {}) }
+    })
+  }
+
+  // Explicit "use expert template" — overwrites objective + personality for the current role.
+  const applyRoleTemplate = () => {
+    const t = ROLE_TEMPLATES[editing.role]
+    if (!t) return
+    const hasContent = (editing.objective || '').trim() || (editing.personality || '').trim()
+    if (hasContent && !confirm('Replace the current objective and personality with the expert template for this role?')) return
+    setEditing({ ...editing, objective: t.objective, personality: t.personality })
+  }
 
   const save = async () => {
     if (!editing.name) return alert('Agent name is required')
@@ -320,7 +368,7 @@ export default function AIAgentBuilder() {
                       <label style={{ fontSize:'11px', color:'#64748b', display:'block', marginBottom:'6px', fontWeight:'700', letterSpacing:'0.04em' }}>ROLE</label>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px' }}>
                         {ROLES.map(r => (
-                          <button key={r.id} onClick={() => setEditing({...editing, role:r.id})}
+                          <button key={r.id} onClick={() => selectRole(r.id)}
                             style={{ padding:'8px', background: editing.role===r.id ? 'rgba(0,229,160,.08)' : '#111622', border:`1px solid ${editing.role===r.id ? 'rgba(0,229,160,.25)' : '#1a2235'}`, borderRadius:'6px', color: editing.role===r.id ? '#00e5a0' : '#e2e8f0', fontSize:'11px', cursor:'pointer', fontWeight:'600', textAlign:'left' }}
                           >
                             {r.emoji} {r.label}
@@ -345,7 +393,14 @@ export default function AIAgentBuilder() {
                   {/* Right Column */}
                   <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
                     <div>
-                      <label style={{ fontSize:'11px', color:'#64748b', display:'block', marginBottom:'6px', fontWeight:'700', letterSpacing:'0.04em' }}>OBJECTIVE</label>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
+                        <label style={{ fontSize:'11px', color:'#64748b', fontWeight:'700', letterSpacing:'0.04em' }}>OBJECTIVE</label>
+                        <button type="button" onClick={applyRoleTemplate}
+                          style={{ padding:'4px 10px', background:'rgba(167,139,250,.1)', border:'1px solid rgba(167,139,250,.3)', borderRadius:'5px', color:'#a78bfa', fontSize:'10px', fontWeight:'700', cursor:'pointer' }}
+                          title="Fill with a professional template for the selected role">
+                          ✨ Use expert template
+                        </button>
+                      </div>
                       <textarea value={editing.objective} onChange={e => setEditing({...editing, objective:e.target.value})}
                         placeholder="What is this agent's goal? e.g. Help patients book dental appointments, answer FAQ about services and pricing, and collect contact details."
                         rows={5}
@@ -529,9 +584,23 @@ export default function AIAgentBuilder() {
                       <div style={{ flex:1, minHeight:'300px', maxHeight:'440px', overflow:'auto', background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'10px', padding:'16px', display:'flex', flexDirection:'column', gap:'10px', marginBottom:'12px' }}>
                         {testMsgs.length === 0 ? (
                           <div style={{ margin:'auto', textAlign:'center', color:'#3d4f63', fontSize:'12px' }}>
-                            <div style={{ fontSize:'28px', marginBottom:'8px' }}>{editing.avatar || '🤖'}</div>
-                            Send a message to test your agent.<br/>
-                            e.g. "What are your opening hours?" / "كم سعر تنظيف الأسنان؟"
+                            <div style={{ fontSize:'28px', marginBottom:'10px' }}>{editing.avatar || '🤖'}</div>
+                            <div style={{ marginBottom:'14px' }}>Send a message to test your agent — or try one:</div>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'6px', justifyContent:'center' }}>
+                              {(editing.language === 'ar'
+                                  ? ['ما هي ساعات العمل؟', 'كم التكلفة؟', 'أريد حجز موعد']
+                                  : editing.language === 'fr'
+                                  ? ['Quels sont vos horaires ?', 'Quels sont vos prix ?', 'Je veux prendre rendez-vous']
+                                  : editing.language === 'ar+en'
+                                  ? ['What are your opening hours?', 'كم التكلفة؟', 'I want to book an appointment']
+                                  : ['What are your opening hours?', 'How much does it cost?', 'I want to book an appointment']
+                              ).map(q => (
+                                <button key={q} onClick={() => runTest(q)}
+                                  style={{ padding:'7px 12px', background:'#111622', border:'1px solid #253045', borderRadius:'16px', color:'#94a3b8', fontSize:'12px', cursor:'pointer' }}>
+                                  {q}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         ) : testMsgs.map((m, i) => (
                           <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth:'78%' }}>
@@ -558,7 +627,7 @@ export default function AIAgentBuilder() {
                           placeholder="Type a customer message…"
                           style={{ flex:1, padding:'11px 14px', background:'#111622', border:'1px solid #1a2235', borderRadius:'8px', color:'#e2e8f0', fontSize:'13px', outline:'none' }}
                         />
-                        <button onClick={runTest} disabled={testLoading || !testInput.trim()}
+                        <button onClick={() => runTest()} disabled={testLoading || !testInput.trim()}
                           style={{ padding:'11px 20px', background: testLoading || !testInput.trim() ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'8px', color: testLoading || !testInput.trim() ? '#64748b' : '#07090f', fontWeight:'700', fontSize:'13px', cursor: testLoading || !testInput.trim() ? 'not-allowed' : 'pointer' }}>
                           {testLoading ? '…' : 'Send'}
                         </button>
