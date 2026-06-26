@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import axios from 'axios'
 import { PrismaService } from '../../database/prisma.service'
 import { RealtimeGateway } from '../../common/gateways/websocket.gateway'
+import { encrypt, decrypt } from '../../common/crypto/crypto.util'
 
 @Injectable()
 export class WhatsAppService {
@@ -47,10 +48,12 @@ export class WhatsAppService {
       where: { orgId, type: 'WHATSAPP', identifier: data.phoneNumberId }
     })
 
+    // Encrypt the access token at rest. Verification above already used the raw token.
+    const encToken = data.accessToken ? encrypt(data.accessToken) : data.accessToken
     if (existing) {
       return this.prisma.channel.update({
         where: { id: existing.id },
-        data: { name: data.name, accessToken: data.accessToken, webhookSecret: data.webhookSecret, isActive: true, isVerified: verified, metadata },
+        data: { name: data.name, accessToken: encToken, webhookSecret: data.webhookSecret, isActive: true, isVerified: verified, metadata },
       })
     }
 
@@ -60,7 +63,7 @@ export class WhatsAppService {
         type: 'WHATSAPP',
         name: data.name,
         identifier: data.phoneNumberId,
-        accessToken: data.accessToken,
+        accessToken: encToken,
         webhookSecret: data.webhookSecret,
         isActive: true,
         isVerified: verified,
@@ -219,6 +222,8 @@ export class WhatsAppService {
       where: { orgId, type: 'WHATSAPP', isActive: true },
     })
     if (!channel) throw new NotFoundException('No active WhatsApp channel. Connect one in Integrations → WhatsApp.')
+    // Decrypt the access token for outbound API calls (tolerant of legacy plaintext).
+    if (channel.accessToken) channel.accessToken = decrypt(channel.accessToken)
     return channel
   }
 
