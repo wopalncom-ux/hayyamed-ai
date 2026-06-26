@@ -68,6 +68,18 @@ export default function Contacts() {
     } catch (e) { alert('Bulk update failed: ' + (e?.message || 'error')) }
     finally { setBulkBusy(false) }
   }
+  const [bulkTagText, setBulkTagText] = useState('')
+  const bulkTag = async () => {
+    const tag = bulkTagText.trim()
+    if (!tag || selectedIds.length === 0) return
+    setBulkBusy(true)
+    try {
+      await api.bulkContacts(selectedIds, 'tag', tag)
+      setContacts(prev => prev.map(c => selectedIds.includes(c.id) && !(c.tags || []).includes(tag) ? { ...c, tags: [...(c.tags || []), tag] } : c))
+      setBulkTagText(''); clearSelection()
+    } catch (e) { alert('Bulk tag failed: ' + (e?.message || 'error')) }
+    finally { setBulkBusy(false) }
+  }
   const bulkDelete = async () => {
     if (selectedIds.length === 0 || !confirm(`Delete ${selectedIds.length} contact(s)? This cannot be undone.`)) return
     setBulkBusy(true)
@@ -233,6 +245,12 @@ export default function Contacts() {
                   <option value="" disabled>Set status…</option>
                   {STATUS_OPTIONS.map(([val,label]) => <option key={val} value={val}>{label}</option>)}
                 </select>
+                <div style={{display:'flex', gap:'4px', alignItems:'center'}}>
+                  <input value={bulkTagText} onChange={e => setBulkTagText(e.target.value)} onKeyDown={e => e.key === 'Enter' && bulkTag()}
+                    placeholder="add tag…" disabled={bulkBusy}
+                    style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'5px 9px', color:'#e2e8f0', fontSize:'11px', outline:'none', width:'100px'}} />
+                  <button onClick={bulkTag} disabled={bulkBusy || !bulkTagText.trim()} style={{padding:'5px 9px', background:'rgba(59,130,246,.12)', border:'1px solid rgba(59,130,246,.3)', borderRadius:'4px', color:'#3b82f6', fontSize:'11px', fontWeight:'700', cursor:'pointer'}}>+ Tag</button>
+                </div>
                 <button onClick={bulkDelete} disabled={bulkBusy} style={{padding:'5px 11px', background:'rgba(239,68,68,.1)', border:'1px solid rgba(239,68,68,.3)', borderRadius:'4px', color:'#ef4444', fontSize:'11px', fontWeight:'700', cursor:'pointer'}}>🗑 Delete</button>
                 <button onClick={clearSelection} style={{padding:'5px 11px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#94a3b8', fontSize:'11px', cursor:'pointer'}}>Clear</button>
                 {bulkBusy && <span style={{fontSize:'11px', color:'#64748b'}}>Working…</span>}

@@ -72,6 +72,18 @@ export class ContactsService {
       const r = await this.prisma.contact.updateMany({ where, data: { status: value as any } })
       return { ok: true, action, count: r.count }
     }
+    if (action === 'tag') {
+      const tag = (value || '').trim()
+      if (!tag) throw new BadRequestException('value (tag) is required')
+      const rows = await this.prisma.contact.findMany({ where, select: { id: true, tags: true } })
+      const toTag = rows.filter(c => !c.tags.includes(tag))
+      if (toTag.length) {
+        await this.prisma.$transaction(
+          toTag.map(c => this.prisma.contact.update({ where: { id: c.id }, data: { tags: { push: tag } } })),
+        )
+      }
+      return { ok: true, action, count: toTag.length }
+    }
     throw new BadRequestException('Unsupported bulk action')
   }
 
