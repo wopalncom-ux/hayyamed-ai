@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Delete, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Param, Query, Body } from '@nestjs/common'
 import { NotificationsService } from './notifications.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
@@ -6,6 +6,22 @@ import { JwtPayload } from '../../common/guards/jwt.guard'
 @Controller('notifications')
 export class NotificationsController {
   constructor(private svc: NotificationsService) {}
+
+  @Get('vapid-key')
+  vapidKey() {
+    return this.svc.getVapidPublicKey()
+  }
+
+  @Post('subscribe')
+  subscribe(@CurrentUser() user: JwtPayload, @Body() body: { endpoint: string; keys: { p256dh: string; auth: string } }) {
+    return this.svc.saveSubscription(user.sub, user.orgId, body)
+  }
+
+  @Post('test-push')
+  async testPush(@CurrentUser() user: JwtPayload) {
+    await this.svc.sendPush(user.sub, { title: '🔔 Hayyamed AI', body: 'Push notifications are working!', url: '/dashboard' })
+    return { sent: true }
+  }
 
   @Get()
   getAll(

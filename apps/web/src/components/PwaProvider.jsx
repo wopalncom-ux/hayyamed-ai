@@ -1,6 +1,40 @@
 'use client'
 import { useEffect, useState } from 'react'
 
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.hayyaai.com'
+
+function urlB64ToUint8Array(base64) {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4)
+  const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const raw = atob(b64)
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+}
+
+// Subscribe this device to web push (only when logged in + permission granted).
+async function setupPush() {
+  try {
+    const auth = JSON.parse(localStorage.getItem('hayyamed_auth') || '{}')
+    if (!auth.accessToken) return
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+    const reg = await navigator.serviceWorker.ready
+    const res = await fetch(`${API}/api/v1/notifications/vapid-key`)
+    const { key } = await res.json()
+    if (!key) return
+    let perm = Notification.permission
+    if (perm === 'default' && !localStorage.getItem('hayyamed_push_asked')) {
+      localStorage.setItem('hayyamed_push_asked', '1')
+      perm = await Notification.requestPermission()
+    }
+    if (perm !== 'granted') return
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(key) })
+    await fetch(`${API}/api/v1/notifications/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.accessToken}` },
+      body: JSON.stringify(sub.toJSON()),
+    })
+  } catch { /* push is best-effort */ }
+}
+
 // Registers the service worker and renders a premium "Install App" prompt.
 // Remembers the user's choice (dismissed/installed) in localStorage.
 export default function PwaProvider() {
@@ -10,7 +44,7 @@ export default function PwaProvider() {
   useEffect(() => {
     // Register service worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
+      navigator.serviceWorker.register('/sw.js').then(() => setupPush()).catch(() => {})
     }
 
     const dismissed = localStorage.getItem('hayyamed_pwa_choice')
