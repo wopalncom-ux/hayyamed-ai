@@ -557,8 +557,8 @@ export default function Settings() {
                 <div><label style={lbl}>PHONE NUMBER ID</label><input value={waPhone} onChange={e=>setWaPhone(e.target.value)} placeholder="1234567890" style={inp}/></div>
                 <div style={{padding:'12px', background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.15)', borderRadius:'4px', fontSize:'11px', color:'#7a8fa6', lineHeight:'1.7'}}>
                   <strong style={{color:'#00e5a0'}}>Webhook URL:</strong><br/>
-                  <code style={{color:'#e2e8f0', fontSize:'12px'}}>https://api.hayyamed.ai/api/v1/whatsapp/webhook</code><br/>
-                  <strong style={{color:'#00e5a0'}}>Verify Token:</strong> <code style={{color:'#e2e8f0'}}>hayyamed_webhook_2024</code>
+                  <code style={{color:'#e2e8f0', fontSize:'12px'}}>https://api.hayyaai.com/api/v1/whatsapp/webhook</code><br/>
+                  <strong style={{color:'#00e5a0'}}>Verify Token:</strong> the value you set in <code style={{color:'#e2e8f0'}}>WHATSAPP_WEBHOOK_TOKEN</code> (Secret Manager)
                 </div>
                 <button onClick={async () => {
                   try {
