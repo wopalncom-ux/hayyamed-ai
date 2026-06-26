@@ -21,9 +21,11 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api/v1')
 
-  // CORS
+  // CORS — reflect request origin so the embeddable website-chat widget works on
+  // any customer domain. Safe because the API authenticates via Bearer tokens
+  // (in localStorage, not cookies), so cross-origin sites cannot reuse a session.
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: true,
     credentials: true,
   })
 

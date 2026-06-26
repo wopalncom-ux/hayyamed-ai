@@ -35,6 +35,7 @@ import { AIQualityModule } from './modules/ai-quality/ai-quality.module'
 import { AuditModule } from './modules/audit/audit.module'
 import { MarketplaceModule } from './modules/marketplace/marketplace.module'
 import { EmailModule } from './modules/email/email.module'
+import { WebchatModule } from './modules/webchat/webchat.module'
 import { DatabaseModule } from './database/database.module'
 import { GatewayModule } from './common/gateways/gateway.module'
 
@@ -77,6 +78,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     AuditModule,
     MarketplaceModule,
     EmailModule,
+    WebchatModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

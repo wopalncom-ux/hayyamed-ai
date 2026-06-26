@@ -1,0 +1,102 @@
+import { Injectable, Logger } from '@nestjs/common'
+import { PrismaService } from '../../database/prisma.service'
+import { AIService } from '../ai/ai.service'
+import { RagService } from '../knowledge-base/rag.service'
+
+@Injectable()
+export class WebchatService {
+  private readonly logger = new Logger(WebchatService.name)
+
+  constructor(
+    private prisma: PrismaService,
+    private ai: AIService,
+    private rag: RagService,
+  ) {}
+
+  // Lazily ensure the org has a LIVE_CHAT (website) channel.
+  private async ensureChannel(orgId: string) {
+    let channel = await this.prisma.channel.findFirst({ where: { orgId, type: 'LIVE_CHAT' } })
+    if (!channel) {
+      channel = await this.prisma.channel.create({
+        data: { orgId, type: 'LIVE_CHAT', name: 'Website Chat', identifier: `webchat-${orgId.slice(0, 8)}`, isActive: true, isVerified: true },
+      })
+    }
+    return channel
+  }
+
+  // Find or create the conversation for a website chat session (keyed by sessionId).
+  private async getOrCreateConversation(orgId: string, sessionId: string, name?: string) {
+    let conv = await this.prisma.conversation.findFirst({
+      where: { orgId, channel: { type: 'LIVE_CHAT' }, externalId: sessionId },
+    })
+    if (conv) return conv
+
+    const channel = await this.ensureChannel(orgId)
+    const contact = await this.prisma.contact.create({
+      data: {
+        orgId,
+        name: name?.trim() || 'Website Visitor',
+        source: 'website',
+        status: 'NEW',
+        metadata: { webchatSession: sessionId },
+      },
+    })
+    conv = await this.prisma.conversation.create({
+      data: { orgId, channelId: channel.id, contactId: contact.id, externalId: sessionId, status: 'OPEN', subject: 'Website chat' },
+    })
+    return conv
+  }
+
+  async receiveMessage(orgId: string, sessionId: string, text: string, name?: string) {
+    const org = await this.prisma.organization.findUnique({ where: { id: orgId }, select: { id: true, name: true, industry: true } })
+    if (!org) return { error: 'Invalid workspace' }
+    if (!text?.trim()) return { error: 'Empty message' }
+
+    const conv = await this.getOrCreateConversation(orgId, sessionId, name)
+
+    // Store the inbound (customer) message
+    await this.prisma.message.create({
+      data: { conversationId: conv.id, senderId: null, type: 'TEXT', content: text.trim() },
+    })
+    await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: text.trim(), lastMsgAt: new Date(), isRead: false } })
+
+    // Build an AI reply grounded in the org's knowledge base (graceful if no AI/KB)
+    let reply = ''
+    try {
+      let knowledge = ''
+      try { knowledge = await this.rag.getContextForQuery(orgId, text, 4) } catch { knowledge = '' }
+      const history = await this.prisma.message.findMany({ where: { conversationId: conv.id }, orderBy: { createdAt: 'asc' }, take: 12 })
+      const system = `You are the website assistant for ${org.name}${org.industry ? `, a ${org.industry} business` : ''}. Be concise, friendly, and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the visitor with the team.${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
+      const messages = [
+        { role: 'system' as const, content: system },
+        ...history.map(m => ({ role: (m.senderId || m.isAI ? 'assistant' : 'user') as 'user' | 'assistant', content: m.content || '' })).filter(m => m.content),
+      ]
+      reply = await this.ai.complete(messages, { maxTokens: 300, temperature: 0.5, orgId, module: 'webchat', action: 'reply' })
+    } catch {
+      reply = 'Thanks for your message! A team member will get back to you shortly.'
+    }
+
+    // Store the AI reply
+    await this.prisma.message.create({
+      data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: reply },
+    })
+    await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: reply, lastMsgAt: new Date() } })
+
+    return { reply, sessionId }
+  }
+
+  async getSession(orgId: string, sessionId: string) {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { orgId, channel: { type: 'LIVE_CHAT' }, externalId: sessionId },
+    })
+    if (!conv) return { messages: [] }
+    const messages = await this.prisma.message.findMany({ where: { conversationId: conv.id }, orderBy: { createdAt: 'asc' }, take: 100 })
+    return {
+      messages: messages.map(m => ({
+        from: (m.isAI || m.isFromBot) ? 'bot' : m.senderId ? 'agent' : 'visitor',
+        text: m.content || '',
+        at: m.createdAt,
+      })),
+    }
+  }
+}
