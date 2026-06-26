@@ -2,11 +2,13 @@ import { Controller, Get, Post, Patch, Delete, Param, Query, Body } from '@nestj
 import { NotificationsService } from './notifications.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
+import { Public } from '../../common/decorators/public.decorator'
 
 @Controller('notifications')
 export class NotificationsController {
   constructor(private svc: NotificationsService) {}
 
+  @Public()
   @Get('vapid-key')
   vapidKey() {
     return this.svc.getVapidPublicKey()
