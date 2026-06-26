@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PricingSection from '@/components/PricingSection'
 
 export const metadata = {
   title: 'Hayyamed AI — AI-Powered CRM for Qatar & GCC',
@@ -58,32 +59,29 @@ const CHANNELS = [
   { icon: '💻', name: 'Web Chat', color: '#06b6d4' },
 ]
 
+// Prices are owner-editable in /admin/pricing and fetched live below; these are fallbacks.
 const PLANS = [
   {
-    name: 'Pay As You Go',
-    price: 'QAR 150',
-    period: '/mo min',
-    color: '#fbbf24',
-    features: ['QAR 0.10 per message', 'QAR 0.15 per AI response', '500 contacts', '2 team members'],
-  },
-  {
+    id: 'starter',
     name: 'Starter',
-    price: 'QAR 299',
+    price: 'QAR 150',
     period: '/month',
     color: '#3b82f6',
-    features: ['3,000 messages/mo', '1,000 AI responses', '2,000 contacts', '5 team members'],
+    features: ['10,000 messages/mo', '5,000 AI responses', '1,000 contacts', '5 team members'],
   },
   {
+    id: 'growth',
     name: 'Growth',
     price: 'QAR 599',
     period: '/month',
     color: '#00e5a0',
     popular: true,
-    features: ['10,000 messages/mo', '5,000 AI responses', 'Unlimited contacts', '15 team members', 'Advanced AI agent'],
+    features: ['50,000 messages/mo', '20,000 AI responses', '5,000 contacts', '15 team members', 'Advanced AI agent'],
   },
   {
+    id: 'enterprise',
     name: 'Enterprise',
-    price: 'QAR 1,299',
+    price: 'QAR 990',
     period: '/month',
     color: '#a78bfa',
     features: ['Unlimited everything', 'Dedicated AI agent', 'White-label option', 'Priority support', 'Custom integrations'],
@@ -201,33 +199,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Pricing ────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: '960px', margin: '0 auto', padding: '80px 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>Qatar-priced plans</h2>
-          <p style={{ fontSize: '15px', color: '#94a3b8' }}>Start free. Upgrade when you are ready. No annual lock-in.</p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
-          {PLANS.map(p => (
-            <div key={p.name} style={{ padding: '24px', background: p.popular ? 'rgba(0,229,160,.04)' : '#0c0f1a', border: `1px solid ${p.popular ? 'rgba(0,229,160,.25)' : '#1a2235'}`, borderRadius: '10px', position: 'relative' }}>
-              {p.popular && <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', padding: '3px 12px', background: '#00e5a0', borderRadius: '20px', fontSize: '9px', color: '#07090f', fontWeight: '800', whiteSpace: 'nowrap' }}>MOST POPULAR</div>}
-              <div style={{ fontSize: '13px', color: p.color, fontWeight: '700', marginBottom: '8px' }}>{p.name}</div>
-              <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-0.02em' }}>{p.price}</div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '20px' }}>{p.period}</div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {p.features.map(f => (
-                  <li key={f} style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
-                    <span style={{ color: '#00e5a0', flexShrink: 0 }}>✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/register" style={{ display: 'block', textAlign: 'center', padding: '9px', background: p.popular ? '#00e5a0' : 'rgba(255,255,255,.04)', border: `1px solid ${p.popular ? 'transparent' : '#1a2235'}`, borderRadius: '6px', color: p.popular ? '#07090f' : '#e2e8f0', textDecoration: 'none', fontSize: '12px', fontWeight: '700' }}>
-                Get started →
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ─── Pricing (live, owner-editable) ─────────────────────────── */}
+      <PricingSection />
 
       {/* ─── Final CTA ──────────────────────────────────────────────── */}
       <section style={{ background: '#0c0f1a', borderTop: '1px solid #1a2235', padding: '80px 24px', textAlign: 'center' }}>

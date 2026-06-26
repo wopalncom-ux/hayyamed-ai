@@ -4,10 +4,11 @@ import { PrismaService } from '../../database/prisma.service'
 import { EmailService } from '../email/email.service'
 import Stripe from 'stripe'
 
-const PLANS = [
-  { id: 'starter', name: 'Starter', price: 299, currency: 'QAR', contacts: 1000, messages: 10000, aiResponses: 5000 },
+// Default plan catalog. Prices are owner-editable and stored in platform_settings.
+const DEFAULT_PLANS = [
+  { id: 'starter', name: 'Starter', price: 150, currency: 'QAR', contacts: 1000, messages: 10000, aiResponses: 5000 },
   { id: 'growth', name: 'Growth', price: 599, currency: 'QAR', contacts: 5000, messages: 50000, aiResponses: 20000 },
-  { id: 'enterprise', name: 'Enterprise', price: 1299, currency: 'QAR', contacts: 999999, messages: 999999, aiResponses: 999999 },
+  { id: 'enterprise', name: 'Enterprise', price: 990, currency: 'QAR', contacts: 999999, messages: 999999, aiResponses: 999999 },
 ]
 
 @Injectable()
@@ -26,8 +27,34 @@ export class BillingService {
     }
   }
 
-  getPlans() {
-    return PLANS
+  // Plans with owner overrides (price/name) merged over the defaults.
+  async getPlans() {
+    let overrides: any[] = []
+    try {
+      const row = await this.prisma.platformSetting.findUnique({ where: { key: 'plan_pricing' } })
+      if (row?.value && Array.isArray(row.value)) overrides = row.value as any[]
+    } catch { /* table not migrated yet → defaults */ }
+    return DEFAULT_PLANS.map(p => {
+      const o = overrides.find(x => x.id === p.id)
+      return o ? { ...p, name: o.name ?? p.name, price: o.price ?? p.price } : p
+    })
+  }
+
+  // Owner-only: update plan prices/names.
+  async updatePlanPricing(plans: { id: string; name?: string; price?: number }[]) {
+    const clean = (plans || [])
+      .filter(p => DEFAULT_PLANS.some(d => d.id === p.id))
+      .map(p => ({ id: p.id, name: p.name, price: p.price != null ? Math.max(0, Number(p.price)) : undefined }))
+    await this.prisma.platformSetting.upsert({
+      where: { key: 'plan_pricing' },
+      update: { value: clean as any },
+      create: { key: 'plan_pricing', value: clean as any },
+    })
+    return this.getPlans()
+  }
+
+  private async findPlan(id: string) {
+    return (await this.getPlans()).find(p => p.id === id)
   }
 
   async getInvoices(orgId: string) {
@@ -43,14 +70,15 @@ export class BillingService {
       where: { id: orgId },
       select: { plan: true, planExpiry: true },
     })
-    const plan = PLANS.find(p => p.id === org?.plan?.toLowerCase()) || PLANS[0]
+    const plans = await this.getPlans()
+    const plan = plans.find(p => p.id === org?.plan?.toLowerCase()) || plans[0]
     return { ...plan, expiry: org?.planExpiry }
   }
 
   async createCheckout(orgId: string, planId: string, successUrl: string, cancelUrl: string) {
     if (!this.stripe) {
       // Stripe not configured — simulate a successful checkout for dev
-      const plan = PLANS.find(p => p.id === planId)
+      const plan = await this.findPlan(planId)
       if (!plan) throw new Error('Invalid plan')
 
       await this.prisma.invoice.create({
@@ -88,7 +116,7 @@ export class BillingService {
       return { url: successUrl, simulated: true }
     }
 
-    const plan = PLANS.find(p => p.id === planId)
+    const plan = await this.findPlan(planId)
     if (!plan) throw new Error('Invalid plan')
 
     const session = await this.stripe.checkout.sessions.create({
@@ -128,7 +156,7 @@ export class BillingService {
       const { orgId, planId } = session.metadata || {}
 
       if (orgId && planId) {
-        const plan = PLANS.find(p => p.id === planId)
+        const plan = await this.findPlan(planId)
         if (plan) {
           await this.prisma.invoice.create({
             data: {

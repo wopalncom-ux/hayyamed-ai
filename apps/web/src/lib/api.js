@@ -139,6 +139,8 @@ export const api = {
     request('/billing/invoices'),
   getPlans: () =>
     request('/billing/plans'),
+  updatePlans: (plans) =>
+    request('/billing/plans', { method: 'PATCH', body: JSON.stringify({ plans }) }),
   getCurrentPlan: () =>
     request('/billing/current-plan'),
   createCheckout: (planId) =>
