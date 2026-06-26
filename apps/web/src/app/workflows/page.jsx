@@ -25,6 +25,77 @@ const ACTION_TYPES = [
 const STATUS_OPTIONS = ['NEW', 'ACTIVE', 'QUALIFIED', 'PROPOSAL', 'WON', 'LOST', 'INACTIVE']
 const CONTACT_FIELDS = ['status', 'stage', 'source', 'city', 'country', 'notes', 'score']
 
+// Ready-to-use automation templates. Every action/trigger below maps to what the
+// engine actually executes, so installed templates run immediately.
+const TEMPLATES = [
+  {
+    id: 'welcome', icon: '👋', name: 'Welcome New Lead',
+    desc: 'When a new contact arrives, instantly send a friendly WhatsApp welcome.',
+    trigger: 'new_contact',
+    actions: [{ type: 'send_whatsapp', message: 'Hello {{name}}! 👋 Thank you for reaching out. How can we help you today?' }],
+  },
+  {
+    id: 'tag-greet', icon: '🏷', name: 'Auto-Tag & Greet New Lead',
+    desc: 'Tag every new lead and send a greeting so your pipeline stays organised.',
+    trigger: 'new_contact',
+    actions: [
+      { type: 'add_tag', tag: 'new-lead' },
+      { type: 'send_whatsapp', message: 'Hi {{name}}! Welcome 🌟 A team member will be with you shortly.' },
+    ],
+  },
+  {
+    id: 'followup-24h', icon: '⏰', name: '24h No-Reply Follow-up',
+    desc: 'If a new lead goes quiet, automatically follow up the next day.',
+    trigger: 'new_contact',
+    actions: [
+      { type: 'wait', value: 1, unit: 'days', seconds: 86400 },
+      { type: 'send_whatsapp', message: 'Hi {{name}}, just checking in 😊 Do you have any questions we can help with?' },
+    ],
+  },
+  {
+    id: 'sales-intent', icon: '🎯', name: 'Sales Intent → Hot Lead',
+    desc: 'When a message mentions pricing/buying, tag the lead hot and log it for sales.',
+    trigger: 'keyword', conditions: { keyword: 'price' },
+    actions: [
+      { type: 'add_tag', tag: 'hot-lead' },
+      { type: 'create_activity', title: 'Sales intent detected — follow up to close' },
+    ],
+  },
+  {
+    id: 'complaint', icon: '🚨', name: 'Complaint Alert → Notify Team',
+    desc: 'When a customer complains, flag it and log an escalation for a manager.',
+    trigger: 'keyword', conditions: { keyword: 'complaint' },
+    actions: [
+      { type: 'add_tag', tag: 'complaint' },
+      { type: 'create_activity', title: '⚠️ Complaint received — escalate to manager' },
+    ],
+  },
+  {
+    id: 'won-thanks', icon: '🎉', name: 'Won Customer Thank-You',
+    desc: 'When a lead is marked WON, send a thank-you message automatically.',
+    trigger: 'status_changed', conditions: { status: 'WON' },
+    actions: [{ type: 'send_whatsapp', message: 'Thank you for choosing us, {{name}}! 🎉 We look forward to serving you.' }],
+  },
+  {
+    id: 'support-request', icon: '🎧', name: 'Support Request → Ticket',
+    desc: 'When a message mentions support/help, tag it and create a support activity.',
+    trigger: 'keyword', conditions: { keyword: 'support' },
+    actions: [
+      { type: 'add_tag', tag: 'support' },
+      { type: 'create_activity', title: 'Support request — create/assign ticket' },
+    ],
+  },
+  {
+    id: 'reengage-lost', icon: '🔄', name: 'Re-engage Cold Lead',
+    desc: 'When a lead is marked LOST, wait a few days then send a re-engagement message.',
+    trigger: 'status_changed', conditions: { status: 'LOST' },
+    actions: [
+      { type: 'wait', value: 3, unit: 'days', seconds: 259200 },
+      { type: 'send_whatsapp', message: 'Hi {{name}}, we miss you! Is there anything we can help you with? We have new offers available.' },
+    ],
+  },
+]
+
 function ActionCard({ action, idx, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst, isLast }) {
   const meta = ACTION_TYPES.find(a => a.type === action.type) || {}
   return (
@@ -122,10 +193,11 @@ export default function WorkflowsPage() {
   const [runs, setRuns] = useState([])
   const [runStats, setRunStats] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState('list') // list | builder | runs
+  const [view, setView] = useState('list') // list | builder | runs | templates
   const [editing, setEditing] = useState(null)
   const [toast, setToast] = useState(null)
   const [testLoading, setTestLoading] = useState(null)
+  const [installing, setInstalling] = useState(null)
 
   // Builder state
   const [name, setName] = useState('')
@@ -150,6 +222,20 @@ export default function WorkflowsPage() {
   }
 
   useEffect(() => { load() }, [])
+
+  const installTemplate = async (tpl) => {
+    setInstalling(tpl.id)
+    try {
+      await api.createWorkflow({ name: tpl.name, trigger: tpl.trigger, actions: tpl.actions, conditions: tpl.conditions || {} })
+      showToast(`"${tpl.name}" installed — enable it to go live`)
+      await load()
+      setView('list')
+    } catch (e) {
+      showToast(e?.message || 'Install failed', false)
+    } finally {
+      setInstalling(null)
+    }
+  }
 
   const openBuilder = (wf = null) => {
     if (wf) {
@@ -228,9 +314,14 @@ export default function WorkflowsPage() {
             <p style={{ color: '#64748b', fontSize: '13px', marginTop: '4px' }}>Automate follow-ups, status updates, and messaging sequences</p>
           </div>
           {view !== 'builder' && (
-            <button onClick={() => openBuilder()} style={{ padding: '10px 20px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', cursor: 'pointer', fontSize: '14px' }}>
-              + New Workflow
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => setView('templates')} style={{ padding: '10px 18px', background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.3)', borderRadius: '8px', color: '#a78bfa', fontWeight: '800', cursor: 'pointer', fontSize: '14px' }}>
+                📋 Templates
+              </button>
+              <button onClick={() => openBuilder()} style={{ padding: '10px 20px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', cursor: 'pointer', fontSize: '14px' }}>
+                + New Workflow
+              </button>
+            </div>
           )}
         </div>
 
@@ -254,7 +345,7 @@ export default function WorkflowsPage() {
         {/* Tabs */}
         {view !== 'builder' && (
           <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
-            {[{ id: 'list', label: `⚡ Workflows (${workflows.length})` }, { id: 'runs', label: '📋 Run History' }].map(t => (
+            {[{ id: 'list', label: `⚡ Workflows (${workflows.length})` }, { id: 'templates', label: `📋 Templates (${TEMPLATES.length})` }, { id: 'runs', label: '📋 Run History' }].map(t => (
               <button key={t.id} onClick={() => setView(t.id)} style={{
                 padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
                 background: view === t.id ? '#00e5a0' : '#1a2235', color: view === t.id ? '#0a0f1a' : '#94a3b8',
@@ -319,6 +410,37 @@ export default function WorkflowsPage() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Templates Library */}
+        {view === 'templates' && (
+          <div>
+            <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+              One-click automations every business needs. Install, then enable to go live. You can edit any installed workflow afterwards.
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
+              {TEMPLATES.map(tpl => {
+                const trig = TRIGGERS.find(t => t.value === tpl.trigger)
+                return (
+                  <div key={tpl.id} style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '10px', padding: '18px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '22px' }}>{tpl.icon}</span>
+                      <span style={{ fontWeight: '800', fontSize: '14px' }}>{tpl.name}</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.6, marginBottom: '12px', flex: 1 }}>{tpl.desc}</div>
+                    <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                      <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(59,130,246,.12)', color: '#3b82f6', fontWeight: 700 }}>{trig?.icon} {trig?.label || tpl.trigger}</span>
+                      <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: '#1a2235', color: '#64748b', fontWeight: 700 }}>{tpl.actions.length} action{tpl.actions.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <button onClick={() => installTemplate(tpl)} disabled={installing === tpl.id}
+                      style={{ padding: '9px', background: installing === tpl.id ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: installing === tpl.id ? '#64748b' : '#0a0f1a', fontWeight: '800', fontSize: '13px', cursor: installing === tpl.id ? 'wait' : 'pointer' }}>
+                      {installing === tpl.id ? 'Installing…' : '+ Install'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 
