@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../database/prisma.service'
 import { EmailService } from '../email/email.service'
+import { MyFatoorahService } from '../myfatoorah/myfatoorah.service'
 import Stripe from 'stripe'
 
 // Default plan catalog. Prices are owner-editable and stored in platform_settings.
@@ -20,6 +21,7 @@ export class BillingService {
     private prisma: PrismaService,
     private config: ConfigService,
     private emailSvc: EmailService,
+    private myfatoorah: MyFatoorahService,
   ) {
     const key = this.config.get('STRIPE_SECRET_KEY')
     if (key && key !== 'your-stripe-key-here') {
@@ -75,49 +77,71 @@ export class BillingService {
     return { ...plan, expiry: org?.planExpiry }
   }
 
+  // Activates a plan for an org: paid invoice + org plan/expiry + confirmation email.
+  // Shared by the simulated path and the verified MyFatoorah subscription path.
+  private async activatePlan(orgId: string, planId: string) {
+    const plan = await this.findPlan(planId)
+    if (!plan) throw new BadRequestException('Invalid plan')
+    const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+
+    await this.prisma.invoice.create({
+      data: { orgId, amount: plan.price, currency: plan.currency, status: 'paid', description: `${plan.name} plan subscription`, paidAt: new Date() },
+    })
+    await this.prisma.organization.update({
+      where: { id: orgId },
+      data: { plan: planId.toUpperCase() as any, planExpiry: periodEnd },
+    })
+
+    const admin = await this.prisma.user.findFirst({ where: { orgId, role: 'ADMIN' } })
+    if (admin) {
+      const frontendUrl = this.config.get('FRONTEND_URL') || 'https://www.hayyaai.com'
+      this.emailSvc.sendSubscriptionConfirmed(admin.email, {
+        name: admin.name, plan: plan.name,
+        nextBillingDate: periodEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        dashboardUrl: `${frontendUrl}/dashboard`,
+      }).catch(() => {})
+    }
+    return plan
+  }
+
+  // Verify a MyFatoorah subscription payment and activate the plan if paid.
+  async verifySubscription(orgId: string, paymentId: string) {
+    if (!paymentId) throw new BadRequestException('paymentId is required')
+    const data: any = await this.myfatoorah.getPlatformPaymentStatus(paymentId)
+    const status = data?.InvoiceStatus || 'Unknown'
+    const ref: string = data?.CustomerReference || ''
+    const paid = String(status).toLowerCase() === 'paid'
+    if (!paid) return { activated: false, status }
+
+    // reference format: sub:{orgId}:{planId}
+    const [tag, refOrg, planId] = ref.split(':')
+    if (tag !== 'sub' || !planId || (refOrg && refOrg !== orgId)) {
+      return { activated: false, status, error: 'Reference mismatch' }
+    }
+    const plan = await this.activatePlan(orgId, planId)
+    return { activated: true, status, plan: plan.name }
+  }
+
   async createCheckout(orgId: string, planId: string, successUrl: string, cancelUrl: string) {
-    if (!this.stripe) {
-      // Stripe not configured — simulate a successful checkout for dev
-      const plan = await this.findPlan(planId)
-      if (!plan) throw new Error('Invalid plan')
+    const plan = await this.findPlan(planId)
+    if (!plan) throw new BadRequestException('Invalid plan')
 
-      await this.prisma.invoice.create({
-        data: {
-          orgId,
-          amount: plan.price,
-          currency: plan.currency,
-          status: 'paid',
-          description: `${plan.name} plan subscription`,
-          paidAt: new Date(),
-        },
+    // Prefer the platform MyFatoorah account (GCC) when configured.
+    if (await this.myfatoorah.isPlatformConfigured()) {
+      const r = await this.myfatoorah.createPlatformPayment(orgId, {
+        amount: plan.price, currency: plan.currency,
+        customerName: `${plan.name} subscription`,
+        callbackUrl: successUrl, errorUrl: cancelUrl,
+        reference: `sub:${orgId}:${planId}`,
       })
-
-      const org = await this.prisma.organization.update({
-        where: { id: orgId },
-        data: {
-          plan: planId.toUpperCase() as any,
-          planExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        },
-      })
-
-      // Send confirmation email to org admin
-      const admin = await this.prisma.user.findFirst({ where: { orgId, role: 'ADMIN' } })
-      if (admin) {
-        const nextDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-        const frontendUrl = this.config.get('FRONTEND_URL') || 'https://www.hayyaai.com'
-        this.emailSvc.sendSubscriptionConfirmed(admin.email, {
-          name: admin.name,
-          plan: plan.name,
-          nextBillingDate: nextDate,
-          dashboardUrl: `${frontendUrl}/dashboard`,
-        }).catch(() => {})
-      }
-
-      return { url: successUrl, simulated: true }
+      return { url: r.paymentUrl, paymentUrl: r.paymentUrl, invoiceId: r.invoiceId, provider: 'myfatoorah' }
     }
 
-    const plan = await this.findPlan(planId)
-    if (!plan) throw new Error('Invalid plan')
+    if (!this.stripe) {
+      // No gateway configured — simulate activation (dev).
+      await this.activatePlan(orgId, planId)
+      return { url: successUrl, simulated: true }
+    }
 
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],

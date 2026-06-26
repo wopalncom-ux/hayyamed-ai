@@ -223,9 +223,14 @@ export default function Settings() {
     setCheckoutLoading(planId)
     try {
       const data = await api.createCheckout(planId)
-      if (data.url) window.open(data.url, '_blank')
-      else saveMsg('Plan selected — billing coming soon!')
-    } catch { saveMsg('Checkout coming soon!') }
+      if (data.provider === 'myfatoorah' && data.url) {
+        saveMsg('Opening secure payment…'); window.location.href = data.url
+      } else if (data.simulated) {
+        saveMsg('Plan activated!'); setTimeout(() => window.location.reload(), 1200)
+      } else if (data.url) {
+        window.open(data.url, '_blank')
+      } else saveMsg('Plan selected — billing coming soon!')
+    } catch (e) { saveMsg(e?.message || 'Checkout failed') }
     setCheckoutLoading(false)
   }
 

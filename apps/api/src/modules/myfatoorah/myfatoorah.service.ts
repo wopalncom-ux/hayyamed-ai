@@ -60,37 +60,7 @@ export class MyFatoorahService {
     if (!cfg?.apiToken) throw new BadRequestException('MyFatoorah is not configured. Add your API token first.')
     if (!dto?.amount || dto.amount <= 0) throw new BadRequestException('A positive amount is required')
 
-    const body: Record<string, any> = {
-      CustomerName: dto.customerName || 'Customer',
-      NotificationOption: 'LNK',
-      InvoiceValue: dto.amount,
-      DisplayCurrencyIso: dto.currency || 'QAR',
-      Language: (dto.language || 'en').toLowerCase() === 'ar' ? 'ar' : 'en',
-    }
-    if (dto.callbackUrl) body.CallBackUrl = dto.callbackUrl
-    if (dto.errorUrl || dto.callbackUrl) body.ErrorUrl = dto.errorUrl || dto.callbackUrl
-    if (dto.customerEmail) body.CustomerEmail = dto.customerEmail
-    if (dto.customerMobile) body.CustomerMobile = dto.customerMobile
-    if (dto.reference) body.CustomerReference = dto.reference
-
-    let json: any = {}
-    try {
-      const res = await fetch(`${this.baseUrl(cfg)}/v2/SendPayment`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${cfg.apiToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      json = await res.json().catch(() => ({}))
-      if (!res.ok || !json?.IsSuccess) {
-        const msg = json?.Message || json?.ValidationErrors?.[0]?.Error || `MyFatoorah request failed (${res.status})`
-        throw new BadRequestException(msg)
-      }
-    } catch (err: any) {
-      if (err instanceof BadRequestException) throw err
-      throw new BadRequestException('Could not reach MyFatoorah: ' + (err?.message || 'network error'))
-    }
-    const invoiceId = json.Data?.InvoiceId ? String(json.Data.InvoiceId) : null
-    const paymentUrl = json.Data?.InvoiceURL || null
+    const { invoiceId, paymentUrl } = await this.sendPaymentWithConfig(cfg, dto)
 
     // Record the payment so the owner has visibility + can re-check its status.
     try {
@@ -128,6 +98,47 @@ export class MyFatoorahService {
   async getPaymentStatus(orgId: string, key: string, keyType: 'InvoiceId' | 'PaymentId' = 'InvoiceId') {
     const cfg = await this.getConfig(orgId)
     if (!cfg?.apiToken) throw new BadRequestException('MyFatoorah is not configured.')
+    return this.fetchStatusWithConfig(cfg, key, keyType)
+  }
+
+  // ── Config-agnostic helpers (used by both org-level and platform-level flows) ──
+  private async sendPaymentWithConfig(cfg: { apiToken?: string; isTest?: boolean; country?: string }, dto: any) {
+    const body: Record<string, any> = {
+      CustomerName: dto.customerName || 'Customer',
+      NotificationOption: 'LNK',
+      InvoiceValue: dto.amount,
+      DisplayCurrencyIso: dto.currency || 'QAR',
+      Language: (dto.language || 'en').toLowerCase() === 'ar' ? 'ar' : 'en',
+    }
+    if (dto.callbackUrl) body.CallBackUrl = dto.callbackUrl
+    if (dto.errorUrl || dto.callbackUrl) body.ErrorUrl = dto.errorUrl || dto.callbackUrl
+    if (dto.customerEmail) body.CustomerEmail = dto.customerEmail
+    if (dto.customerMobile) body.CustomerMobile = dto.customerMobile
+    if (dto.reference) body.CustomerReference = dto.reference
+
+    let json: any = {}
+    try {
+      const res = await fetch(`${this.baseUrl(cfg)}/v2/SendPayment`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${cfg.apiToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      json = await res.json().catch(() => ({}))
+      if (!res.ok || !json?.IsSuccess) {
+        const msg = json?.Message || json?.ValidationErrors?.[0]?.Error || `MyFatoorah request failed (${res.status})`
+        throw new BadRequestException(msg)
+      }
+    } catch (err: any) {
+      if (err instanceof BadRequestException) throw err
+      throw new BadRequestException('Could not reach MyFatoorah: ' + (err?.message || 'network error'))
+    }
+    return {
+      invoiceId: json.Data?.InvoiceId ? String(json.Data.InvoiceId) : null,
+      paymentUrl: json.Data?.InvoiceURL || null,
+    }
+  }
+
+  private async fetchStatusWithConfig(cfg: { apiToken?: string; isTest?: boolean; country?: string }, key: string, keyType: 'InvoiceId' | 'PaymentId') {
     if (!key) throw new BadRequestException('key is required')
     const res = await fetch(`${this.baseUrl(cfg)}/v2/getPaymentStatus`, {
       method: 'POST',
@@ -137,5 +148,61 @@ export class MyFatoorahService {
     const json: any = await res.json().catch(() => ({}))
     if (!res.ok || !json?.IsSuccess) throw new BadRequestException(json?.Message || 'Could not fetch payment status')
     return json.Data
+  }
+
+  // ── Platform-level account (collects tenant subscription payments) ──────────
+  private readonly PLATFORM_KEY = 'mf_platform'
+
+  private async getPlatformConfig() {
+    const row = await this.prisma.platformSetting.findUnique({ where: { key: this.PLATFORM_KEY } })
+    if (!row) return null
+    return decryptJson(row.value) as { apiToken?: string; isTest?: boolean; country?: string }
+  }
+
+  async platformStatus() {
+    const cfg = await this.getPlatformConfig()
+    return { configured: !!cfg?.apiToken, isTest: !!cfg?.isTest, country: cfg?.country || 'QA' }
+  }
+
+  async savePlatformConfig(dto: { apiToken: string; isTest?: boolean; country?: string }) {
+    if (!dto?.apiToken) throw new BadRequestException('apiToken is required')
+    const value = encryptJson({ apiToken: dto.apiToken.trim(), isTest: !!dto.isTest, country: dto.country || 'QA' }) as any
+    await this.prisma.platformSetting.upsert({
+      where: { key: this.PLATFORM_KEY },
+      create: { key: this.PLATFORM_KEY, value },
+      update: { value },
+    })
+    return this.platformStatus()
+  }
+
+  async disconnectPlatform() {
+    await this.prisma.platformSetting.deleteMany({ where: { key: this.PLATFORM_KEY } })
+    return { ok: true }
+  }
+
+  isPlatformConfigured() {
+    return this.getPlatformConfig().then(c => !!c?.apiToken)
+  }
+
+  // Create a subscription payment via the PLATFORM account; record it under the
+  // paying tenant's org for visibility.
+  async createPlatformPayment(orgId: string, dto: any) {
+    const cfg = await this.getPlatformConfig()
+    if (!cfg?.apiToken) throw new BadRequestException('Platform billing (MyFatoorah) is not configured.')
+    if (!dto?.amount || dto.amount <= 0) throw new BadRequestException('A positive amount is required')
+    const { invoiceId, paymentUrl } = await this.sendPaymentWithConfig(cfg, dto)
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO "payments" ("id","orgId","provider","invoiceId","amount","currency","customerName","status","paymentUrl","reference","createdAt","updatedAt")
+        VALUES (${randomUUID()}, ${orgId}, 'myfatoorah', ${invoiceId}, ${dto.amount}, ${dto.currency || 'QAR'}, ${dto.customerName || 'Subscription'}, 'Pending', ${paymentUrl}, ${dto.reference || null}, NOW(), NOW())
+      `
+    } catch { /* best-effort */ }
+    return { invoiceId, paymentUrl }
+  }
+
+  async getPlatformPaymentStatus(invoiceId: string) {
+    const cfg = await this.getPlatformConfig()
+    if (!cfg?.apiToken) throw new BadRequestException('Platform billing is not configured.')
+    return this.fetchStatusWithConfig(cfg, invoiceId, 'InvoiceId')
   }
 }

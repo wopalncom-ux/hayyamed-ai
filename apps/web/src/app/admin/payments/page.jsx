@@ -27,6 +27,14 @@ export default function PaymentsControl() {
   const [paying, setPaying] = useState(false)
   const [payResult, setPayResult] = useState(null)
 
+  // Platform billing account (collects tenant subscription payments)
+  const [pfStatus, setPfStatus] = useState(null)
+  const [pfToken, setPfToken] = useState('')
+  const [pfTest, setPfTest] = useState(true)
+  const [pfCountry, setPfCountry] = useState('QA')
+  const [pfSaving, setPfSaving] = useState(false)
+  const loadPf = () => api.getMyFatoorahPlatformStatus().then(s => { setPfStatus(s); if (s?.country) setPfCountry(s.country); setPfTest(s?.isTest ?? true) }).catch(() => setPfStatus({ configured: false }))
+
   // Payment history
   const [payments, setPayments] = useState([])
   const [refreshing, setRefreshing] = useState(null)
@@ -38,7 +46,20 @@ export default function PaymentsControl() {
     .then(s => { setStatus(s); if (s?.country) setCountry(s.country); setIsTest(s?.isTest ?? true) })
     .catch(() => setStatus({ configured: false }))
 
-  useEffect(() => { loadStatus(); loadPayments() }, [])
+  useEffect(() => { loadStatus(); loadPayments(); loadPf() }, [])
+
+  const savePf = async () => {
+    if (!pfToken.trim()) return showToast(false, 'Enter your platform MyFatoorah API token')
+    setPfSaving(true)
+    try { const s = await api.saveMyFatoorahPlatformConfig(pfToken.trim(), pfTest, pfCountry); setPfStatus(s); setPfToken(''); showToast(true, 'Platform billing connected') }
+    catch (e) { showToast(false, e?.message || 'Save failed') }
+    finally { setPfSaving(false) }
+  }
+  const disconnectPf = async () => {
+    if (!confirm('Disconnect platform billing? Subscription checkout will stop working.')) return
+    try { await api.disconnectMyFatoorahPlatform(); await loadPf(); showToast(true, 'Disconnected') }
+    catch (e) { showToast(false, e?.message || 'Failed') }
+  }
 
   const refreshPayment = async (id) => {
     setRefreshing(id)
@@ -136,6 +157,41 @@ export default function PaymentsControl() {
             <button onClick={save} disabled={saving} style={{ padding: '11px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: saving ? 'wait' : 'pointer' }}>
               {saving ? 'Saving…' : status?.configured ? 'Update configuration' : 'Connect MyFatoorah'}
             </button>
+          </div>
+        </div>
+
+        {/* Platform billing account — collects tenant subscription payments */}
+        <div style={{ background: '#0c0f1a', border: '1px solid rgba(167,139,250,.25)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <div style={{ fontWeight: 800, fontSize: '15px', color: '#a78bfa' }}>Platform billing account</div>
+            <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '10px',
+              background: pfStatus?.configured ? 'rgba(0,229,160,.12)' : 'rgba(100,116,139,.12)',
+              color: pfStatus?.configured ? '#00e5a0' : '#94a3b8' }}>
+              {pfStatus == null ? '…' : pfStatus.configured ? `● Connected${pfStatus.isTest ? ' (Test)' : ''}` : '○ Not connected'}
+            </span>
+          </div>
+          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>The MyFatoorah account that <strong>your customers&apos; subscription payments</strong> (the 150 / 599 / 990 plans) are deposited into. Separate from the account above, which your business uses to collect from its own customers.</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <input type="password" value={pfToken} onChange={e => setPfToken(e.target.value)} placeholder={pfStatus?.configured ? 'Enter a new token to replace the current one' : 'Platform MyFatoorah API token'} style={inputStyle} />
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '150px' }}>
+                <label style={labelStyle}>COUNTRY</label>
+                <select value={pfCountry} onChange={e => setPfCountry(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>{COUNTRIES.map(([c, n]) => <option key={c} value={c}>{n}</option>)}</select>
+              </div>
+              <div style={{ flex: 1, minWidth: '150px' }}>
+                <label style={labelStyle}>MODE</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[[true, 'Test'], [false, 'Live']].map(([val, lbl]) => (
+                    <button key={lbl} onClick={() => setPfTest(val)} style={{ flex: 1, padding: '9px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 700, background: pfTest === val ? 'rgba(167,139,250,.15)' : '#111622', border: `1px solid ${pfTest === val ? '#a78bfa' : '#1a2235'}`, color: pfTest === val ? '#a78bfa' : '#64748b' }}>{lbl}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={savePf} disabled={pfSaving} style={{ flex: 1, padding: '11px', background: '#a78bfa', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: pfSaving ? 'wait' : 'pointer' }}>{pfSaving ? 'Saving…' : pfStatus?.configured ? 'Update platform account' : 'Connect platform billing'}</button>
+              {pfStatus?.configured && <button onClick={disconnectPf} style={{ padding: '11px 16px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: '8px', color: '#ef4444', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Disconnect</button>}
+            </div>
+            <div style={{ fontSize: '11px', color: pfStatus?.configured ? '#00e5a0' : '#475569' }}>{pfStatus?.configured ? '✓ Subscription checkout is live — customers pay through MyFatoorah and are activated automatically.' : 'Until connected, subscription checkout falls back to simulated activation.'}</div>
           </div>
         </div>
 

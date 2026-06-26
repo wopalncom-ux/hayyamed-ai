@@ -145,6 +145,13 @@ export const api = {
     request('/payments/myfatoorah/pay', { method: 'POST', body: JSON.stringify(dto) }),
   getMyFatoorahPayments: () =>
     request('/payments/myfatoorah/payments'),
+  // Platform billing account (collects tenant subscription payments)
+  getMyFatoorahPlatformStatus: () =>
+    request('/payments/myfatoorah/platform-status'),
+  saveMyFatoorahPlatformConfig: (apiToken, isTest, country) =>
+    request('/payments/myfatoorah/platform-config', { method: 'POST', body: JSON.stringify({ apiToken, isTest, country }) }),
+  disconnectMyFatoorahPlatform: () =>
+    request('/payments/myfatoorah/platform-disconnect', { method: 'POST' }),
   refreshMyFatoorahPayment: (id) =>
     request(`/payments/myfatoorah/payments/${id}/refresh`, { method: 'POST' }),
 
@@ -171,6 +178,8 @@ export const api = {
     request('/billing/current-plan'),
   createCheckout: (planId) =>
     request('/billing/checkout', { method: 'POST', body: JSON.stringify({ planId }) }),
+  verifySubscription: (paymentId) =>
+    request(`/billing/verify?paymentId=${encodeURIComponent(paymentId)}`),
 
   // Notifications
   getNotifications: (params = {}) =>

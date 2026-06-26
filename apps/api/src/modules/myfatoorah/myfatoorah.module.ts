@@ -8,5 +8,6 @@ import { OwnerGuard } from '../../common/guards/owner.guard'
   imports: [DatabaseModule],
   controllers: [MyFatoorahController],
   providers: [MyFatoorahService, OwnerGuard],
+  exports: [MyFatoorahService],
 })
 export class MyFatoorahModule {}

@@ -28,6 +28,24 @@ export class MyFatoorahController {
     return this.svc.disconnect(user.orgId)
   }
 
+  // ── Platform billing account (collects tenant subscription payments) ──────
+  @Get('platform-status')
+  platformStatus() {
+    return this.svc.platformStatus()
+  }
+
+  @Post('platform-config')
+  @UseGuards(OwnerGuard)
+  savePlatformConfig(@Body() body: { apiToken: string; isTest?: boolean; country?: string }) {
+    return this.svc.savePlatformConfig(body || ({} as any))
+  }
+
+  @Post('platform-disconnect')
+  @UseGuards(OwnerGuard)
+  platformDisconnect() {
+    return this.svc.disconnectPlatform()
+  }
+
   // Generate a hosted payment link for a customer.
   @Post('pay')
   pay(@CurrentUser() user: JwtPayload, @Body() body: any) {

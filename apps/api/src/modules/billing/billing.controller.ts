@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Headers, Req, RawBodyRequest, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Headers, Req, RawBodyRequest, UseGuards, Query } from '@nestjs/common'
 import { Request } from 'express'
 import { BillingService } from './billing.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
@@ -40,12 +40,19 @@ export class BillingController {
     @Body() body: { planId: string; successUrl?: string; cancelUrl?: string },
   ) {
     const origin = headers['origin'] || 'http://localhost:3000'
+    // For MyFatoorah, the callback hits /billing/success which verifies + activates.
     return this.billing.createCheckout(
       user.orgId,
       body.planId,
-      body.successUrl || `${origin}/settings?tab=billing&success=1`,
+      body.successUrl || `${origin}/billing/success`,
       body.cancelUrl || `${origin}/settings?tab=billing`,
     )
+  }
+
+  // Called by the success page after a MyFatoorah redirect (?paymentId=…).
+  @Get('verify')
+  verifySubscription(@CurrentUser() user: JwtPayload, @Query('paymentId') paymentId: string) {
+    return this.billing.verifySubscription(user.orgId, paymentId)
   }
 
   @Post('webhook')
