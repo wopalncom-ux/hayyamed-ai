@@ -1,13 +1,47 @@
 import { Injectable, Optional } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { RealtimeGateway } from '../../common/gateways/websocket.gateway'
+import { AIService } from '../ai/ai.service'
 
 @Injectable()
 export class ConversationsService {
   constructor(
     private prisma: PrismaService,
+    private ai: AIService,
     @Optional() private gateway?: RealtimeGateway,
   ) {}
+
+  // AI summary of a conversation — pulls the thread and produces a short brief.
+  async summarize(id: string, orgId: string) {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { id, orgId },
+      include: { contact: { select: { name: true, status: true } } },
+    })
+    if (!conv) return { summary: 'Conversation not found.' }
+
+    const messages = await this.prisma.message.findMany({
+      where: { conversationId: id },
+      orderBy: { createdAt: 'asc' },
+      take: 40,
+    })
+    if (!messages.length) return { summary: 'No messages to summarize yet.' }
+
+    const transcript = messages
+      .map(m => `${m.senderId ? 'Agent' : 'Customer'}: ${m.content || `(${m.type})`}`)
+      .join('\n')
+
+    const prompt = `Summarize this customer conversation in 3-4 short bullet points: the customer's intent, key questions/requests, sentiment, and the recommended next action. Be concise.\n\nCustomer: ${conv.contact?.name || 'Unknown'} (lead status: ${conv.contact?.status || 'NEW'})\n\nTranscript:\n${transcript}`
+
+    try {
+      const summary = await this.ai.complete(
+        [{ role: 'user', content: prompt }],
+        { maxTokens: 250, temperature: 0.4, orgId, module: 'inbox', action: 'summarize' },
+      )
+      return { summary }
+    } catch {
+      return { summary: '⚠️ AI summary unavailable — no valid AI provider configured.' }
+    }
+  }
 
   async findAll(orgId: string, query: { status?: string; search?: string; page?: number; limit?: number } = {}) {
     const { status, search, page = 1, limit = 30 } = query

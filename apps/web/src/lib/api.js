@@ -77,6 +77,8 @@ export const api = {
     }),
   updateConversationStatus: (id, status) =>
     request(`/conversations/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  summarizeConversation: (id) =>
+    request(`/conversations/${id}/summarize`, { method: 'POST' }),
 
   // Reports / Dashboard
   getDashboard: () =>

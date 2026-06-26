@@ -53,4 +53,10 @@ export class ConversationsController {
   ) {
     return this.conversations.updateStatus(id, body.status)
   }
+
+  // AI summary of the conversation thread
+  @Post(':id/summarize')
+  summarize(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.conversations.summarize(id, user.orgId)
+  }
 }

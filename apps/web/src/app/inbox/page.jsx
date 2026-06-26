@@ -56,6 +56,39 @@ function InboxInner() {
   const [search, setSearch] = useState('')
   const [aiMode, setAiMode] = useState(false)
   const [sending, setSending] = useState(false)
+  const [summary, setSummary] = useState(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [suggesting, setSuggesting] = useState(false)
+
+  const runSummary = async () => {
+    if (!selected) return
+    setSummaryLoading(true); setSummary(null)
+    try {
+      const r = await api.summarizeConversation(selected.convId)
+      setSummary(r.summary)
+    } catch (e) {
+      setSummary('⚠️ ' + (e?.message || 'Summary failed'))
+    } finally { setSummaryLoading(false) }
+  }
+
+  const suggestReply = async () => {
+    if (!selected) return
+    setSuggesting(true)
+    try {
+      const r = await api.generateReply(selected.convId)
+      if (r?.reply) setInput(r.reply)
+    } catch (e) {
+      alert('AI suggestion failed: ' + (e?.message || 'unknown'))
+    } finally { setSuggesting(false) }
+  }
+
+  const changeStatus = async (status) => {
+    if (!selected) return
+    try {
+      await api.updateConversationStatus(selected.convId, status)
+      setSelected(s => ({ ...s, convStatus: status }))
+    } catch {}
+  }
   const [filterChannel, setFilterChannel] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
   const [liveStatus, setLiveStatus] = useState('connecting')
@@ -157,6 +190,7 @@ function InboxInner() {
   const selectConversation = useCallback((c) => {
     setSelected(c)
     setMessages([])
+    setSummary(null)
     api.getMessages(c.convId)
       .then(res => {
         const list = Array.isArray(res) ? res : (res?.data || [])
@@ -312,7 +346,21 @@ function InboxInner() {
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748b' }}>{selected.phone}</div>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {/* Conversation status control */}
+                  <select value={selected.convStatus || 'OPEN'} onChange={e => changeStatus(e.target.value)}
+                    title="Conversation status"
+                    style={{ padding: '6px 8px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', fontSize: '11px', cursor: 'pointer' }}>
+                    <option value="OPEN">🟢 Open</option>
+                    <option value="PENDING">🟡 Pending</option>
+                    <option value="RESOLVED">✓ Resolved</option>
+                    <option value="SNOOZED">💤 Snoozed</option>
+                    <option value="SPAM">🚫 Spam</option>
+                  </select>
+                  <button onClick={runSummary} disabled={summaryLoading}
+                    style={{ padding: '6px 11px', background: 'rgba(167,139,250,.08)', border: '1px solid rgba(167,139,250,.25)', borderRadius: '6px', color: '#a78bfa', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>
+                    {summaryLoading ? '⟳ Summarizing…' : '✨ AI Summary'}
+                  </button>
                   {selected.contactId && (
                     <a href={`/contacts/${selected.contactId}`}
                       style={{ padding: '6px 11px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', fontSize: '11px', textDecoration: 'none' }}>
@@ -325,6 +373,17 @@ function InboxInner() {
                   </button>
                 </div>
               </div>
+
+              {/* AI Summary banner */}
+              {summary && (
+                <div style={{ padding: '12px 16px', background: 'rgba(167,139,250,.06)', borderBottom: '1px solid rgba(167,139,250,.15)', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#a78bfa', letterSpacing: '0.5px' }}>✨ AI CONVERSATION SUMMARY</span>
+                    <button onClick={() => setSummary(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px' }}>×</button>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{summary}</div>
+                </div>
+              )}
 
               {/* Messages */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#0a0f1a' }}>
@@ -361,6 +420,10 @@ function InboxInner() {
                     onFocus={e => e.target.style.borderColor = '#253045'}
                     onBlur={e => e.target.style.borderColor = '#1a2235'}
                   />
+                  <button onClick={suggestReply} disabled={suggesting} title="Let AI draft a reply"
+                    style={{ height: '40px', padding: '0 13px', background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.3)', borderRadius: '8px', color: '#a78bfa', fontWeight: '700', fontSize: '12px', cursor: suggesting ? 'wait' : 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    {suggesting ? '⟳' : '✨ Suggest'}
+                  </button>
                   <button onClick={sendMessage} disabled={sending || !input.trim()}
                     style={{ height: '40px', padding: '0 18px', background: sending || !input.trim() ? '#111622' : '#00e5a0', border: '1px solid', borderColor: sending || !input.trim() ? '#1a2235' : '#00e5a0', borderRadius: '8px', color: sending || !input.trim() ? '#475569' : '#0a0f1a', fontWeight: '800', fontSize: '12px', cursor: sending ? 'wait' : 'pointer', flexShrink: 0, transition: 'all .15s' }}>
                     {sending ? '⟳' : 'Send'}
