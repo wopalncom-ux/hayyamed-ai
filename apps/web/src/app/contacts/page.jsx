@@ -16,7 +16,17 @@ const toUi = (c) => ({
 })
 
 const statusColors = { 'NEW':'#3b82f6','CONTACTED':'#06b6d4','QUALIFYING':'#f97316','QUALIFIED':'#00e5a0','PROPOSAL':'#a78bfa','WON':'#16a34a','LOST':'#ef4444','Hot Lead':'#ef4444','Customer':'#00e5a0','Cold Lead':'#3b82f6','Prospect':'#f97316','New Lead':'#64748b' }
-const channelIcons = { 'WhatsApp':'💬', 'Instagram':'📸', 'Facebook':'👤', 'Telegram':'✈️', 'Email':'📧' }
+// Real contact status enum (what the API returns), with display labels.
+const STATUS_OPTIONS = [['NEW','New'],['CONTACTED','Contacted'],['QUALIFYING','Qualifying'],['QUALIFIED','Qualified'],['PROPOSAL','Proposal'],['WON','Won'],['LOST','Lost']]
+// Contact "source" is stored lowercase (website/whatsapp/instagram/import…); map it
+// to a friendly icon/label. Fixes blank icons + a channel filter that matched nothing.
+const SOURCE_META = {
+  whatsapp:{label:'WhatsApp',icon:'💬'}, website:{label:'Website',icon:'🌐'}, webchat:{label:'Website',icon:'🌐'},
+  live_chat:{label:'Website',icon:'🌐'}, instagram:{label:'Instagram',icon:'📸'}, facebook:{label:'Facebook',icon:'👤'},
+  messenger:{label:'Messenger',icon:'👤'}, telegram:{label:'Telegram',icon:'✈️'}, email:{label:'Email',icon:'📧'},
+  import:{label:'Import',icon:'📥'}, manual:{label:'Manual',icon:'✍️'},
+}
+const sourceMeta = (s) => SOURCE_META[String(s||'').toLowerCase()] || { label: s || 'Unknown', icon:'•' }
 const servicesList = ['Dental Checkup', 'Whitening', 'Surgery', 'Consultation', 'Follow Up', 'X-Ray', 'Cleaning', 'Braces']
 
 export default function Contacts() {
@@ -158,19 +168,14 @@ export default function Contacts() {
               
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'6px 10px', color:'#e2e8f0', fontSize:'11px', outline:'none', cursor:'pointer'}}>
                 <option value="All">All Status</option>
-                <option>Hot Lead</option>
-                <option>Cold Lead</option>
-                <option>Customer</option>
-                <option>Prospect</option>
-                <option>New Lead</option>
+                {STATUS_OPTIONS.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
               </select>
 
               <select value={filterChannel} onChange={e => setFilterChannel(e.target.value)} style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'6px 10px', color:'#e2e8f0', fontSize:'11px', outline:'none', cursor:'pointer'}}>
-                <option value="All">All Channels</option>
-                <option>WhatsApp</option>
-                <option>Instagram</option>
-                <option>Facebook</option>
-                <option>Telegram</option>
+                <option value="All">All Sources</option>
+                {Array.from(new Set(contacts.map(c => c.channel))).map(src => (
+                  <option key={src} value={src}>{sourceMeta(src).icon} {sourceMeta(src).label}</option>
+                ))}
               </select>
 
               <div style={{marginLeft:'auto', display:'flex', gap:'6px'}}>
@@ -216,7 +221,7 @@ export default function Contacts() {
                     </div>
                   </div>
                   <div><span style={{fontSize:'10px', padding:'3px 8px', borderRadius:'2px', background:`${statusColors[c.status]}20`, color:statusColors[c.status], fontWeight:'600'}}>{c.status}</span></div>
-                  <div style={{fontSize:'13px'}}>{channelIcons[c.channel]} <span style={{fontSize:'11px', color:'#7a8fa6'}}>{c.channel}</span></div>
+                  <div style={{fontSize:'13px'}}>{sourceMeta(c.channel).icon} <span style={{fontSize:'11px', color:'#7a8fa6'}}>{sourceMeta(c.channel).label}</span></div>
                   <div>
                     <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
                       <div style={{fontSize:'13px', fontWeight:'800', color: !c.score ? '#3d4f63' : c.score >= 80 ? '#22c55e' : c.score >= 60 ? '#00e5a0' : c.score >= 40 ? '#fbbf24' : c.score >= 20 ? '#f97316' : '#ef4444'}}>{c.score || '—'}</div>
@@ -252,7 +257,7 @@ export default function Contacts() {
               {[
                 {label:'Phone', value:selected.phone},
                 {label:'Email', value:selected.email || '—'},
-                {label:'Channel', value:`${channelIcons[selected.channel]} ${selected.channel}`},
+                {label:'Source', value:`${sourceMeta(selected.channel).icon} ${sourceMeta(selected.channel).label}`},
                 {label:'Source', value:selected.source},
                 {label:'Last Contact', value:selected.lastContact},
                 {label:'Follow Up', value:selected.followUp || '—'},
