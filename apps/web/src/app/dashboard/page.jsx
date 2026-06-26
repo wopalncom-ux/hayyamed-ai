@@ -3,6 +3,7 @@ import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '@/lib/api'
 import { getAuth, ROLE_LABELS, logout } from '@/lib/auth'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const fmt = (n) => n == null ? '—' : n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n)
 const fmtQar = (n) => (n || 0).toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 })
@@ -50,6 +51,7 @@ function QuickAction({ href, icon, label, color }) {
 }
 
 export default function Dashboard() {
+  const isMobile = useIsMobile()
   const [full, setFull] = useState(null)
   const [chart, setChart] = useState([])
   const [loading, setLoading] = useState(true)
@@ -105,7 +107,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '18px', flex: 1 }}>
+        <div style={{ padding: isMobile ? '14px 14px' : '20px 24px', display: 'flex', flexDirection: 'column', gap: '18px', flex: 1 }}>
 
           {/* Greeting + quick actions */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
@@ -146,7 +148,7 @@ export default function Dashboard() {
           </div>
 
           {/* Chart + Pipeline funnel */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '16px' }}>
 
             {/* 7-day chart */}
             <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
@@ -263,7 +265,7 @@ export default function Dashboard() {
           </div>
 
           {/* Campaigns + Activity Feed */}
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '3fr 2fr', gap: '16px' }}>
 
             {/* Top Campaigns */}
             <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
