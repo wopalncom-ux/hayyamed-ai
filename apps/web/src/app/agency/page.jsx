@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { getAuth, isOwnerRole } from '@/lib/auth'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 // ── Plan-based profit margins (hidden from clients) ──────────────────────────
 // "add X% on top" = X% of client revenue is your profit
@@ -54,6 +55,7 @@ const lbl = { fontSize:'10px', color:'#7a8fa6', marginBottom:'6px', display:'blo
 const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'8px', padding:'20px' }
 
 export default function Agency() {
+  const isMobile = useIsMobile()
   const [clients,    setClients]    = useState([])
   const [packages,   setPackages]   = useState([])
   const [selected,   setSelected]   = useState(null)
@@ -256,7 +258,7 @@ export default function Agency() {
         <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden'}}>
 
           {/* ── KPI strip ─────────────────────────────────────────────────── */}
-          <div style={{padding:'0 20px', background:'#0c0f1a', borderBottom:'1px solid #1e2d42', display:'grid', gridTemplateColumns:'repeat(6,1fr)', flexShrink:0}}>
+          <div style={{padding:'0 20px', background:'#0c0f1a', borderBottom:'1px solid #1e2d42', display:'grid', gridTemplateColumns: isMobile ? 'repeat(3,1fr)' : 'repeat(6,1fr)', flexShrink:0}}>
             {[
               { label:'TOTAL CLIENTS',  value: clients.length,                         color:'#e2e8f0' },
               { label:'MONTHLY REVENUE',value:`QAR ${totalRev.toLocaleString()}`,       color:'#00e5a0' },
@@ -298,7 +300,7 @@ export default function Agency() {
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === 'clients' && (
             <div style={{flex:1, display:'flex', overflow:'hidden'}}>
-              <div style={{flex:1, overflowY:'auto', padding:'18px', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'14px', alignContent:'start'}}>
+              <div style={{flex:1, overflowY:'auto', padding:'18px', display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:'14px', alignContent:'start'}}>
                 {filtered.map(c => {
                   const profit = profitOf(c.monthlyRev, c.plan, c.customMargin)
                   const margin = Math.round((profit / c.monthlyRev) * 100)
@@ -354,7 +356,7 @@ export default function Agency() {
 
               {/* ── Client detail panel ──────────────────────────────────────── */}
               {selected && (
-                <div style={{width:'300px', borderLeft:'1px solid #1e2d42', background:'#0c0f1a', padding:'22px', overflowY:'auto', flexShrink:0}}>
+                <div style={{width: isMobile ? '100%' : '300px', borderLeft:'1px solid #1e2d42', background:'#0c0f1a', padding:'22px', overflowY:'auto', flexShrink:0}}>
                   <div style={{textAlign:'center', marginBottom:'20px'}}>
                     <div style={{width:'56px', height:'56px', borderRadius:'12px', background:selected.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'26px', margin:'0 auto 10px'}}>{selected.logo}</div>
                     <div style={{fontWeight:'800', fontSize:'15px'}}>{selected.name}</div>
@@ -449,7 +451,7 @@ export default function Agency() {
           {activeTab === 'profit' && (
             <div style={{flex:1, overflowY:'auto', padding:'24px'}}>
               {/* Margin legend */}
-              <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px', marginBottom:'20px'}}>
+              <div style={{display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap:'12px', marginBottom:'20px'}}>
                 {[
                   { plan:'PAYG',       margin:35, color:'#ef4444', desc:'Pay as you go' },
                   { plan:'Starter',    margin:30, color:'#fbbf24', desc:'QAR 299/month' },
@@ -466,7 +468,7 @@ export default function Agency() {
               </div>
 
               {/* Summary KPIs */}
-              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px', marginBottom:'20px'}}>
+              <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:'12px', marginBottom:'20px'}}>
                 {[
                   { label:'Total Monthly Revenue', value:`QAR ${totalRev.toLocaleString()}`,    sub:'All clients combined',     color:'#00e5a0', icon:'💰' },
                   { label:'Your Net Profit',        value:`QAR ${totalProfit.toLocaleString()}`, sub:`${Math.round(totalProfit/totalRev*100)}% blended margin`, color:'#a78bfa', icon:'📈' },

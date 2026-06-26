@@ -2,6 +2,7 @@
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const STATUS_COLORS = {
   PENDING:     '#f97316',
@@ -50,6 +51,7 @@ function formatDate(dateStr) {
 }
 
 export default function BookingsPage() {
+  const isMobile = useIsMobile()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('calendar') // calendar | list
@@ -197,7 +199,7 @@ export default function BookingsPage() {
           ))}
         </div>
 
-        <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
+        <div style={{ flex:1, display:'flex', flexDirection: isMobile ? 'column' : 'row', overflow: isMobile ? 'auto' : 'hidden' }}>
           {view === 'calendar' ? (
             /* Calendar View */
             <div style={{ flex:1, overflow:'auto' }}>
@@ -307,7 +309,7 @@ export default function BookingsPage() {
 
           {/* Booking Detail Sidebar */}
           {selected && (
-            <div style={{ width:'300px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', padding:'16px', overflow:'auto', flexShrink:0 }}>
+            <div style={{ width: isMobile ? '100%' : '300px', borderLeft: isMobile ? 'none' : '1px solid #1a2235', borderTop: isMobile ? '1px solid #1a2235' : 'none', background:'#0c0f1a', padding:'16px', overflow:'auto', flexShrink:0 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
                 <div style={{ fontWeight:'700', fontSize:'14px' }}>Booking Detail</div>
                 <button onClick={() => setSelected(null)} style={{ background:'none', border:'none', color:'#64748b', cursor:'pointer', fontSize:'18px' }}>×</button>

@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import { getAuth, logout } from '@/lib/auth'
 import NavSidebar from '@/components/NavSidebar'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 export default function Profile() {
+  const isMobile = useIsMobile()
   const [saved,   setSaved]   = useState(false)
   const [name,    setName]    = useState('')
   const [email,   setEmail]   = useState('')
@@ -108,7 +110,7 @@ export default function Profile() {
             {!loading && kpis && (
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'8px', marginBottom:'16px'}}>
                 <div style={{fontWeight:'700', fontSize:'14px', marginBottom:'16px'}}>Account Stats</div>
-                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px'}}>
+                <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:'12px'}}>
                   {[
                     {label:'Total Contacts', value: kpis.totalLeads},
                     {label:'Conversations',  value: kpis.totalConvs},

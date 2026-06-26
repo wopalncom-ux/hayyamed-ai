@@ -2,6 +2,7 @@
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const AI_PROVIDERS = [
   { id:'openai',    label:'OpenAI GPT',    models:['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'] },
@@ -100,6 +101,7 @@ function AgentCard({ agent, isSelected, onClick, onToggle }) {
 }
 
 export default function AIAgentBuilder() {
+  const isMobile = useIsMobile()
   const [agents, setAgents] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
@@ -195,11 +197,11 @@ export default function AIAgentBuilder() {
   }
 
   return (
-    <div style={{ display:'flex', height:'100vh', background:'#07090f', color:'#e2e8f0', fontFamily:'system-ui, sans-serif' }}>
+    <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight:'100vh', background:'#07090f', color:'#e2e8f0', fontFamily:'system-ui, sans-serif' }}>
       <NavSidebar />
 
       {/* Agent List Column */}
-      <div style={{ width:'320px', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', flexShrink:0 }}>
+      <div style={{ width: isMobile ? '100%' : '320px', maxHeight: isMobile ? '40vh' : 'none', borderRight: isMobile ? 'none' : '1px solid #1a2235', borderBottom: isMobile ? '1px solid #1a2235' : 'none', display:'flex', flexDirection:'column', flexShrink:0 }}>
         <div style={{ padding:'16px', borderBottom:'1px solid #1a2235' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }}>
             <div>

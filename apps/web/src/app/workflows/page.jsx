@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const TRIGGERS = [
   { value: 'new_contact',    label: 'New Contact Created',      icon: '👤', desc: 'Fires when a contact is added manually or via WhatsApp' },
@@ -189,6 +190,7 @@ const textareaStyle = { ...inputStyle, resize: 'vertical', display: 'block' }
 const btnSm = { padding: '3px 7px', background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '4px', color: '#94a3b8', cursor: 'pointer', fontSize: '12px' }
 
 export default function WorkflowsPage() {
+  const isMobile = useIsMobile()
   const [workflows, setWorkflows] = useState([])
   const [runs, setRuns] = useState([])
   const [runStats, setRunStats] = useState(null)
@@ -327,7 +329,7 @@ export default function WorkflowsPage() {
 
         {/* Stats */}
         {runStats && view !== 'builder' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
             {[
               { label: 'Total Runs', value: runStats.total, color: '#64748b' },
               { label: 'Running', value: runStats.running, color: '#3b82f6' },
@@ -494,7 +496,7 @@ export default function WorkflowsPage() {
               <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '800' }}>{editing ? 'Edit Workflow' : 'New Workflow'}</h2>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: '20px', alignItems: 'start' }}>
               {/* Main builder */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Name */}

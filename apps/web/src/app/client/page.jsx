@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { getAuth } from '@/lib/auth'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'10px', padding:'20px' }
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -18,6 +19,7 @@ function timeAgo(dateStr) {
 }
 
 export default function ClientPortal() {
+  const isMobile = useIsMobile()
   const [auth,      setAuth]      = useState({})
   const [stats,     setStats]     = useState(null)
   const [analytics, setAnalytics] = useState(null)
@@ -115,7 +117,7 @@ export default function ClientPortal() {
         </div>
 
         {/* ── KPI cards ──────────────────────────────────────────────────── */}
-        <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'14px', marginBottom:'24px'}}>
+        <div style={{display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap:'14px', marginBottom:'24px'}}>
           {[
             { label:'TOTAL CONTACTS',   value: stats ? stats.totalContacts?.toLocaleString() : '—', sub:'In your database', color:'#00e5a0', icon:'👥' },
             { label:'MESSAGES SENT',    value: stats ? stats.totalMessages?.toLocaleString() : '—', sub:'All time',         color:'#3b82f6', icon:'💬' },
@@ -152,7 +154,7 @@ export default function ClientPortal() {
             TAB: OVERVIEW
         ══════════════════════════════════════════════════════════════════ */}
         {activeTab === 'overview' && (
-          <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:'20px'}}>
+          <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap:'20px'}}>
 
             {/* Weekly chart */}
             <div style={card}>
@@ -234,7 +236,7 @@ export default function ClientPortal() {
                     <div style={{fontWeight:'800', fontSize:'14px', marginBottom:'4px'}}>{c.name}</div>
                     <div style={{fontSize:'11px', color:'#7a8fa6'}}>{c.channel || c.channelType || 'WhatsApp'} · <span style={{color:stColor, fontWeight:'700'}}>{st}</span></div>
                   </div>
-                  <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'20px', textAlign:'center'}}>
+                  <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:'20px', textAlign:'center'}}>
                     {[
                       { label:'SENT',      value:(c.sentCount ?? c.sent ?? 0).toLocaleString(), color:'#e2e8f0' },
                       { label:'READ',      value:(c.readCount ?? 0).toLocaleString(),            color:'#3b82f6' },

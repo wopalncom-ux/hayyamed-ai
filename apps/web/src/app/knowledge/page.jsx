@@ -2,6 +2,7 @@
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect, useRef } from 'react'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const SOURCE_TYPES = [
   { id:'text',         label:'Plain Text',    emoji:'📝', hint:'Paste any text content — FAQ, policies, product descriptions' },
@@ -33,6 +34,7 @@ function KBCard({ kb, isSelected, onClick }) {
 }
 
 export default function KnowledgeBasePage() {
+  const isMobile = useIsMobile()
   const [kbs, setKbs] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -163,11 +165,11 @@ export default function KnowledgeBasePage() {
   }
 
   return (
-    <div style={{ display:'flex', height:'100vh', background:'#07090f', color:'#e2e8f0', fontFamily:'system-ui, sans-serif' }}>
+    <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight:'100vh', background:'#07090f', color:'#e2e8f0', fontFamily:'system-ui, sans-serif' }}>
       <NavSidebar />
 
       {/* Left: KB List */}
-      <div style={{ width:'300px', borderRight:'1px solid #1a2235', display:'flex', flexDirection:'column', flexShrink:0 }}>
+      <div style={{ width: isMobile ? '100%' : '300px', maxHeight: isMobile ? '38vh' : 'none', borderRight: isMobile ? 'none' : '1px solid #1a2235', borderBottom: isMobile ? '1px solid #1a2235' : 'none', display:'flex', flexDirection:'column', flexShrink:0 }}>
         <div style={{ padding:'16px', borderBottom:'1px solid #1a2235' }}>
           <div style={{ fontSize:'10px', color:'#a78bfa', fontWeight:'700', letterSpacing:'0.06em', marginBottom:'4px' }}>RAG KNOWLEDGE BASE</div>
           <div style={{ fontSize:'16px', fontWeight:'800', marginBottom:'12px' }}>Knowledge Library</div>
