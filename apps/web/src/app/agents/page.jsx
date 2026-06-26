@@ -244,6 +244,26 @@ export default function AIAgentBuilder() {
     setEditing({ ...editing, channels: channels.includes(ch) ? channels.filter(c=>c!==ch) : [...channels, ch] })
   }
 
+  // Launch-readiness checklist — what an agent needs before going live.
+  const readiness = editing ? [
+    { label: 'Agent name set',                ok: !!(editing.name || '').trim(),       required: true,  tab: 'identity' },
+    { label: 'Objective defined',             ok: !!(editing.objective || '').trim(),  required: true,  tab: 'identity' },
+    { label: 'Knowledge base linked',         ok: !!editing.knowledgeBaseId,           required: false, tab: 'behavior' },
+    { label: 'At least one channel selected', ok: (editing.channels || []).length > 0, required: true,  tab: 'channels' },
+    { label: 'Saved',                         ok: !!editing.id,                        required: true,  tab: 'identity' },
+  ] : []
+  const missingRequired = readiness.filter(r => r.required && !r.ok)
+
+  // Guarded go-live: block + explain if requirements aren't met.
+  const goLive = () => {
+    if (missingRequired.length) {
+      setTab('test')
+      alert('Complete these before going live:\n' + missingRequired.map(r => '• ' + r.label).join('\n'))
+      return
+    }
+    toggleAgent(editing)
+  }
+
   return (
     <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight:'100vh', background:'#07090f', color:'#e2e8f0', fontFamily:'system-ui, sans-serif' }}>
       <NavSidebar />
@@ -304,10 +324,14 @@ export default function AIAgentBuilder() {
                 {editing.id && (
                   <>
                     <button
-                      onClick={() => toggleAgent(editing)}
+                      onClick={() => editing.isActive ? toggleAgent(editing) : goLive()}
+                      title={!editing.isActive && missingRequired.length ? 'Missing: ' + missingRequired.map(r=>r.label).join(', ') : ''}
                       style={{ padding:'7px 14px', background: editing.isActive ? 'rgba(239,68,68,.1)' : 'rgba(0,229,160,.1)', border:`1px solid ${editing.isActive ? 'rgba(239,68,68,.3)' : 'rgba(0,229,160,.3)'}`, borderRadius:'6px', color: editing.isActive ? '#ef4444' : '#00e5a0', fontSize:'11px', cursor:'pointer', fontWeight:'700' }}
                     >
                       {editing.isActive ? '⏹ Turn Off' : '▶ Go Live'}
+                      {!editing.isActive && missingRequired.length > 0 && (
+                        <span style={{ marginLeft:'6px', fontSize:'9px', background:'rgba(245,158,11,.2)', color:'#f59e0b', padding:'1px 5px', borderRadius:'8px' }}>{missingRequired.length}</span>
+                      )}
                     </button>
                     <button onClick={deleteAgent} style={{ padding:'7px 12px', background:'rgba(239,68,68,.08)', border:'1px solid rgba(239,68,68,.15)', borderRadius:'6px', color:'#ef4444', fontSize:'11px', cursor:'pointer' }}>
                       🗑 Delete
@@ -560,6 +584,35 @@ export default function AIAgentBuilder() {
                     </div>
                   ) : (
                     <>
+                      {/* Launch readiness */}
+                      <div style={{ background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'10px', padding:'14px', marginBottom:'14px' }}>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>
+                          <div style={{ fontSize:'12px', fontWeight:'700', color:'#e2e8f0' }}>🚀 Launch readiness</div>
+                          <span style={{ fontSize:'10px', fontWeight:'700', color: missingRequired.length ? '#f59e0b' : '#00e5a0' }}>
+                            {missingRequired.length ? `${missingRequired.length} required item${missingRequired.length>1?'s':''} left` : '✓ Ready to go live'}
+                          </span>
+                        </div>
+                        <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+                          {readiness.map(r => (
+                            <button key={r.label} onClick={() => !r.ok && setTab(r.tab)}
+                              style={{ display:'flex', alignItems:'center', gap:'8px', background:'none', border:'none', padding:'2px 0', cursor: r.ok ? 'default' : 'pointer', textAlign:'left' }}>
+                              <span style={{ fontSize:'12px', width:'16px', color: r.ok ? '#00e5a0' : (r.required ? '#f59e0b' : '#64748b') }}>{r.ok ? '✓' : (r.required ? '○' : '·')}</span>
+                              <span style={{ fontSize:'12px', color: r.ok ? '#94a3b8' : '#e2e8f0' }}>{r.label}</span>
+                              {!r.required && <span style={{ fontSize:'9px', color:'#3d4f63' }}>(recommended)</span>}
+                              {!r.ok && <span style={{ fontSize:'10px', color:'#3b82f6', marginLeft:'auto' }}>fix →</span>}
+                            </button>
+                          ))}
+                        </div>
+                        {missingRequired.length === 0 && !editing.isActive && (
+                          <button onClick={goLive} style={{ marginTop:'12px', width:'100%', padding:'9px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}>
+                            ▶ Go Live Now
+                          </button>
+                        )}
+                        {editing.isActive && (
+                          <div style={{ marginTop:'10px', fontSize:'11px', color:'#00e5a0', fontWeight:'700' }}>● This agent is LIVE and handling messages.</div>
+                        )}
+                      </div>
+
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px' }}>
                         <div style={{ fontSize:'12px', color:'#64748b' }}>
                           Talk to <strong style={{ color:'#e2e8f0' }}>{editing.name}</strong> exactly as a customer would. It replies using its provider + knowledge base.
