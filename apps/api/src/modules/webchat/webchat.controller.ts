@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, BadRequestException } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import { WebchatService } from './webchat.service'
 import { Public } from '../../common/decorators/public.decorator'
@@ -16,7 +16,11 @@ export class WebchatController {
     @Param('orgId') orgId: string,
     @Body() body: { sessionId: string; text: string; name?: string },
   ) {
-    return this.svc.receiveMessage(orgId, body.sessionId, body.text, body.name)
+    const { sessionId, text, name } = body || {}
+    if (!sessionId || !text) {
+      throw new BadRequestException('sessionId and text are required')
+    }
+    return this.svc.receiveMessage(orgId, sessionId, text, name)
   }
 
   @Get(':orgId/session/:sessionId')

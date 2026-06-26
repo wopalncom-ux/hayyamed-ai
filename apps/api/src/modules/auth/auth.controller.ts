@@ -30,33 +30,53 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle(AUTH_LIMIT)
   login(@Body() body: { email: string; password: string }) {
-    return this.auth.login(body.email, body.password)
+    const { email, password } = body || {}
+    if (!email || !password) {
+      throw new BadRequestException('email and password are required')
+    }
+    return this.auth.login(email, password)
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@Body() body: { userId: string }) {
-    return this.auth.logout(body.userId)
+    const { userId } = body || {}
+    if (!userId) {
+      throw new BadRequestException('userId is required')
+    }
+    return this.auth.logout(userId)
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @Throttle(REFRESH_LIMIT)
   refresh(@Body() body: { userId: string; refreshToken: string }) {
-    return this.auth.refreshTokens(body.userId, body.refreshToken)
+    const { userId, refreshToken } = body || {}
+    if (!userId || !refreshToken) {
+      throw new BadRequestException('userId and refreshToken are required')
+    }
+    return this.auth.refreshTokens(userId, refreshToken)
   }
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @Throttle(FORGOT_LIMIT)
   forgotPassword(@Body() body: { email: string }) {
-    return this.auth.forgotPassword(body.email)
+    const { email } = body || {}
+    if (!email) {
+      throw new BadRequestException('email is required')
+    }
+    return this.auth.forgotPassword(email)
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @Throttle(AUTH_LIMIT)
   resetPassword(@Body() body: { token: string; password: string }) {
-    return this.auth.resetPassword(body.token, body.password)
+    const { token, password } = body || {}
+    if (!token || !password) {
+      throw new BadRequestException('token and password are required')
+    }
+    return this.auth.resetPassword(token, password)
   }
 }
