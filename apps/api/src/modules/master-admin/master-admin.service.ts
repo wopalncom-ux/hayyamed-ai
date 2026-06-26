@@ -1,9 +1,10 @@
 import { Injectable, ForbiddenException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
+import { EmailService } from '../email/email.service'
 
 @Injectable()
 export class MasterAdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private email: EmailService) {}
 
   private async assertOwner(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } })
@@ -216,32 +217,44 @@ export class MasterAdminService {
     })
   }
 
-  async createOrg(userId: string, dto: { name: string; slug: string; industry?: string; country?: string; adminName: string; adminEmail: string }) {
+  // One-click client provisioning: org + admin user + plan + welcome email.
+  async createOrg(userId: string, dto: { name: string; industry?: string; country?: string; plan?: string; adminName: string; adminEmail: string }) {
     await this.assertOwner(userId)
+    if (!dto.name || !dto.adminEmail) throw new ForbiddenException('Client name and admin email are required')
+
+    const exists = await this.prisma.user.findUnique({ where: { email: dto.adminEmail } })
+    if (exists) throw new ForbiddenException('A user with that admin email already exists')
+
     const bcrypt = require('bcryptjs')
-    const tempPassword = 'Change@2025'
-    const hash = await bcrypt.hash(tempPassword, 10)
+    const slug = dto.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 40) + '-' + Date.now().toString(36)
+    const tempPassword = `Hm${Math.random().toString(36).slice(-6)}@${Math.floor(Math.random() * 90 + 10)}`
+    const hash = await bcrypt.hash(tempPassword, 12)
+    const plan = ['STARTER', 'GROWTH', 'ENTERPRISE'].includes((dto.plan || '').toUpperCase()) ? (dto.plan as any).toUpperCase() : 'STARTER'
 
     const org = await this.prisma.organization.create({
       data: {
         name: dto.name,
-        slug: dto.slug,
+        slug,
         industry: dto.industry,
         country: dto.country || 'QA',
-        settings: { create: { aiEnabled: true, autoReply: false } },
+        plan,
+        settings: { create: { aiEnabled: true, autoReply: false, language: 'ar', rtlEnabled: true } },
         users: {
-          create: {
-            name: dto.adminName,
-            email: dto.adminEmail,
-            role: 'ADMIN',
-            password: hash,
-          },
+          create: { name: dto.adminName || dto.name, email: dto.adminEmail, role: 'ADMIN', password: hash },
         },
       },
       include: { users: { select: { id: true, email: true, name: true } } },
     })
 
-    return { org, tempPassword }
+    const loginUrl = `${process.env.FRONTEND_URL || 'https://www.hayyaai.com'}/login`
+    // Welcome email with credentials (best-effort; dry-run if Postmark not set)
+    this.email.sendWelcome(dto.adminEmail, {
+      name: dto.adminName || dto.name,
+      orgName: dto.name,
+      loginUrl,
+    }).catch(() => {})
+
+    return { org, tempPassword, loginUrl, plan }
   }
 
   async getAuditLogs(userId: string, query: { orgId?: string; page?: number; limit?: number } = {}) {
