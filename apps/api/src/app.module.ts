@@ -38,6 +38,7 @@ import { EmailModule } from './modules/email/email.module'
 import { WebchatModule } from './modules/webchat/webchat.module'
 import { TelegramModule } from './modules/telegram/telegram.module'
 import { QuickRepliesModule } from './modules/quick-replies/quick-replies.module'
+import { MyFatoorahModule } from './modules/myfatoorah/myfatoorah.module'
 import { DatabaseModule } from './database/database.module'
 import { GatewayModule } from './common/gateways/gateway.module'
 
@@ -83,6 +84,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     WebchatModule,
     TelegramModule,
     QuickRepliesModule,
+    MyFatoorahModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

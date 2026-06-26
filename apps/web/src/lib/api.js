@@ -132,6 +132,16 @@ export const api = {
   getTeam: () =>
     request('/users/team'),
 
+  // MyFatoorah payments
+  getMyFatoorahStatus: () =>
+    request('/payments/myfatoorah/status'),
+  saveMyFatoorahConfig: (apiToken, isTest, country) =>
+    request('/payments/myfatoorah/config', { method: 'POST', body: JSON.stringify({ apiToken, isTest, country }) }),
+  disconnectMyFatoorah: () =>
+    request('/payments/myfatoorah/disconnect', { method: 'POST' }),
+  createMyFatoorahPayment: (dto) =>
+    request('/payments/myfatoorah/pay', { method: 'POST', body: JSON.stringify(dto) }),
+
   // Saved Replies (canned responses)
   getQuickReplies: () =>
     request('/quick-replies'),
