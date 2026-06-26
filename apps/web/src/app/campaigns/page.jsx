@@ -13,7 +13,8 @@ const templates = [
   { id:6, name:'Email Newsletter', channel:'Email', text:'Dear {name},\n\nWe hope this message finds you well. We wanted to share some exciting updates about our services.\n\nWe have been working hard to improve your experience and we would love for you to be among the first to benefit.\n\nClick below to learn more.\n\nBest regards,\nHayyamed AI Team', category:'Email' },
 ]
 
-const statusColors = { Active:'#00e5a0', Completed:'#3b82f6', Draft:'#f97316', Scheduled:'#a78bfa' }
+// Keyed by the real campaign status enum (RUNNING/COMPLETED/PAUSED/FAILED/DRAFT/SCHEDULED).
+const statusColors = { DRAFT:'#64748b', SCHEDULED:'#a78bfa', RUNNING:'#00e5a0', COMPLETED:'#3b82f6', PAUSED:'#fbbf24', FAILED:'#ef4444' }
 const channelIcons = { WhatsApp:'💬', Instagram:'📸', Facebook:'👤', Telegram:'✈️', Email:'📧' }
 const channelColors = { WhatsApp:'#00e5a0', Instagram:'#a78bfa', Facebook:'#3b82f6', Telegram:'#f97316', Email:'#fbbf24' }
 
@@ -539,8 +540,8 @@ export default function Campaigns() {
                     <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px'}}>
                       <div>
                         <div style={{fontWeight:'700', fontSize:'14px', display:'flex', alignItems:'center', gap:'8px'}}>
-                          {channelIcons[c.channel]} {c.name}
-                          <span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[c.status]}20`, color:statusColors[c.status]}}>{c.status}</span>
+                          {channelIcons[c.channel] || '📤'} {c.name}
+                          <span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${statusColors[c.status] || '#64748b'}20`, color:statusColors[c.status] || '#64748b'}}>{c.status}</span>
                         </div>
                         <div style={{fontSize:'11px', color:'#3d4f63', marginTop:'3px'}}>{c.date}</div>
                       </div>
