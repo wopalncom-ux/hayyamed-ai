@@ -50,6 +50,8 @@ export const api = {
     request(`/contacts/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
   deleteContact: (id) =>
     request(`/contacts/${id}`, { method: 'DELETE' }),
+  bulkContacts: (ids, action, value) =>
+    request('/contacts/bulk', { method: 'POST', body: JSON.stringify({ ids, action, value }) }),
 
   // Campaigns
   getCampaigns: (params = {}) =>

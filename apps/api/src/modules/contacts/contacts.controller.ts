@@ -46,6 +46,15 @@ export class ContactsController {
     return this.contacts.create(user.orgId, dto)
   }
 
+  @Post('bulk')
+  bulk(@CurrentUser() user: JwtPayload, @Body() body: { ids: string[]; action: string; value?: string }) {
+    const { ids, action, value } = body || ({} as any)
+    if (!Array.isArray(ids) || ids.length === 0 || !action) {
+      throw new BadRequestException('ids[] and action are required')
+    }
+    return this.contacts.bulk(user.orgId, ids, action, value)
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() dto: any) {
     return this.contacts.update(id, user.orgId, dto)

@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common'
+import { Injectable, Optional, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { WorkflowEngineService } from '../workflows/workflow-engine.service'
 
@@ -58,6 +58,21 @@ export class ContactsService {
 
   async remove(id: string, orgId: string) {
     return this.prisma.contact.deleteMany({ where: { id, orgId } })
+  }
+
+  // Bulk actions over a set of contacts (always org-scoped).
+  async bulk(orgId: string, ids: string[], action: string, value?: string) {
+    const where = { id: { in: ids }, orgId }
+    if (action === 'delete') {
+      const r = await this.prisma.contact.deleteMany({ where })
+      return { ok: true, action, count: r.count }
+    }
+    if (action === 'status') {
+      if (!value) throw new BadRequestException('value (status) is required')
+      const r = await this.prisma.contact.updateMany({ where, data: { status: value as any } })
+      return { ok: true, action, count: r.count }
+    }
+    throw new BadRequestException('Unsupported bulk action')
   }
 
   async getStats(orgId: string) {

@@ -53,6 +53,32 @@ export default function Contacts() {
   const [tab, setTab] = useState('list')
   const [scoringAll, setScoringAll] = useState(false)
 
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState([])
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const toggleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  const clearSelection = () => setSelectedIds([])
+  const bulkStatus = async (value) => {
+    if (!value || selectedIds.length === 0) return
+    setBulkBusy(true)
+    try {
+      await api.bulkContacts(selectedIds, 'status', value)
+      setContacts(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, status: value } : c))
+      clearSelection()
+    } catch (e) { alert('Bulk update failed: ' + (e?.message || 'error')) }
+    finally { setBulkBusy(false) }
+  }
+  const bulkDelete = async () => {
+    if (selectedIds.length === 0 || !confirm(`Delete ${selectedIds.length} contact(s)? This cannot be undone.`)) return
+    setBulkBusy(true)
+    try {
+      await api.bulkContacts(selectedIds, 'delete')
+      setContacts(prev => prev.filter(c => !selectedIds.includes(c.id)))
+      clearSelection()
+    } catch (e) { alert('Bulk delete failed: ' + (e?.message || 'error')) }
+    finally { setBulkBusy(false) }
+  }
+
   const [newContact, setNewContact] = useState({
     phone:'', name:'', email:'', status:'New Lead', channel:'WhatsApp', services:[], notes:''
   })
@@ -198,6 +224,21 @@ export default function Contacts() {
               </div>
             </div>
 
+            {/* Bulk action toolbar */}
+            {selectedIds.length > 0 && (
+              <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', padding:'8px 18px', background:'rgba(0,229,160,.06)', borderBottom:'1px solid rgba(0,229,160,.2)'}}>
+                <span style={{fontSize:'12px', fontWeight:'700', color:'#00e5a0'}}>{selectedIds.length} selected</span>
+                <select defaultValue="" onChange={e => { bulkStatus(e.target.value); e.target.value = '' }} disabled={bulkBusy}
+                  style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'5px 9px', color:'#e2e8f0', fontSize:'11px', cursor:'pointer'}}>
+                  <option value="" disabled>Set status…</option>
+                  {STATUS_OPTIONS.map(([val,label]) => <option key={val} value={val}>{label}</option>)}
+                </select>
+                <button onClick={bulkDelete} disabled={bulkBusy} style={{padding:'5px 11px', background:'rgba(239,68,68,.1)', border:'1px solid rgba(239,68,68,.3)', borderRadius:'4px', color:'#ef4444', fontSize:'11px', fontWeight:'700', cursor:'pointer'}}>🗑 Delete</button>
+                <button onClick={clearSelection} style={{padding:'5px 11px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#94a3b8', fontSize:'11px', cursor:'pointer'}}>Clear</button>
+                {bulkBusy && <span style={{fontSize:'11px', color:'#64748b'}}>Working…</span>}
+              </div>
+            )}
+
             {/* Table — horizontally scrollable on mobile */}
             <div style={{flex:1, display:'flex', flexDirection:'column', overflowX: isMobile ? 'auto' : 'visible', overflowY:'hidden'}}>
             {/* Table Header */}
@@ -214,6 +255,9 @@ export default function Contacts() {
                   onMouseEnter={e => { if (!selected || selected.id !== c.id) e.currentTarget.style.background = '#0f1624' }}
                   onMouseLeave={e => { if (!selected || selected.id !== c.id) e.currentTarget.style.background = 'none' }}>
                   <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                    <input type="checkbox" checked={selectedIds.includes(c.id)}
+                      onClick={e => e.stopPropagation()} onChange={() => toggleSelect(c.id)}
+                      style={{ accentColor:'#00e5a0', width:'15px', height:'15px', cursor:'pointer', flexShrink:0 }} />
                     <div style={{width:'32px', height:'32px', borderRadius:'50%', background:c.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'700', color:'#07090f', flexShrink:0}}>{c.avatar}</div>
                     <div>
                       <div style={{fontSize:'12px', fontWeight:'600'}}>{c.name || <span style={{color:'#3d4f63'}}>No name</span>}</div>
