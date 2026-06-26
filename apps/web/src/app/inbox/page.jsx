@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { api } from '@/lib/api'
 import { getAuth } from '@/lib/auth'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const COLORS = ['#00e5a0', '#3b82f6', '#a78bfa', '#f97316', '#ef4444', '#fbbf24', '#06b6d4']
 const statusColors = { 'Hot Lead': '#ef4444', 'Cold Lead': '#3b82f6', 'New Lead': '#f97316', 'Customer': '#00e5a0' }
@@ -43,6 +44,7 @@ function toUiMsg(m) {
 }
 
 function InboxInner() {
+  const isMobile = useIsMobile()
   const searchParams = useSearchParams()
   const targetConvId = searchParams.get('conv')
 
@@ -224,8 +226,8 @@ function InboxInner() {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <NavSidebar current="inbox" />
 
-        {/* Conversation List */}
-        <div style={{ width: '295px', borderRight: '1px solid #1a2235', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#0c0f1a' }}>
+        {/* Conversation List — full width on mobile, hidden when a thread is open */}
+        <div style={{ width: isMobile ? '100%' : '295px', borderRight: '1px solid #1a2235', display: (isMobile && selected) ? 'none' : 'flex', flexDirection: 'column', flexShrink: 0, background: '#0c0f1a' }}>
           <div style={{ padding: '12px', borderBottom: '1px solid #1a2235' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ fontWeight: '800', fontSize: '14px' }}>
@@ -286,7 +288,7 @@ function InboxInner() {
         </div>
 
         {/* Chat Area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: (isMobile && !selected) ? 'none' : 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {!selected ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '14px' }}>
               Select a conversation to start
@@ -295,6 +297,10 @@ function InboxInner() {
             <>
               {/* Chat Header */}
               <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a2235', background: '#0c0f1a', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                {isMobile && (
+                  <button onClick={() => setSelected(null)} title="Back"
+                    style={{ background: 'none', border: 'none', color: '#00e5a0', fontSize: '20px', cursor: 'pointer', padding: '0 4px 0 0', lineHeight: 1 }}>←</button>
+                )}
                 <div style={{ position: 'relative' }}>
                   <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: selected.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800', color: '#0a0f1a' }}>{selected.avatar}</div>
                   <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', fontSize: '10px', background: '#0c0f1a', borderRadius: '50%', padding: '1px' }}>{channelIcons[selected.channel]}</div>

@@ -2,6 +2,7 @@
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const COLORS = ['#00e5a0','#3b82f6','#a78bfa','#f97316','#ef4444','#fbbf24','#06b6d4']
 const toUi = (c) => ({
@@ -19,6 +20,7 @@ const channelIcons = { 'WhatsApp':'💬', 'Instagram':'📸', 'Facebook':'👤',
 const servicesList = ['Dental Checkup', 'Whitening', 'Surgery', 'Consultation', 'Follow Up', 'X-Ray', 'Cleaning', 'Braces']
 
 export default function Contacts() {
+  const isMobile = useIsMobile()
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -191,15 +193,17 @@ export default function Contacts() {
               </div>
             </div>
 
+            {/* Table — horizontally scrollable on mobile */}
+            <div style={{flex:1, display:'flex', flexDirection:'column', overflowX: isMobile ? 'auto' : 'visible', overflowY:'hidden'}}>
             {/* Table Header */}
-            <div style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1.5fr 0.8fr', padding:'8px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
+            <div style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1.5fr 0.8fr', minWidth: isMobile ? '680px' : 'auto', padding:'8px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
               {['NAME & PHONE','STATUS','CHANNEL','SCORE','SERVICES','LAST CONTACT'].map(h => (
                 <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px', fontWeight:'700'}}>{h}</div>
               ))}
             </div>
 
             {/* Table Rows */}
-            <div style={{flex:1, overflowY:'auto'}}>
+            <div style={{flex:1, overflowY:'auto', minWidth: isMobile ? '680px' : 'auto'}}>
               {filtered.map(c => (
                 <div key={c.id} onClick={() => c.id && !c.id.startsWith('local-') ? window.location.href = `/contacts/${c.id}` : setSelected(selected?.id===c.id ? null : c)} style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1.5fr 0.8fr', padding:'10px 18px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', alignItems:'center', borderLeft: selected?.id===c.id ? '2px solid #00e5a0' : '2px solid transparent'}}
                   onMouseEnter={e => { if (!selected || selected.id !== c.id) e.currentTarget.style.background = '#0f1624' }}
@@ -229,11 +233,12 @@ export default function Contacts() {
                 </div>
               ))}
             </div>
+            </div>
           </div>
 
           {/* Contact Detail Panel */}
           {selected && (
-            <div style={{width:'280px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', padding:'20px', overflowY:'auto', flexShrink:0}}>
+            <div style={{width: isMobile ? '100%' : '280px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', padding:'20px', overflowY:'auto', flexShrink:0}}>
               <div style={{textAlign:'center', marginBottom:'16px'}}>
                 <div style={{width:'56px', height:'56px', borderRadius:'50%', background:selected.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', fontWeight:'700', color:'#07090f', margin:'0 auto 10px'}}>{selected.avatar}</div>
                 <div style={{fontWeight:'700', fontSize:'14px'}}>{selected.name || 'No name'}</div>
