@@ -131,6 +131,16 @@ export const api = {
     request('/users/me/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) }),
   getTeam: () =>
     request('/users/team'),
+
+  // Saved Replies (canned responses)
+  getQuickReplies: () =>
+    request('/quick-replies'),
+  createQuickReply: (title, content) =>
+    request('/quick-replies', { method: 'POST', body: JSON.stringify({ title, content }) }),
+  updateQuickReply: (id, dto) =>
+    request(`/quick-replies/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  deleteQuickReply: (id) =>
+    request(`/quick-replies/${id}`, { method: 'DELETE' }),
   inviteTeamMember: (email, role) =>
     request('/users/team/invite', { method: 'POST', body: JSON.stringify({ email, role }) }),
 

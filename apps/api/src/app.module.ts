@@ -37,6 +37,7 @@ import { MarketplaceModule } from './modules/marketplace/marketplace.module'
 import { EmailModule } from './modules/email/email.module'
 import { WebchatModule } from './modules/webchat/webchat.module'
 import { TelegramModule } from './modules/telegram/telegram.module'
+import { QuickRepliesModule } from './modules/quick-replies/quick-replies.module'
 import { DatabaseModule } from './database/database.module'
 import { GatewayModule } from './common/gateways/gateway.module'
 
@@ -81,6 +82,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     EmailModule,
     WebchatModule,
     TelegramModule,
+    QuickRepliesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

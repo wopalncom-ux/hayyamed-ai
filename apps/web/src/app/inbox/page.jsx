@@ -80,6 +80,31 @@ function InboxInner() {
 
   useEffect(() => { api.getTeam().then(t => setTeam(Array.isArray(t) ? t : [])).catch(() => {}) }, [])
 
+  // ── Saved Replies (canned responses) ──────────────────────────────────────
+  const [quickReplies, setQuickReplies] = useState([])
+  const [showReplies, setShowReplies] = useState(false)
+  const [qrTitle, setQrTitle] = useState('')
+  const [qrContent, setQrContent] = useState('')
+  useEffect(() => { api.getQuickReplies().then(r => setQuickReplies(Array.isArray(r) ? r : [])).catch(() => {}) }, [])
+
+  const insertReply = (content) => {
+    const text = String(content || '').replace(/\{name\}/gi, selected?.name || 'there')
+    setInput(prev => (prev ? prev + (prev.endsWith(' ') ? '' : ' ') + text : text))
+    setShowReplies(false)
+  }
+  const saveQuickReply = async () => {
+    const title = qrTitle.trim(); const content = qrContent.trim()
+    if (!title || !content) return
+    try {
+      const created = await api.createQuickReply(title, content)
+      if (created?.id) setQuickReplies(prev => [created, ...prev])
+      setQrTitle(''); setQrContent('')
+    } catch (e) { alert('Could not save: ' + (e?.message || 'error')) }
+  }
+  const deleteQuickReply = async (id) => {
+    try { await api.deleteQuickReply(id); setQuickReplies(prev => prev.filter(q => q.id !== id)) } catch {}
+  }
+
   const loadNotes = async (convId) => {
     try { setNotes(await api.getConversationNotes(convId) || []) } catch { setNotes([]) }
   }
@@ -527,8 +552,44 @@ function InboxInner() {
               </div>
 
               {/* Input */}
-              <div style={{ padding: '12px 16px', borderTop: '1px solid #1a2235', background: '#0c0f1a', flexShrink: 0 }}>
+              <div style={{ padding: '12px 16px', borderTop: '1px solid #1a2235', background: '#0c0f1a', flexShrink: 0, position: 'relative' }}>
                 {aiMode && <div style={{ padding: '5px 10px', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.2)', borderRadius: '5px', marginBottom: '8px', fontSize: '11px', color: '#8b5cf6' }}>🤖 AI Mode — messages will also trigger AI reply</div>}
+
+                {/* Saved Replies popover */}
+                {showReplies && (
+                  <div style={{ position: 'absolute', bottom: '100%', left: '16px', right: '16px', maxWidth: '420px', background: '#0c0f1a', border: '1px solid #253045', borderRadius: '10px', boxShadow: '0 -8px 30px rgba(0,0,0,.5)', padding: '12px', marginBottom: '8px', maxHeight: '320px', overflowY: 'auto', zIndex: 50 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#e2e8f0' }}>⚡ Saved Replies</span>
+                      <button onClick={() => setShowReplies(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px' }}>×</button>
+                    </div>
+                    {quickReplies.length === 0 ? (
+                      <div style={{ fontSize: '11px', color: '#475569', marginBottom: '10px' }}>No saved replies yet. Create one below — use <code style={{ color: '#a78bfa' }}>{'{name}'}</code> to insert the contact&apos;s name.</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
+                        {quickReplies.map(q => (
+                          <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '7px 9px' }}>
+                            <button onClick={() => insertReply(q.content)} title="Insert into reply" style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', minWidth: 0 }}>
+                              <div style={{ fontSize: '12px', fontWeight: 700, color: '#e2e8f0' }}>{q.title}</div>
+                              <div style={{ fontSize: '10px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.content}</div>
+                            </button>
+                            <button onClick={() => deleteQuickReply(q.id)} title="Delete" style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '13px', flexShrink: 0 }}>🗑</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ borderTop: '1px solid #1a2235', paddingTop: '9px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <input value={qrTitle} onChange={e => setQrTitle(e.target.value)} placeholder="Title — e.g. Greeting"
+                        style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '7px 9px', color: '#e2e8f0', fontSize: '12px', outline: 'none' }} />
+                      <textarea value={qrContent} onChange={e => setQrContent(e.target.value)} placeholder="Message — Hi {name}, thanks for reaching out!" rows={2}
+                        style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '7px 9px', color: '#e2e8f0', fontSize: '12px', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
+                      <button onClick={saveQuickReply} disabled={!qrTitle.trim() || !qrContent.trim()}
+                        style={{ padding: '7px', background: (!qrTitle.trim() || !qrContent.trim()) ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '6px', color: (!qrTitle.trim() || !qrContent.trim()) ? '#475569' : '#0a0f1a', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
+                        + Save reply
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
                   <textarea
                     value={input}
@@ -540,6 +601,10 @@ function InboxInner() {
                     onFocus={e => e.target.style.borderColor = '#253045'}
                     onBlur={e => e.target.style.borderColor = '#1a2235'}
                   />
+                  <button onClick={() => setShowReplies(v => !v)} title="Saved replies"
+                    style={{ height: '40px', padding: '0 13px', background: showReplies ? 'rgba(0,229,160,.15)' : 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '8px', color: '#00e5a0', fontWeight: '700', fontSize: '12px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    ⚡
+                  </button>
                   <button onClick={suggestReply} disabled={suggesting} title="Let AI draft a reply"
                     style={{ height: '40px', padding: '0 13px', background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.3)', borderRadius: '8px', color: '#a78bfa', fontWeight: '700', fontSize: '12px', cursor: suggesting ? 'wait' : 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                     {suggesting ? '⟳' : '✨ Suggest'}
