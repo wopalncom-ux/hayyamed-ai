@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
+import { randomUUID } from 'crypto'
 import { PrismaService } from '../../database/prisma.service'
 import { encryptJson, decryptJson } from '../../common/crypto/crypto.util'
 
@@ -88,7 +89,40 @@ export class MyFatoorahService {
       if (err instanceof BadRequestException) throw err
       throw new BadRequestException('Could not reach MyFatoorah: ' + (err?.message || 'network error'))
     }
-    return { invoiceId: json.Data?.InvoiceId, paymentUrl: json.Data?.InvoiceURL }
+    const invoiceId = json.Data?.InvoiceId ? String(json.Data.InvoiceId) : null
+    const paymentUrl = json.Data?.InvoiceURL || null
+
+    // Record the payment so the owner has visibility + can re-check its status.
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO "payments" ("id","orgId","provider","invoiceId","amount","currency","customerName","status","paymentUrl","reference","createdAt","updatedAt")
+        VALUES (${randomUUID()}, ${orgId}, 'myfatoorah', ${invoiceId}, ${dto.amount}, ${dto.currency || 'QAR'}, ${dto.customerName || 'Customer'}, 'Pending', ${paymentUrl}, ${dto.reference || null}, NOW(), NOW())
+      `
+    } catch { /* recording is best-effort; never block the payment link */ }
+
+    return { invoiceId, paymentUrl }
+  }
+
+  listPayments(orgId: string) {
+    return this.prisma.$queryRaw`
+      SELECT * FROM "payments" WHERE "orgId" = ${orgId} ORDER BY "createdAt" DESC LIMIT 100
+    `
+  }
+
+  // Re-checks a recorded payment against MyFatoorah and updates its stored status.
+  async refreshPayment(orgId: string, id: string) {
+    const rows = await this.prisma.$queryRaw<any[]>`
+      SELECT * FROM "payments" WHERE "id" = ${id} AND "orgId" = ${orgId} LIMIT 1
+    `
+    if (!rows.length) throw new BadRequestException('Payment not found')
+    const payment = rows[0]
+    if (!payment.invoiceId) return payment
+    const data = await this.getPaymentStatus(orgId, String(payment.invoiceId), 'InvoiceId')
+    const status = data?.InvoiceStatus || payment.status
+    await this.prisma.$executeRaw`
+      UPDATE "payments" SET "status" = ${status}, "updatedAt" = NOW() WHERE "id" = ${id} AND "orgId" = ${orgId}
+    `
+    return { ...payment, status }
   }
 
   async getPaymentStatus(orgId: string, key: string, keyType: 'InvoiceId' | 'PaymentId' = 'InvoiceId') {

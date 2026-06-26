@@ -141,6 +141,10 @@ export const api = {
     request('/payments/myfatoorah/disconnect', { method: 'POST' }),
   createMyFatoorahPayment: (dto) =>
     request('/payments/myfatoorah/pay', { method: 'POST', body: JSON.stringify(dto) }),
+  getMyFatoorahPayments: () =>
+    request('/payments/myfatoorah/payments'),
+  refreshMyFatoorahPayment: (id) =>
+    request(`/payments/myfatoorah/payments/${id}/refresh`, { method: 'POST' }),
 
   // Saved Replies (canned responses)
   getQuickReplies: () =>

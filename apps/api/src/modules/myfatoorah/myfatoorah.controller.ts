@@ -34,6 +34,18 @@ export class MyFatoorahController {
     return this.svc.createPayment(user.orgId, body || {})
   }
 
+  // Recorded payment history for this org.
+  @Get('payments')
+  listPayments(@CurrentUser() user: JwtPayload) {
+    return this.svc.listPayments(user.orgId)
+  }
+
+  // Re-check a recorded payment's status against MyFatoorah.
+  @Post('payments/:id/refresh')
+  refreshPayment(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.svc.refreshPayment(user.orgId, id)
+  }
+
   @Get('payment-status')
   paymentStatus(@CurrentUser() user: JwtPayload, @Query('key') key: string, @Query('keyType') keyType?: 'InvoiceId' | 'PaymentId') {
     return this.svc.getPaymentStatus(user.orgId, key, keyType || 'InvoiceId')

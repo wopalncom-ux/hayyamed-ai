@@ -27,13 +27,33 @@ export default function PaymentsControl() {
   const [paying, setPaying] = useState(false)
   const [payResult, setPayResult] = useState(null)
 
+  // Payment history
+  const [payments, setPayments] = useState([])
+  const [refreshing, setRefreshing] = useState(null)
+  const loadPayments = () => api.getMyFatoorahPayments().then(p => setPayments(Array.isArray(p) ? p : [])).catch(() => {})
+
   const showToast = (ok, msg) => { setToast({ ok, msg }); setTimeout(() => setToast(null), 3500) }
 
   const loadStatus = () => api.getMyFatoorahStatus()
     .then(s => { setStatus(s); if (s?.country) setCountry(s.country); setIsTest(s?.isTest ?? true) })
     .catch(() => setStatus({ configured: false }))
 
-  useEffect(() => { loadStatus() }, [])
+  useEffect(() => { loadStatus(); loadPayments() }, [])
+
+  const refreshPayment = async (id) => {
+    setRefreshing(id)
+    try {
+      const updated = await api.refreshMyFatoorahPayment(id)
+      setPayments(prev => prev.map(p => p.id === id ? { ...p, status: updated?.status || p.status } : p))
+    } catch (e) { showToast(false, e?.message || 'Could not refresh') }
+    finally { setRefreshing(null) }
+  }
+  const statusColor = (s) => {
+    const v = String(s || '').toLowerCase()
+    if (v === 'paid') return '#00e5a0'
+    if (v === 'failed' || v === 'expired' || v === 'canceled' || v === 'cancelled') return '#ef4444'
+    return '#fbbf24'
+  }
 
   const save = async () => {
     if (!apiToken.trim()) return showToast(false, 'Enter your MyFatoorah API token')
@@ -56,7 +76,7 @@ export default function PaymentsControl() {
     setPaying(true); setPayResult(null)
     try {
       const r = await api.createMyFatoorahPayment({ amount: Number(amount), currency, customerName: custName })
-      setPayResult(r)
+      setPayResult(r); loadPayments()
     } catch (e) { showToast(false, e?.message || 'Could not create payment') }
     finally { setPaying(false) }
   }
@@ -136,6 +156,29 @@ export default function PaymentsControl() {
             </div>
           )}
         </div>
+
+        {/* Payment history */}
+        {payments.length > 0 && (
+          <div style={{ background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '12px', padding: '20px', marginTop: '20px' }}>
+            <div style={{ fontWeight: 800, fontSize: '15px', marginBottom: '12px' }}>Recent payments</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {payments.map(p => (
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '10px 12px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700 }}>{p.customerName || 'Customer'} · {p.currency} {Number(p.amount).toLocaleString()}</div>
+                    <div style={{ fontSize: '10px', color: '#475569' }}>Invoice #{p.invoiceId || '—'} · {new Date(p.createdAt).toLocaleString()}</div>
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '10px', background: statusColor(p.status) + '22', color: statusColor(p.status) }}>{p.status}</span>
+                  {p.paymentUrl && <a href={p.paymentUrl} target="_blank" rel="noreferrer" title="Open link" style={{ color: '#a78bfa', fontSize: '13px', textDecoration: 'none' }}>↗</a>}
+                  <button onClick={() => refreshPayment(p.id)} disabled={refreshing === p.id} title="Re-check status"
+                    style={{ background: 'none', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', fontSize: '12px', cursor: 'pointer', padding: '4px 8px' }}>
+                    {refreshing === p.id ? '…' : '↻'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       {toast && (
