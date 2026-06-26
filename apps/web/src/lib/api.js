@@ -241,6 +241,14 @@ export const api = {
   disconnectIntegration: (type) =>
     request(`/integrations/${type}/disconnect`, { method: 'POST' }),
 
+  // Telegram channel
+  connectTelegram: (botToken) =>
+    request('/telegram/connect', { method: 'POST', body: JSON.stringify({ botToken }) }),
+  getTelegramStatus: () =>
+    request('/telegram/status'),
+  disconnectTelegram: () =>
+    request('/telegram/disconnect', { method: 'POST' }),
+
   // Agency
   getAgencyStats: () =>
     request('/agency/stats'),

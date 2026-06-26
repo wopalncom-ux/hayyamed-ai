@@ -36,6 +36,7 @@ import { AuditModule } from './modules/audit/audit.module'
 import { MarketplaceModule } from './modules/marketplace/marketplace.module'
 import { EmailModule } from './modules/email/email.module'
 import { WebchatModule } from './modules/webchat/webchat.module'
+import { TelegramModule } from './modules/telegram/telegram.module'
 import { DatabaseModule } from './database/database.module'
 import { GatewayModule } from './common/gateways/gateway.module'
 
@@ -79,6 +80,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     MarketplaceModule,
     EmailModule,
     WebchatModule,
+    TelegramModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
