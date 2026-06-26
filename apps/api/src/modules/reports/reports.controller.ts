@@ -62,14 +62,15 @@ export class ReportsController {
 
     const [messages, contacts] = await Promise.all([
       this.prisma.$queryRaw<{ day: Date; count: bigint }[]>`
-        SELECT date_trunc('day', "createdAt") AS day, COUNT(*) AS count
-        FROM "Message"
-        WHERE "orgId" = ${orgId} AND "createdAt" >= ${since}
+        SELECT date_trunc('day', m."createdAt") AS day, COUNT(*) AS count
+        FROM "messages" m
+        JOIN "conversations" c ON c."id" = m."conversationId"
+        WHERE c."orgId" = ${orgId} AND m."createdAt" >= ${since}
         GROUP BY day ORDER BY day ASC
       `,
       this.prisma.$queryRaw<{ day: Date; count: bigint }[]>`
         SELECT date_trunc('day', "createdAt") AS day, COUNT(*) AS count
-        FROM "Contact"
+        FROM "contacts"
         WHERE "orgId" = ${orgId} AND "createdAt" >= ${since}
         GROUP BY day ORDER BY day ASC
       `,
