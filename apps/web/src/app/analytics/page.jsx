@@ -2,6 +2,7 @@
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const fmt = (n) => n == null ? '—' : n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n)
 const fmtQar = (n) => (n || 0).toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 })
@@ -214,6 +215,7 @@ function ActivityFeed({ activities }) {
 }
 
 export default function Analytics() {
+  const isMobile = useIsMobile()
   const [period, setPeriod] = useState('7days')
   const [metric, setMetric] = useState('both')
   const [full, setFull] = useState(null)
@@ -315,7 +317,7 @@ export default function Analytics() {
         </div>
 
         {/* Pipeline Funnel + Source Breakdown */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
           <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px' }}>
             <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '16px' }}>
               Pipeline Funnel
@@ -337,7 +339,7 @@ export default function Analytics() {
         </div>
 
         {/* Campaign Table + Activity Feed */}
-        <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '3fr 2fr', gap: '16px' }}>
           <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <div style={{ fontWeight: '700', fontSize: '14px' }}>Campaign Performance</div>

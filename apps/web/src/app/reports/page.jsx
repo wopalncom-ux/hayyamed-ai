@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useIsMobile } from '@/lib/useIsMobile'
 import NavSidebar from '@/components/NavSidebar'
 import { api } from '@/lib/api'
 
@@ -34,6 +35,7 @@ const channelIcons = { 'WhatsApp':'💬', 'Instagram':'📸', 'Facebook':'👤',
 const channelColors = { 'WhatsApp':'#00e5a0', 'Instagram':'#a78bfa', 'Facebook':'#3b82f6', 'Telegram':'#f97316' }
 
 export default function Reports() {
+  const isMobile = useIsMobile()
   const [reportData, setReportData] = useState([])
   const [dataLoading, setDataLoading] = useState(true)
   const [fromDate, setFromDate] = useState('')
@@ -239,8 +241,8 @@ export default function Reports() {
 
             {/* Table View */}
             {view === 'table' && (
-              <div style={{background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', overflow:'hidden'}}>
-                <div style={{display:'grid', gridTemplateColumns:'2fr 1.3fr 1fr 1fr 1.2fr 0.8fr', padding:'10px 16px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
+              <div style={{background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', overflow:'hidden', overflowX: isMobile ? 'auto' : 'hidden'}}>
+                <div style={{display:'grid', gridTemplateColumns:'2fr 1.3fr 1fr 1fr 1.2fr 0.8fr', minWidth: isMobile ? '640px' : 'auto', padding:'10px 16px', borderBottom:'1px solid #1a2235', background:'#0c0f1a'}}>
                   {['NAME','PHONE','STATUS','CHANNEL','DATE','BOOKED'].map(h => (
                     <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{h}</div>
                   ))}
@@ -250,7 +252,7 @@ export default function Reports() {
                 ) : filtered.length === 0 ? (
                   <div style={{padding:'40px', textAlign:'center', color:'#3d4f63'}}>No records found</div>
                 ) : filtered.map(d => (
-                  <div key={d.id} style={{display:'grid', gridTemplateColumns:'2fr 1.3fr 1fr 1fr 1.2fr 0.8fr', padding:'10px 16px', borderBottom:'1px solid #1a2235', alignItems:'center'}}>
+                  <div key={d.id} style={{display:'grid', gridTemplateColumns:'2fr 1.3fr 1fr 1fr 1.2fr 0.8fr', minWidth: isMobile ? '640px' : 'auto', padding:'10px 16px', borderBottom:'1px solid #1a2235', alignItems:'center'}}>
                     <div style={{fontSize:'12px', fontWeight:'600'}}>{d.name}</div>
                     <div style={{fontSize:'11px', color:'#7a8fa6'}}>{d.phone}</div>
                     <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${(statusColors[d.status]||'#7a8fa6')}20`, color:statusColors[d.status]||'#7a8fa6'}}>{d.status}</span></div>
@@ -264,7 +266,7 @@ export default function Reports() {
 
             {/* Charts View */}
             {view === 'charts' && (
-              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'14px'}}>
+              <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:'14px'}}>
 
                 {/* Channel Chart */}
                 <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px', borderRadius:'4px'}}>
@@ -398,7 +400,7 @@ export default function Reports() {
 
           {/* AI Assistant Panel */}
           {showAI && (
-            <div style={{width:'300px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', display:'flex', flexDirection:'column', flexShrink:0}}>
+            <div style={{width: isMobile ? '100%' : '300px', borderLeft:'1px solid #1a2235', background:'#0c0f1a', display:'flex', flexDirection:'column', flexShrink:0}}>
               <div style={{padding:'14px 16px', borderBottom:'1px solid #1a2235'}}>
                 <div style={{fontWeight:'700', fontSize:'13px', color:'#a78bfa'}}>🤖 AI Report Assistant</div>
                 <div style={{fontSize:'10px', color:'#3d4f63', marginTop:'2px'}}>Ask anything about your report</div>

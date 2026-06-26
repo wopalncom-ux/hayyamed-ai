@@ -2,6 +2,7 @@
 import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const templates = [
   { id:1, name:'Ramadan Offer', channel:'WhatsApp', text:'🌙 Ramadan Kareem! We have a special offer for you this holy month. Get exclusive access to our services. Book now and let us serve you better. Reply YES to know more!', category:'Religious' },
@@ -17,6 +18,7 @@ const channelIcons = { WhatsApp:'💬', Instagram:'📸', Facebook:'👤', Teleg
 const channelColors = { WhatsApp:'#00e5a0', Instagram:'#a78bfa', Facebook:'#3b82f6', Telegram:'#f97316', Email:'#fbbf24' }
 
 export default function Campaigns() {
+  const isMobile = useIsMobile()
   const [tab, setTab] = useState('list')
   const [campaigns, setCampaigns] = useState([])
   const [campaignsLoading, setCampaignsLoading] = useState(true)
@@ -224,8 +226,8 @@ export default function Campaigns() {
                   ))}
                 </div>
 
-                <div style={{background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', overflow:'hidden'}}>
-                  <div style={{display:'grid', gridTemplateColumns:'2fr 90px 100px 80px 80px 80px 160px', padding:'10px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a', gap:'8px'}}>
+                <div style={{background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', overflow:'hidden', overflowX: isMobile ? 'auto' : 'hidden'}}>
+                  <div style={{display:'grid', gridTemplateColumns:'2fr 90px 100px 80px 80px 80px 160px', minWidth: isMobile ? '760px' : 'auto', padding:'10px 18px', borderBottom:'1px solid #1a2235', background:'#0c0f1a', gap:'8px'}}>
                     {['CAMPAIGN','STATUS','DELIVERY','READ RATE','DATE','','ACTIONS'].map(h => (
                       <div key={h} style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{h}</div>
                     ))}
@@ -247,7 +249,7 @@ export default function Campaigns() {
                     const readCount = c.readCount ?? 0
                     const readRate = sentCount > 0 ? Math.round((readCount / sentCount) * 100) : 0
                     return (
-                      <div key={c.id} style={{display:'grid', gridTemplateColumns:'2fr 90px 100px 80px 80px 80px 160px', padding:'10px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', gap:'8px'}}>
+                      <div key={c.id} style={{display:'grid', gridTemplateColumns:'2fr 90px 100px 80px 80px 80px 160px', minWidth: isMobile ? '760px' : 'auto', padding:'10px 18px', borderBottom:'1px solid #1a2235', alignItems:'center', gap:'8px'}}>
                         <div>
                           <div style={{fontSize:'12px', fontWeight:'600', marginBottom:'2px'}}>{c.name}</div>
                           <div style={{fontSize:'10px', color:'#64748b'}}>{channelIcons[ch] || '📤'} {ch} · {totalContacts} contacts</div>
@@ -548,7 +550,7 @@ export default function Campaigns() {
                       </div>
                     </div>
 
-                    <div style={{display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'10px'}}>
+                    <div style={{display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)', gap:'10px'}}>
                       {[
                         {label:'Sent', value:c.sent.toLocaleString(), color:'#7a8fa6'},
                         {label:'Leads', value:c.leads, color:'#3b82f6'},
@@ -564,7 +566,7 @@ export default function Campaigns() {
                     </div>
 
                     {/* Progress bars */}
-                    <div style={{marginTop:'14px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px'}}>
+                    <div style={{marginTop:'14px', display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:'10px'}}>
                       <div>
                         <div style={{display:'flex', justifyContent:'space-between', marginBottom:'4px'}}>
                           <div style={{fontSize:'10px', color:'#7a8fa6'}}>Lead Rate</div>
