@@ -156,11 +156,32 @@ export default function NavSidebar({ current }) {
           0%,100% { opacity:1; }
           50%      { opacity:.5; }
         }
+        /* Mobile: convert the left rail into a fixed bottom navigation bar */
+        @media (max-width: 768px) {
+          .hm-nav {
+            width: 100% !important;
+            height: auto !important;
+            flex-direction: row !important;
+            position: fixed !important;
+            bottom: 0; left: 0; right: 0;
+            border-right: none !important;
+            border-top: 1px solid #1a2235;
+            padding: 6px 8px calc(6px + env(safe-area-inset-bottom)) 8px !important;
+            gap: 2px !important;
+            overflow-x: auto;
+            overflow-y: hidden;
+            z-index: 1000;
+            -webkit-overflow-scrolling: touch;
+          }
+          .hm-nav::-webkit-scrollbar { display: none; }
+          .hm-nav-spacer { display: none !important; }
+          body { padding-bottom: 64px; }
+        }
       `}</style>
 
       <LiveToast msg={toast} visible={toastVisible} />
 
-      <div style={{
+      <div className="hm-nav" style={{
         width: '56px', background: '#0c0f1a', borderRight: '1px solid #1a2235',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         padding: '12px 0', gap: '4px', flexShrink: 0,
@@ -229,7 +250,7 @@ export default function NavSidebar({ current }) {
           )
         })}
 
-        <div style={{ flex: 1 }} />
+        <div className="hm-nav-spacer" style={{ flex: 1 }} />
 
         {/* Logout */}
         <button onClick={logout} title="Log out"
