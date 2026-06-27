@@ -145,8 +145,13 @@ export class ConversationsService {
     // A human agent replying = implicit takeover → auto-pause the AI for this conversation.
     let metadataUpdate: Record<string, any> = {}
     if (senderId) {
-      const existing = await this.prisma.conversation.findUnique({ where: { id: conversationId }, select: { metadata: true } })
-      metadataUpdate = { metadata: { ...((existing?.metadata as any) || {}), aiPaused: true, escalated: false } }
+      const existing = await this.prisma.conversation.findUnique({ where: { id: conversationId }, select: { metadata: true, createdAt: true } })
+      const md: any = { ...((existing?.metadata as any) || {}), aiPaused: true, escalated: false }
+      // Record the human first-response time (once) for support metrics.
+      if (!md.firstRespMs && existing?.createdAt) {
+        md.firstRespMs = Math.max(0, Date.now() - new Date(existing.createdAt).getTime())
+      }
+      metadataUpdate = { metadata: md }
     }
     const conv = await this.prisma.conversation.update({
       where: { id: conversationId },

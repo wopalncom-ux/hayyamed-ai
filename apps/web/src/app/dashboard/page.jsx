@@ -134,6 +134,7 @@ export default function Dashboard() {
               { label: 'Active Campaigns', value: fmt(kpis?.activeCampaigns),  sub: `${kpis?.totalCampaigns || 0} total`,       color: '#8b5cf6', chart: null },
               { label: 'Workflow Runs',    value: fmt(kpis?.totalWorkflowRuns), sub: 'all time',                                color: '#06b6d4', chart: null },
               { label: 'Satisfaction',     value: kpis?.csatAvg != null ? `⭐ ${kpis.csatAvg}` : '—', sub: `${kpis?.csatCount || 0} rating${kpis?.csatCount === 1 ? '' : 's'}`, color: '#fbbf24', chart: null },
+              { label: 'Avg Response',     value: kpis?.avgResponseMin != null ? (kpis.avgResponseMin < 60 ? `${kpis.avgResponseMin}m` : `${Math.round(kpis.avgResponseMin/60*10)/10}h`) : '—', sub: 'human first reply', color: '#ec4899', chart: null },
             ].map((k, i) => (
               <div key={i} style={{ background: '#111622', border: '1px solid #1a2235', borderTop: `2px solid ${k.color}`, borderRadius: '8px', padding: '14px 16px', overflow: 'hidden', position: 'relative' }}>
                 <div style={{ fontSize: '10px', color: '#475569', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{k.label}</div>

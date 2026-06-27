@@ -189,6 +189,14 @@ export class ReportsController {
     const csatAvg = csatRows[0]?.avg != null ? Math.round(Number(csatRows[0].avg) * 10) / 10 : null
     const csatCount = Number(csatRows[0]?.count || 0)
 
+    // Average human first-response time (minutes).
+    const frtRows = await this.prisma.$queryRaw<{ avg: number | null }[]>`
+      SELECT AVG((metadata->>'firstRespMs')::numeric) AS avg
+      FROM "conversations"
+      WHERE "orgId" = ${orgId} AND metadata->>'firstRespMs' IS NOT NULL
+    `
+    const avgResponseMin = frtRows[0]?.avg != null ? Math.round(Number(frtRows[0].avg) / 60000 * 10) / 10 : null
+
     return {
       kpis: {
         totalContacts, wonContacts, lostContacts, winRate,
@@ -196,7 +204,7 @@ export class ReportsController {
         activeCampaigns, totalCampaigns, totalWorkflowRuns,
         newContacts30d, newContacts7d,
         pipelineValue, wonValue,
-        csatAvg, csatCount,
+        csatAvg, csatCount, avgResponseMin,
       },
       pipeline: STAGE_ORDER.map(status => {
         const s = pipelineStages.find(p => p.status === status)
