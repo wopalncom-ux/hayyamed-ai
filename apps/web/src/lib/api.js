@@ -99,6 +99,8 @@ export const api = {
     request(`/reports/analytics?period=${period}`),
   getFullStats: () =>
     request('/reports/full'),
+  getOnboarding: () =>
+    request('/reports/onboarding'),
   getSalesReport: () =>
     request('/reports/sales'),
 

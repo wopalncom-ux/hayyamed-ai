@@ -93,6 +93,19 @@ export class ReportsController {
     return { period, days: result }
   }
 
+  // Getting-started checklist status for new workspaces.
+  @Get('onboarding')
+  async getOnboarding(@CurrentUser() user: JwtPayload) {
+    const orgId = user.orgId
+    const [kb, agents, channels, convs] = await Promise.all([
+      this.prisma.knowledgeBase.count({ where: { orgId } }),
+      this.prisma.aIAgent.count({ where: { orgId } }),
+      this.prisma.channel.count({ where: { orgId, isActive: true } }),
+      this.prisma.conversation.count({ where: { orgId } }),
+    ])
+    return { hasKnowledge: kb > 0, hasAgent: agents > 0, hasChannel: channels > 0, hasConversation: convs > 0 }
+  }
+
   @Get('full')
   async getFull(@CurrentUser() user: JwtPayload) {
     const orgId = user.orgId

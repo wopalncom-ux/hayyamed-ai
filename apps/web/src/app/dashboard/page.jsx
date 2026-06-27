@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [chart, setChart] = useState([])
   const [loading, setLoading] = useState(true)
   const [auth, setAuth] = useState({})
+  const [onboarding, setOnboarding] = useState(null)
 
   useEffect(() => {
     setAuth(getAuth())
@@ -67,6 +68,7 @@ export default function Dashboard() {
       setChart(c?.days || [])
       setLoading(false)
     })
+    api.getOnboarding().then(setOnboarding).catch(() => {})
   }, [])
 
   const kpis = full?.kpis
@@ -123,6 +125,30 @@ export default function Dashboard() {
               <QuickAction href="/analytics" icon="📈" label="Analytics" color="#fbbf24" />
             </div>
           </div>
+
+          {/* Getting Started checklist — shows until the workspace is set up */}
+          {onboarding && !(onboarding.hasKnowledge && onboarding.hasAgent && onboarding.hasChannel && onboarding.hasConversation) && (
+            <div style={{ background: 'linear-gradient(135deg, rgba(0,229,160,.08), rgba(167,139,250,.06))', border: '1px solid rgba(0,229,160,.25)', borderRadius: '12px', padding: '18px 20px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 800, marginBottom: '3px' }}>🚀 Get your AI live</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '14px' }}>Complete these steps to start handling customer conversations automatically.</div>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px' }}>
+                {[
+                  { done: onboarding.hasKnowledge, label: 'Add your business info', sub: 'Knowledge base', href: '/knowledge' },
+                  { done: onboarding.hasAgent, label: 'Create an AI agent', sub: 'Pick a role', href: '/agents' },
+                  { done: onboarding.hasChannel, label: 'Connect a channel', sub: 'WhatsApp · Telegram · Web', href: '/integrations' },
+                  { done: onboarding.hasConversation, label: 'Get a conversation', sub: 'Test it live', href: '/inbox' },
+                ].map((s, i) => (
+                  <a key={i} href={s.href} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: s.done ? 'rgba(0,229,160,.06)' : '#111622', border: `1px solid ${s.done ? 'rgba(0,229,160,.3)' : '#1a2235'}`, borderRadius: '10px', textDecoration: 'none' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, background: s.done ? '#00e5a0' : '#1a2235', color: s.done ? '#07090f' : '#64748b' }}>{s.done ? '✓' : i + 1}</div>
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: s.done ? '#94a3b8' : '#e2e8f0' }}>{s.label}</div>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>{s.sub}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* KPI Strip */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
