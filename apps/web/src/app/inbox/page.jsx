@@ -44,6 +44,7 @@ function toUiConv(c) {
     lastMsgAt: c.lastMsgAt,
     aiPaused: !!(c.metadata && c.metadata.aiPaused),
     escalated: !!(c.metadata && c.metadata.escalated),
+    rating: (c.metadata && c.metadata.rating) || 0,
   }
 }
 
@@ -205,7 +206,9 @@ function InboxInner() {
     if (!selected) return
     try {
       await api.updateConversationStatus(selected.convId, status)
-      setSelected(s => ({ ...s, convStatus: status }))
+      const reset = status === 'RESOLVED' ? { aiPaused: false, escalated: false } : {}
+      setSelected(s => ({ ...s, convStatus: status, ...reset }))
+      if (status === 'RESOLVED') setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, aiPaused: false, escalated: false } : c))
     } catch {}
   }
 
@@ -513,6 +516,7 @@ function InboxInner() {
                   <div style={{ fontWeight: '700', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {selected.name}
                     <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: (statusColors[selected.status] || '#64748b') + '22', color: statusColors[selected.status] || '#64748b' }}>{selected.status}</span>
+                    {selected.rating > 0 && <span title="Customer rating" style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(251,191,36,.15)', color: '#fbbf24', fontWeight: 700 }}>⭐ {selected.rating}/5</span>}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748b' }}>{selected.phone}</div>
                 </div>

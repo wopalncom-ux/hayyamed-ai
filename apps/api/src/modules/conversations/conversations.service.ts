@@ -161,9 +161,25 @@ export class ConversationsService {
   }
 
   async updateStatus(id: string, orgId: string, status: string) {
-    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId }, select: { id: true } })
+    const conv = await this.prisma.conversation.findFirst({
+      where: { id, orgId },
+      select: { id: true, metadata: true, channel: { select: { type: true } } },
+    })
     if (!conv) return null
-    return this.prisma.conversation.update({ where: { id }, data: { status: status as any } })
+    const data: any = { status: status as any }
+    // Resolving ends any human takeover (AI resumes for future messages) and,
+    // on website chat, asks the visitor for a quick satisfaction rating.
+    if (status === 'RESOLVED') {
+      const md: any = { ...((conv.metadata as any) || {}), aiPaused: false, escalated: false }
+      if (conv.channel?.type === 'LIVE_CHAT' && !md.rating) {
+        md.awaitingRating = true
+        await this.prisma.message.create({
+          data: { conversationId: id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: 'Glad we could help! How would you rate this conversation from 1 to 5? ⭐' },
+        })
+      }
+      data.metadata = md
+    }
+    return this.prisma.conversation.update({ where: { id }, data })
   }
 
   async getStats(orgId: string) {

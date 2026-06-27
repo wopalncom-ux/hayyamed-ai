@@ -64,6 +64,19 @@ export class WebchatService {
     })
     await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: text.trim(), lastMsgAt: new Date(), isRead: false } })
 
+    // Satisfaction rating: if we asked for a rating, capture a leading 1–5.
+    if ((conv.metadata as any)?.awaitingRating) {
+      const m = text.trim().match(/^([1-5])\b/)
+      if (m) {
+        const rating = Number(m[1])
+        await this.prisma.conversation.update({ where: { id: conv.id }, data: { metadata: { ...((conv.metadata as any) || {}), awaitingRating: false, rating } } })
+        const thanks = `Thank you for your feedback! ⭐ ${rating}/5`
+        await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: thanks } })
+        await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: thanks, lastMsgAt: new Date() } })
+        return { reply: thanks, sessionId, rated: rating }
+      }
+    }
+
     // Human takeover: if AI is paused for this conversation, don't auto-reply —
     // a human is handling it. The message is stored and surfaces in the inbox.
     if ((conv.metadata as any)?.aiPaused) {
