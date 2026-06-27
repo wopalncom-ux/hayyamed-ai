@@ -51,7 +51,10 @@ export default function KnowledgeBasePage() {
   const [searching, setSearching] = useState(false)
   const [reindexing, setReindexing] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [gaps, setGaps] = useState([])
   const fileRef = useRef(null)
+  const loadGaps = () => api.getKnowledgeGaps().then(g => setGaps(Array.isArray(g) ? g : [])).catch(() => {})
+  const clearGaps = async () => { try { await api.clearKnowledgeGaps(); setGaps([]) } catch {} }
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
@@ -87,7 +90,7 @@ export default function KnowledgeBasePage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { loadKBs() }, [])
+  useEffect(() => { loadKBs(); loadGaps() }, [])
 
   const createKB = async () => {
     if (!newKB.name) return alert('Name required')
@@ -205,6 +208,25 @@ export default function KnowledgeBasePage() {
             </div>
           )}
         </div>
+
+        {/* AI knowledge gaps — questions with no KB match */}
+        {gaps.length > 0 && (
+          <div style={{ borderTop:'1px solid #1a2235', padding:'12px', maxHeight:'42%', overflow:'auto', flexShrink:0 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
+              <div style={{ fontSize:'11px', fontWeight:700, color:'#fbbf24' }}>⚠ AI couldn’t answer ({gaps.length})</div>
+              <button onClick={clearGaps} style={{ fontSize:'10px', color:'#64748b', background:'none', border:'none', cursor:'pointer' }}>Clear</button>
+            </div>
+            <div style={{ fontSize:'10px', color:'#64748b', marginBottom:'8px' }}>Questions with no knowledge-base match. Add these topics to a KB to make your AI smarter.</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+              {gaps.map(g => (
+                <div key={g.id} style={{ fontSize:'11px', color:'#cbd5e1', background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'6px', padding:'6px 8px' }}>
+                  {g.question}
+                  <div style={{ fontSize:'9px', color:'#475569', marginTop:'2px' }}>{g.channel} · {new Date(g.createdAt).toLocaleDateString()}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right: KB Detail */}

@@ -214,6 +214,10 @@ export const api = {
   // Knowledge Base
   getKnowledgeBases: () =>
     request('/knowledge-bases'),
+  getKnowledgeGaps: () =>
+    request('/knowledge-bases/gaps'),
+  clearKnowledgeGaps: () =>
+    request('/knowledge-bases/gaps', { method: 'DELETE' }),
   getKnowledgeBase: (id) =>
     request(`/knowledge-bases/${id}`),
   createKnowledgeBase: (dto) =>

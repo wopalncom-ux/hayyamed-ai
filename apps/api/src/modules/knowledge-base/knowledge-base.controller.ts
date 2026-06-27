@@ -30,6 +30,17 @@ export class KnowledgeBaseController {
     return this.svc.findAll(user.orgId)
   }
 
+  // Questions the AI couldn't answer from the knowledge base (declared before :id).
+  @Get('gaps')
+  listGaps(@CurrentUser() user: JwtPayload) {
+    return this.rag.listGaps(user.orgId)
+  }
+
+  @Delete('gaps')
+  clearGaps(@CurrentUser() user: JwtPayload) {
+    return this.rag.clearGaps(user.orgId)
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.svc.findOne(id, user.orgId)

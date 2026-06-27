@@ -5,6 +5,7 @@ import { RagService } from '../knowledge-base/rag.service'
 import { NotificationsService } from '../notifications/notifications.service'
 import { wantsHuman } from '../../common/util/escalation.util'
 import { isWithinHours } from '../../common/util/business-hours.util'
+import { isSubstantiveQuestion } from '../../common/util/question.util'
 
 @Injectable()
 export class WebchatService {
@@ -117,6 +118,7 @@ export class WebchatService {
     try {
       let knowledge = ''
       try { knowledge = await this.rag.getContextForQuery(orgId, text, 4) } catch { knowledge = '' }
+      if (!knowledge && isSubstantiveQuestion(text)) this.rag.logGap(orgId, text, 'webchat').catch(() => {})
       const history = await this.prisma.message.findMany({ where: { conversationId: conv.id }, orderBy: { createdAt: 'asc' }, take: 12 })
       const system = `You are the website assistant for ${org.name}${org.industry ? `, a ${org.industry} business` : ''}. Be concise, friendly, and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the visitor with the team.${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
       const messages = [

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { randomUUID } from 'crypto'
 import { PrismaService } from '../../database/prisma.service'
 import OpenAI from 'openai'
 
@@ -16,6 +17,27 @@ export class RagService {
     if (process.env.OPENAI_API_KEY) {
       this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     }
+  }
+
+  // Knowledge gaps — questions the AI answered with no KB context (best-effort).
+  async logGap(orgId: string, question: string, channel: string) {
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO "knowledge_gaps" ("id","orgId","question","channel","createdAt")
+        VALUES (${randomUUID()}, ${orgId}, ${question.slice(0, 500)}, ${channel}, NOW())
+      `
+    } catch { /* best-effort */ }
+  }
+
+  listGaps(orgId: string) {
+    return this.prisma.$queryRaw`
+      SELECT * FROM "knowledge_gaps" WHERE "orgId" = ${orgId} ORDER BY "createdAt" DESC LIMIT 50
+    `
+  }
+
+  async clearGaps(orgId: string) {
+    await this.prisma.$executeRaw`DELETE FROM "knowledge_gaps" WHERE "orgId" = ${orgId}`
+    return { ok: true }
   }
 
   private chunkText(text: string): string[] {
@@ -126,10 +148,12 @@ export class RagService {
     const queryEmbedding = await this.embedText(query)
     if (!queryEmbedding) return []
 
+    // Cosine-distance threshold: drop clearly-irrelevant chunks so the AI isn't
+    // fed unrelated context (and unanswered questions surface as knowledge gaps).
     const results = await this.prisma.$queryRawUnsafe<{ content: string }[]>(
       `SELECT content
        FROM knowledge_chunks
-       WHERE "knowledgeBaseId" = $1
+       WHERE "knowledgeBaseId" = $1 AND (embedding <=> $2::vector) < 0.8
        ORDER BY embedding <=> $2::vector
        LIMIT $3`,
       knowledgeBaseId,

@@ -7,6 +7,7 @@ import { NotificationsService } from '../notifications/notifications.service'
 import { encrypt, decrypt } from '../../common/crypto/crypto.util'
 import { wantsHuman } from '../../common/util/escalation.util'
 import { isWithinHours } from '../../common/util/business-hours.util'
+import { isSubstantiveQuestion } from '../../common/util/question.util'
 
 @Injectable()
 export class TelegramService {
@@ -116,6 +117,7 @@ export class TelegramService {
       const org = await this.prisma.organization.findUnique({ where: { id: orgId }, select: { name: true, industry: true } })
       let knowledge = ''
       try { knowledge = await this.rag.getContextForQuery(orgId, msg.text, 4) } catch {}
+      if (!knowledge && isSubstantiveQuestion(msg.text)) this.rag.logGap(orgId, msg.text, 'telegram').catch(() => {})
       const history = await this.prisma.message.findMany({ where: { conversationId: conv.id }, orderBy: { createdAt: 'asc' }, take: 12 })
       const system = `You are the Telegram assistant for ${org?.name || 'this business'}${org?.industry ? `, a ${org.industry} business` : ''}. Be concise and helpful. Use ONLY the business knowledge below when relevant; if unsure, offer to connect the customer with the team.${knowledge ? `\n\n--- KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
       const messages = [
