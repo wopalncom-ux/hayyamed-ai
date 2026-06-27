@@ -180,6 +180,15 @@ export class ReportsController {
 
     const STAGE_ORDER = ['NEW', 'CONTACTED', 'QUALIFYING', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST']
 
+    // CSAT — average customer satisfaction from conversation ratings (1–5).
+    const csatRows = await this.prisma.$queryRaw<{ avg: number | null; count: bigint }[]>`
+      SELECT AVG((metadata->>'rating')::numeric) AS avg, COUNT(*) AS count
+      FROM "conversations"
+      WHERE "orgId" = ${orgId} AND metadata->>'rating' IS NOT NULL
+    `
+    const csatAvg = csatRows[0]?.avg != null ? Math.round(Number(csatRows[0].avg) * 10) / 10 : null
+    const csatCount = Number(csatRows[0]?.count || 0)
+
     return {
       kpis: {
         totalContacts, wonContacts, lostContacts, winRate,
@@ -187,6 +196,7 @@ export class ReportsController {
         activeCampaigns, totalCampaigns, totalWorkflowRuns,
         newContacts30d, newContacts7d,
         pipelineValue, wonValue,
+        csatAvg, csatCount,
       },
       pipeline: STAGE_ORDER.map(status => {
         const s = pipelineStages.find(p => p.status === status)
