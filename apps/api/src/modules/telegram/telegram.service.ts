@@ -1,8 +1,9 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException, Optional } from '@nestjs/common'
 import axios from 'axios'
 import { PrismaService } from '../../database/prisma.service'
 import { AIService } from '../ai/ai.service'
 import { RagService } from '../knowledge-base/rag.service'
+import { NotificationsService } from '../notifications/notifications.service'
 import { encrypt, decrypt } from '../../common/crypto/crypto.util'
 import { wantsHuman } from '../../common/util/escalation.util'
 
@@ -11,7 +12,7 @@ export class TelegramService {
   private readonly logger = new Logger(TelegramService.name)
   private api(token: string) { return `https://api.telegram.org/bot${token}` }
 
-  constructor(private prisma: PrismaService, private ai: AIService, private rag: RagService) {}
+  constructor(private prisma: PrismaService, private ai: AIService, private rag: RagService, @Optional() private notifications?: NotificationsService) {}
 
   // Connect a Telegram bot: validate token, store channel, register webhook.
   async connect(orgId: string, botToken: string) {
@@ -86,6 +87,10 @@ export class TelegramService {
       await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: ack } })
       await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: ack, lastMsgAt: new Date() } })
       try { await axios.post(`${this.api(token)}/sendMessage`, { chat_id: chatId, text: ack }) } catch {}
+      this.notifications?.notifyConversation(orgId, {
+        assigneeId: (conv as any).assigneeId, type: 'escalation', conversationId: conv.id,
+        title: '⚠ A customer needs a human', body: `${name} asked to speak with your team on Telegram.`,
+      }).catch(() => {})
       return
     }
 

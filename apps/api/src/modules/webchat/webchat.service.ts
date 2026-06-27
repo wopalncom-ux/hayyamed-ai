@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { AIService } from '../ai/ai.service'
 import { RagService } from '../knowledge-base/rag.service'
+import { NotificationsService } from '../notifications/notifications.service'
 import { wantsHuman } from '../../common/util/escalation.util'
 
 @Injectable()
@@ -12,6 +13,7 @@ export class WebchatService {
     private prisma: PrismaService,
     private ai: AIService,
     private rag: RagService,
+    @Optional() private notifications?: NotificationsService,
   ) {}
 
   // Lazily ensure the org has a LIVE_CHAT (website) channel.
@@ -75,6 +77,10 @@ export class WebchatService {
       const ack = 'Of course — I’m connecting you with a member of our team. They’ll reply here shortly. 🙏'
       await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: ack } })
       await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: ack, lastMsgAt: new Date() } })
+      this.notifications?.notifyConversation(orgId, {
+        assigneeId: (conv as any).assigneeId, type: 'escalation', conversationId: conv.id,
+        title: '⚠ A customer needs a human', body: 'A website chat visitor asked to speak with your team.',
+      }).catch(() => {})
       return { reply: ack, sessionId, escalated: true }
     }
 
