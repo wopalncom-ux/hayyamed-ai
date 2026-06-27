@@ -93,7 +93,9 @@ export class ConversationsService {
     if (search) {
       where.OR = [
         { contact: { name: { contains: search, mode: 'insensitive' } } },
+        { contact: { phone: { contains: search } } },
         { lastMessage: { contains: search, mode: 'insensitive' } },
+        { messages: { some: { content: { contains: search, mode: 'insensitive' } } } },
       ]
     }
 

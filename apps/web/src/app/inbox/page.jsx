@@ -259,6 +259,19 @@ function InboxInner() {
       .finally(() => setConvLoading(false))
   }, [])
 
+  // ── Server-side search (searches full message content + phone), debounced ──
+  const didMountSearch = useRef(false)
+  useEffect(() => {
+    if (!didMountSearch.current) { didMountSearch.current = true; return }
+    const q = search.trim()
+    const t = setTimeout(() => {
+      api.getConversations(q ? { search: q, limit: 50 } : { limit: 50 })
+        .then(res => setContacts((Array.isArray(res) ? res : (res?.data || [])).map(toUiConv)))
+        .catch(() => {})
+    }, 300)
+    return () => clearTimeout(t)
+  }, [search])
+
   // ── Socket.IO real-time connection ────────────────────────────────────────
   useEffect(() => {
     let socket
@@ -350,7 +363,7 @@ function InboxInner() {
   }, [])
 
   const filtered = contacts.filter(c => {
-    if (!c.name.toLowerCase().includes(search.toLowerCase()) && !c.msg.toLowerCase().includes(search.toLowerCase())) return false
+    // Text search is handled server-side (matches message content + phone too).
     if (filterChannel !== 'All' && c.channel !== filterChannel) return false
     if (filterStatus !== 'All' && c.status !== filterStatus) return false
     if (escalatedOnly && !c.escalated) return false
