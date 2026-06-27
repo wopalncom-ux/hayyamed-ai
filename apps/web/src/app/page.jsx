@@ -2,10 +2,10 @@ import Link from 'next/link'
 import PricingSection from '@/components/PricingSection'
 
 export const metadata = {
-  title: 'Hayyamed AI — AI-Powered CRM for Qatar & GCC',
+  title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
   description: 'WhatsApp, Instagram, Facebook and Email omnichannel CRM with AI agents, automated replies, lead scoring, and campaign management. Built for Qatar and GCC businesses.',
   openGraph: {
-    title: 'Hayyamed AI — AI-Powered CRM for Qatar & GCC',
+    title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
     description: 'Automate customer conversations with AI. Manage leads, campaigns, and bookings across WhatsApp, Instagram, and email.',
     type: 'website',
   },
@@ -213,12 +213,17 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Footer ─────────────────────────────────────────────────── */}
-      <footer style={{ padding: '32px 24px', borderTop: '1px solid #1a2235', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', maxWidth: '960px', margin: '0 auto' }}>
-        <div style={{ fontWeight: '700', fontSize: '14px' }}>Hayya<span style={{ color: '#00e5a0' }}>med</span> AI</div>
-        <div style={{ fontSize: '11px', color: '#475569' }}>© {new Date().getFullYear()} Hayyamed AI. All rights reserved. Qatar.</div>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <Link href="/login" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Log in</Link>
-          <Link href="/register" style={{ fontSize: '11px', color: '#00e5a0', textDecoration: 'none' }}>Sign up free</Link>
+      <footer style={{ padding: '32px 24px', borderTop: '1px solid #1a2235', maxWidth: '960px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ fontWeight: '700', fontSize: '14px' }}>Hayya<span style={{ color: '#00e5a0' }}> AI</span></div>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <Link href="/login" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Log in</Link>
+            <Link href="/register" style={{ fontSize: '11px', color: '#00e5a0', textDecoration: 'none' }}>Sign up free</Link>
+          </div>
+        </div>
+        <div style={{ fontSize: '11px', color: '#475569', marginTop: '16px', textAlign: 'center', lineHeight: '1.8' }}>
+          Owned and managed by <strong style={{ color: '#94a3b8' }}>Hayya Med AI</strong> · Doha, Qatar<br />
+          © {new Date().getFullYear()} Hayya AI. All rights reserved.
         </div>
       </footer>
     </div>

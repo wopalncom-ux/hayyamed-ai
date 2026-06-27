@@ -21,7 +21,7 @@ export class NotificationsController {
 
   @Post('test-push')
   async testPush(@CurrentUser() user: JwtPayload) {
-    await this.svc.sendPush(user.sub, { title: '🔔 Hayyamed AI', body: 'Push notifications are working!', url: '/dashboard' })
+    await this.svc.sendPush(user.sub, { title: '🔔 Hayya AI', body: 'Push notifications are working!', url: '/dashboard' })
     return { sent: true }
   }
 

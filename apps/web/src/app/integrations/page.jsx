@@ -96,7 +96,7 @@ const INTEGRATIONS = [
   {
     id:'hubspot', category:'CRM', color:'#f97316',
     name:'HubSpot CRM', icon:'🔶',
-    desc:'Two-way sync contacts, deals, and conversations between Hayyamed AI and HubSpot.',
+    desc:'Two-way sync contacts, deals, and conversations between Hayya AI and HubSpot.',
     badge:'HubSpot API v3', fields:[
       { key:'hs_access_token', label:'PRIVATE APP TOKEN', placeholder:'pat-na1-...', type:'password' },
       { key:'hs_portal_id',    label:'PORTAL ID',         placeholder:'Your HubSpot portal ID', type:'text' },
@@ -251,7 +251,7 @@ export default function Integrations() {
 
       {/* Top bar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1e2d42', display:'flex', alignItems:'center', padding:'0 20px', gap:'14px', flexShrink:0}}>
-        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
+        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
         <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Integrations</div>
         <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px'}}>
           {saved && <span style={{fontSize:'11px', color:'#00e5a0', fontWeight:'600'}}>✓ {saved}</span>}

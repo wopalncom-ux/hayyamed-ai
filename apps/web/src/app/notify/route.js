@@ -3,7 +3,7 @@ export async function POST(request) {
     const { type, name, phone, message } = await request.json()
 
     const emailBody = `
-New ${type} Alert from Hayyamed AI!
+New ${type} Alert from Hayya AI!
 
 Contact: ${name}
 Phone: ${phone}
@@ -21,9 +21,9 @@ Time: ${new Date().toLocaleString()}
         'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Hayyamed AI <notifications@hayyamed.ai>',
+        from: 'Hayya AI <notifications@hayyamed.ai>',
         to: ['wopalncom@gmail.com'],
-        subject: `New ${type} - Hayyamed AI`,
+        subject: `New ${type} - Hayya AI`,
         text: emailBody,
       }),
     })

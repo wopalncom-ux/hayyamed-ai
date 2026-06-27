@@ -240,7 +240,7 @@ export default function Agency() {
 
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1e2d42', display:'flex', alignItems:'center', padding:'0 20px', gap:'14px', flexShrink:0}}>
-        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
+        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
         <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Master Control</div>
         <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px'}}>
           {saved && <span style={{fontSize:'11px', color:'#00e5a0', fontWeight:'600'}}>✓ {saved}</span>}

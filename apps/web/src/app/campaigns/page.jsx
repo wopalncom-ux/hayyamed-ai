@@ -10,7 +10,7 @@ const templates = [
   { id:3, name:'Follow Up', channel:'WhatsApp', text:'Hello {name}! 👋 We noticed you were interested in our services. We would love to help you. Do you have any questions? Our team is ready to assist you right now!', category:'Follow Up' },
   { id:4, name:'Appointment Reminder', channel:'WhatsApp', text:'📅 Reminder: You have an appointment tomorrow. Please confirm your attendance by replying YES or contact us to reschedule.', category:'Reminder' },
   { id:5, name:'Instagram Caption', channel:'Instagram', text:'✨ Transform your experience with us! We bring the best quality service to Qatar. Book your appointment today. Link in bio! #Qatar #Doha #QatarBusiness', category:'Social' },
-  { id:6, name:'Email Newsletter', channel:'Email', text:'Dear {name},\n\nWe hope this message finds you well. We wanted to share some exciting updates about our services.\n\nWe have been working hard to improve your experience and we would love for you to be among the first to benefit.\n\nClick below to learn more.\n\nBest regards,\nHayyamed AI Team', category:'Email' },
+  { id:6, name:'Email Newsletter', channel:'Email', text:'Dear {name},\n\nWe hope this message finds you well. We wanted to share some exciting updates about our services.\n\nWe have been working hard to improve your experience and we would love for you to be among the first to benefit.\n\nClick below to learn more.\n\nBest regards,\nHayya AI Team', category:'Email' },
 ]
 
 // Keyed by the real campaign status enum (RUNNING/COMPLETED/PAUSED/FAILED/DRAFT/SCHEDULED).
@@ -180,7 +180,7 @@ export default function Campaigns() {
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
+        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
         <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
         <div style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700'}}>A</div>
       </div>

@@ -43,7 +43,7 @@ async function bootstrap() {
 
   // Swagger API Docs
   const config = new DocumentBuilder()
-    .setTitle('Hayyamed AI API')
+    .setTitle('Hayya AI API')
     .setDescription('AI Omnichannel CRM Platform — REST API')
     .setVersion('1.0')
     .addBearerAuth()
@@ -53,7 +53,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 4000
   await app.listen(port)
-  console.log(`🚀 Hayyamed AI API running on port ${port}`)
+  console.log(`🚀 Hayya AI API running on port ${port}`)
   console.log(`📖 Swagger docs: http://localhost:${port}/api/docs`)
 }
 

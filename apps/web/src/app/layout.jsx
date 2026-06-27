@@ -2,12 +2,12 @@ import AuthGuard from '@/components/AuthGuard'
 import PwaProvider from '@/components/PwaProvider'
 
 export const metadata = {
-  title: 'Hayyamed AI — Business Operating System',
+  title: 'Hayya AI — Business Operating System',
   description: 'AI-powered CRM, automation, and omnichannel Business Operating System.',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Hayyamed AI',
+    title: 'Hayya AI',
   },
   icons: {
     icon: '/logo.svg',

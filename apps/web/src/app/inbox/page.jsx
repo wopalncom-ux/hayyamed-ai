@@ -418,7 +418,7 @@ function InboxInner() {
 
       {/* Topbar */}
       <div style={{ height: '50px', background: '#0c0f1a', borderBottom: '1px solid #1a2235', display: 'flex', alignItems: 'center', padding: '0 16px', gap: '12px', flexShrink: 0 }}>
-        <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#00e5a0' }}>med</span> AI</div>
+        <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#00e5a0' }}> AI</span></div>
         <div style={{ marginLeft: 'auto' }}><LiveDot /></div>
         {newMsgFlash && <div style={{ fontSize: '11px', color: '#00e5a0', fontWeight: '700', animation: 'pulse .5s 3' }}>New message!</div>}
       </div>

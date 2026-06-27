@@ -24,7 +24,7 @@ export default function AuthGuard({ children }) {
   if (status === 'loading') return (
     <div style={{background:'#07090f', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif'}}>
       <div style={{fontSize:'22px', fontWeight:'900', letterSpacing:'-0.5px', color:'#e2e8f0'}}>
-        Hayya<span style={{color:'#00e5a0'}}>med</span> AI
+        Hayya<span style={{color:'#00e5a0'}}> AI</span>
       </div>
     </div>
   )

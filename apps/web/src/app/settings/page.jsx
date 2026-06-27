@@ -263,7 +263,7 @@ export default function Settings() {
 
       {/* Top bar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
+        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
         <div style={{fontSize:'12px', color:'#7a8fa6'}}>/  Settings</div>
         {saved && <span style={{fontSize:'11px', color:'#00e5a0', marginLeft:'8px'}}>✅ {saved}</span>}
         <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>

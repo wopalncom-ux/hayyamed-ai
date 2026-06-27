@@ -99,7 +99,7 @@ export default function Dashboard() {
 
         {/* Topbar */}
         <div style={{ height: '50px', background: '#0c0f1a', borderBottom: '1px solid #1a2235', display: 'flex', alignItems: 'center', padding: '0 20px', gap: '10px', flexShrink: 0, position: 'sticky', top: 0, zIndex: 40 }}>
-          <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#00e5a0' }}>med</span> AI</div>
+          <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#00e5a0' }}> AI</span></div>
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: '10px', padding: '3px 9px', background: roleInfo.color + '18', border: `1px solid ${roleInfo.color}44`, borderRadius: '12px', color: roleInfo.color, fontWeight: '700' }}>{roleInfo.label}</span>
           <div style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '10px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.2)', color: '#00e5a0', fontWeight: '700' }}>● LIVE</div>

@@ -9,9 +9,9 @@ async function main() {
   // Create demo organization
   const org = await prisma.organization.upsert({
     where: { slug: 'hayyamed-demo' },
-    update: {},
+    update: { name: 'Hayya AI Demo' },
     create: {
-      name: 'Hayyamed Demo',
+      name: 'Hayya AI Demo',
       slug: 'hayyamed-demo',
       industry: 'Healthcare',
       country: 'QA',

@@ -11,7 +11,7 @@ async function main() {
     where: { slug: 'hayyamed-demo' },
     update: {},
     create: {
-      name: 'Hayyamed Demo',
+      name: 'Hayya AI Demo',
       slug: 'hayyamed-demo',
       industry: 'Healthcare',
       country: 'QA',

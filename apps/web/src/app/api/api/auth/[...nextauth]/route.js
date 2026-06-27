@@ -13,7 +13,7 @@ export async function POST(request) {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant for Hayyamed AI, an omnichannel CRM platform in Qatar. Be polite and professional. Respond in the same language as the customer.'
+            content: 'You are a helpful AI assistant for Hayya AI, an omnichannel CRM platform in Qatar. Be polite and professional. Respond in the same language as the customer.'
           },
           ...history,
           { role: 'user', content: message }

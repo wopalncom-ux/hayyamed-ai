@@ -43,7 +43,7 @@ export default function Login() {
         {/* Logo */}
         <div style={{textAlign:'center', marginBottom:'36px'}}>
           <div style={{fontSize:'32px', fontWeight:'900', letterSpacing:'-1px', marginBottom:'8px'}}>
-            Hayya<span style={{color:'#00e5a0'}}>med</span> AI
+            Hayya<span style={{color:'#00e5a0'}}> AI</span>
           </div>
           <div style={{fontSize:'13px', color:'#7a8fa6'}}>Sign in to your account</div>
         </div>
@@ -92,8 +92,8 @@ export default function Login() {
           New here?{' '}
           <a href="/register" style={{color:'#00e5a0', textDecoration:'none', fontWeight:'700'}}>Create a free account →</a>
         </div>
-        <div style={{textAlign:'center', marginTop:'8px', fontSize:'11px', color:'#3d4f63'}}>
-          Powered by Hayyamed AI · Qatar 🇶🇦
+        <div style={{textAlign:'center', marginTop:'8px', fontSize:'11px', color:'#3d4f63', lineHeight:'1.7'}}>
+          Owned and managed by Hayya Med AI · Doha, Qatar 🇶🇦
         </div>
       </div>
     </div>

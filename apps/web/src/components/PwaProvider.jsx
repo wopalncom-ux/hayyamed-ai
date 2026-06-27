@@ -77,7 +77,7 @@ export default function PwaProvider() {
       <div style={{ background: '#0f1622', border: '1px solid #1e2d42', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 20px 50px rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', gap: '14px' }}>
         <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', flexShrink: 0 }}>📲</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '14px', fontWeight: 800, color: '#e8eef5' }}>Install Hayyamed AI</div>
+          <div style={{ fontSize: '14px', fontWeight: 800, color: '#e8eef5' }}>Install Hayya AI</div>
           <div style={{ fontSize: '12px', color: '#7a8fa6', marginTop: '2px' }}>Add to your home screen for a faster, app-like experience.</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>

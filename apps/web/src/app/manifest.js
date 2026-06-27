@@ -1,7 +1,7 @@
 export default function manifest() {
   return {
-    name: 'Hayyamed AI — Business Operating System',
-    short_name: 'Hayyamed AI',
+    name: 'Hayya AI — Business Operating System',
+    short_name: 'Hayya AI',
     description: 'AI-powered CRM, automation, and omnichannel Business Operating System.',
     start_url: '/dashboard',
     scope: '/',

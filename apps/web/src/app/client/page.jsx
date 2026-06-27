@@ -83,7 +83,7 @@ export default function ClientPortal() {
 
       {/* ── Top bar ──────────────────────────────────────────────────────────── */}
       <div style={{background:'#0c0f1a', borderBottom:'1px solid #1e2d42', padding:'0 24px', height:'56px', display:'flex', alignItems:'center', gap:'14px', position:'sticky', top:0, zIndex:50}}>
-        <div style={{fontWeight:'900', fontSize:'17px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}>med</span> AI</div>
+        <div style={{fontWeight:'900', fontSize:'17px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
         <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Client Portal</div>
         <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'12px'}}>
           <div style={{fontSize:'12px', color:'#7a8fa6'}}>

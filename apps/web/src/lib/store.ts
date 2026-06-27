@@ -179,7 +179,7 @@ export function useSocket() {
       transports: ['websocket'],
     })
 
-    socket.on('connect', () => console.log('🔗 Connected to Hayyamed AI'))
+    socket.on('connect', () => console.log('🔗 Connected to Hayya AI'))
     socket.on('disconnect', () => console.log('🔌 Disconnected'))
 
     socket.on('message:new', ({ conversationId, message }) => {

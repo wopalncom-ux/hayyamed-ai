@@ -148,7 +148,7 @@ export class BillingService {
       line_items: [{
         price_data: {
           currency: 'usd',
-          product_data: { name: `Hayyamed AI — ${plan.name} Plan` },
+          product_data: { name: `Hayya AI — ${plan.name} Plan` },
           unit_amount: Math.round(plan.price * 27.5), // QAR to cents (approx)
           recurring: { interval: 'month' },
         },
