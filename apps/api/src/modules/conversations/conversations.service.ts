@@ -189,6 +189,25 @@ export class ConversationsService {
     return this.prisma.conversation.update({ where: { id }, data })
   }
 
+  // Plain-text transcript of a conversation (for records / export).
+  async exportTranscript(id: string, orgId: string) {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { id, orgId },
+      include: { contact: { select: { name: true, phone: true } }, channel: { select: { type: true } } },
+    })
+    if (!conv) return null
+    const messages = await this.prisma.message.findMany({ where: { conversationId: id }, orderBy: { createdAt: 'asc' } })
+    const who = conv.contact?.name || 'Customer'
+    const lines = messages.map(m => {
+      const sender = !m.senderId ? ((m.isAI || m.isFromBot) ? 'AI' : who) : 'Agent'
+      return `[${new Date(m.createdAt).toLocaleString()}] ${sender}: ${m.content || ''}`
+    })
+    const header =
+      `Conversation with ${who}${conv.contact?.phone ? ` (${conv.contact.phone})` : ''}\n` +
+      `Channel: ${conv.channel?.type || '—'}\nExported: ${new Date().toLocaleString()}\n` + '='.repeat(56) + '\n'
+    return { filename: `conversation-${who.replace(/\s+/g, '-')}-${id.slice(0, 8)}.txt`, content: header + lines.join('\n') }
+  }
+
   async getStats(orgId: string) {
     const [total, open, pending, resolved] = await Promise.all([
       this.prisma.conversation.count({ where: { orgId } }),

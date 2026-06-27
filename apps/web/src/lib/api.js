@@ -87,6 +87,8 @@ export const api = {
     request(`/conversations/${id}/tags`, { method: 'PATCH', body: JSON.stringify({ tags }) }),
   setConversationAi: (id, paused) =>
     request(`/conversations/${id}/ai`, { method: 'PATCH', body: JSON.stringify({ paused }) }),
+  exportConversation: (id) =>
+    request(`/conversations/${id}/export`),
   getConversationNotes: (id) =>
     request(`/conversations/${id}/notes`),
   addConversationNote: (id, content) =>

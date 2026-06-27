@@ -60,6 +60,11 @@ export class ConversationsController {
     return this.conversations.assign(id, user.orgId, body.assigneeId)
   }
 
+  @Get(':id/export')
+  exportTranscript(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.conversations.exportTranscript(id, user.orgId)
+  }
+
   // Human takeover: pause/resume the AI for this conversation.
   @Patch(':id/ai')
   setAi(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() body: { paused: boolean }) {

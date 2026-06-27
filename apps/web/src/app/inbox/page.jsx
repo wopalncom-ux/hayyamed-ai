@@ -190,6 +190,18 @@ function InboxInner() {
     try { const n = await api.addConversationNote(selected.convId, c); if (n) setNotes(prev => [n, ...prev]) } catch {}
   }
 
+  const exportTranscript = async () => {
+    if (!selected) return
+    try {
+      const r = await api.exportConversation(selected.convId)
+      if (!r?.content) return
+      const url = URL.createObjectURL(new Blob([r.content], { type: 'text/plain;charset=utf-8' }))
+      const a = document.createElement('a')
+      a.href = url; a.download = r.filename || 'conversation.txt'; a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) { alert('Export failed: ' + (e?.message || 'error')) }
+  }
+
   const runSummary = async () => {
     if (!selected) return
     setSummaryLoading(true); setSummary(null)
@@ -609,6 +621,10 @@ function InboxInner() {
                         👤 Open lead in CRM →
                       </a>
                     )}
+                    <button onClick={exportTranscript}
+                      style={{ padding: '6px 11px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
+                      ⬇ Export transcript
+                    </button>
                   </div>
 
                   {/* Tags */}
