@@ -85,6 +85,8 @@ export const api = {
     request(`/conversations/${id}/assign`, { method: 'PATCH', body: JSON.stringify({ assigneeId }) }),
   setConversationTags: (id, tags) =>
     request(`/conversations/${id}/tags`, { method: 'PATCH', body: JSON.stringify({ tags }) }),
+  setConversationAi: (id, paused) =>
+    request(`/conversations/${id}/ai`, { method: 'PATCH', body: JSON.stringify({ paused }) }),
   getConversationNotes: (id) =>
     request(`/conversations/${id}/notes`),
   addConversationNote: (id, content) =>

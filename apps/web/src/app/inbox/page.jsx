@@ -42,6 +42,7 @@ function toUiConv(c) {
     assigneeId: c.assigneeId || '',
     tags: c.tags || [],
     lastMsgAt: c.lastMsgAt,
+    aiPaused: !!(c.metadata && c.metadata.aiPaused),
   }
 }
 
@@ -205,6 +206,16 @@ function InboxInner() {
       await api.updateConversationStatus(selected.convId, status)
       setSelected(s => ({ ...s, convStatus: status }))
     } catch {}
+  }
+
+  // Human takeover: pause/resume the AI for the open conversation.
+  const toggleAi = async () => {
+    if (!selected) return
+    const paused = !selected.aiPaused
+    setSelected(s => ({ ...s, aiPaused: paused }))
+    setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, aiPaused: paused } : c))
+    try { await api.setConversationAi(selected.convId, paused) }
+    catch { setSelected(s => ({ ...s, aiPaused: !paused })) }
   }
   const [filterChannel, setFilterChannel] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
@@ -495,9 +506,12 @@ function InboxInner() {
                       View Profile
                     </a>
                   )}
-                  <button onClick={() => setAiMode(!aiMode)}
-                    style={{ padding: '6px 11px', background: aiMode ? '#00e5a0' : 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.2)', borderRadius: '6px', color: aiMode ? '#0a0f1a' : '#00e5a0', fontSize: '11px', cursor: 'pointer', fontWeight: '700' }}>
-                    🤖 {aiMode ? 'AI ON' : 'AI'}
+                  <button onClick={toggleAi} title={selected.aiPaused ? 'AI is paused — you are handling this. Click to let AI resume.' : 'AI is auto-replying. Click to take over.'}
+                    style={{ padding: '6px 11px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: '700',
+                      background: selected.aiPaused ? 'rgba(251,191,36,.12)' : '#00e5a0',
+                      border: `1px solid ${selected.aiPaused ? 'rgba(251,191,36,.4)' : '#00e5a0'}`,
+                      color: selected.aiPaused ? '#fbbf24' : '#0a0f1a' }}>
+                    {selected.aiPaused ? '🙋 You’re handling' : '🤖 AI active'}
                   </button>
                 </div>
               </div>
@@ -595,7 +609,7 @@ function InboxInner() {
 
               {/* Input */}
               <div style={{ padding: '12px 16px', borderTop: '1px solid #1a2235', background: '#0c0f1a', flexShrink: 0, position: 'relative' }}>
-                {aiMode && <div style={{ padding: '5px 10px', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.2)', borderRadius: '5px', marginBottom: '8px', fontSize: '11px', color: '#8b5cf6' }}>🤖 AI Mode — messages will also trigger AI reply</div>}
+                {selected?.aiPaused && <div style={{ padding: '5px 10px', background: 'rgba(251,191,36,.08)', border: '1px solid rgba(251,191,36,.25)', borderRadius: '5px', marginBottom: '8px', fontSize: '11px', color: '#fbbf24' }}>🙋 You’ve taken over — the AI won’t auto-reply here until you switch it back to 🤖 AI active.</div>}
 
                 {/* Request Payment popover */}
                 {showPay && (

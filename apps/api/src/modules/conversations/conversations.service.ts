@@ -18,6 +18,15 @@ export class ConversationsService {
     return this.prisma.conversation.update({ where: { id }, data: { assigneeId: assigneeId || null } })
   }
 
+  // Pause/resume the AI for a single conversation (human takeover / handoff).
+  // Stored in metadata.aiPaused so inbound handlers skip the auto-reply.
+  async setAiPaused(id: string, orgId: string, paused: boolean) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId }, select: { metadata: true } })
+    if (!conv) return null
+    const metadata = { ...((conv.metadata as any) || {}), aiPaused: !!paused }
+    return this.prisma.conversation.update({ where: { id }, data: { metadata } })
+  }
+
   // Replace the conversation's tags.
   async setTags(id: string, orgId: string, tags: string[]) {
     const conv = await this.prisma.conversation.findFirst({ where: { id, orgId } })

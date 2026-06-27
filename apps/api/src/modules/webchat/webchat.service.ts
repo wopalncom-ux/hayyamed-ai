@@ -60,6 +60,12 @@ export class WebchatService {
     })
     await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: text.trim(), lastMsgAt: new Date(), isRead: false } })
 
+    // Human takeover: if AI is paused for this conversation, don't auto-reply —
+    // a human is handling it. The message is stored and surfaces in the inbox.
+    if ((conv.metadata as any)?.aiPaused) {
+      return { paused: true, sessionId }
+    }
+
     // Build an AI reply grounded in the org's knowledge base (graceful if no AI/KB)
     let reply = ''
     try {
