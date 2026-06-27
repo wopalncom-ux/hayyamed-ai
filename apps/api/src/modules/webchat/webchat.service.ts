@@ -77,6 +77,11 @@ export class WebchatService {
       }
     }
 
+    // A new (non-rating) message on a resolved conversation reopens it.
+    if ((conv as any).status === 'RESOLVED') {
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { status: 'OPEN' } })
+    }
+
     // Human takeover: if AI is paused for this conversation, don't auto-reply —
     // a human is handling it. The message is stored and surfaces in the inbox.
     if ((conv.metadata as any)?.aiPaused) {

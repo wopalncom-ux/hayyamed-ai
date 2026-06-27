@@ -77,6 +77,11 @@ export class TelegramService {
     await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, type: 'TEXT', content: msg.text } })
     await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: msg.text, lastMsgAt: new Date(), isRead: false } })
 
+    // A new message on a resolved conversation reopens it.
+    if ((conv as any).status === 'RESOLVED') {
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { status: 'OPEN' } })
+    }
+
     // Human takeover: skip the AI auto-reply when paused for this conversation.
     if ((conv.metadata as any)?.aiPaused) return
 
