@@ -101,6 +101,15 @@ export const api = {
     request('/reports/full'),
   getOnboarding: () =>
     request('/reports/onboarding'),
+  // Outbound webhooks
+  getWebhooks: () =>
+    request('/webhooks'),
+  createWebhook: (url, events) =>
+    request('/webhooks', { method: 'POST', body: JSON.stringify({ url, events }) }),
+  testWebhook: (url) =>
+    request('/webhooks/test', { method: 'POST', body: JSON.stringify({ url }) }),
+  deleteWebhook: (id) =>
+    request(`/webhooks/${id}`, { method: 'DELETE' }),
   getSalesReport: () =>
     request('/reports/sales'),
 

@@ -1,12 +1,14 @@
 import { Injectable, Optional, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { WorkflowEngineService } from '../workflows/workflow-engine.service'
+import { WebhooksService } from '../webhooks/webhooks.service'
 
 @Injectable()
 export class ContactsService {
   constructor(
     private prisma: PrismaService,
     @Optional() private workflowEngine?: WorkflowEngineService,
+    @Optional() private webhooks?: WebhooksService,
   ) {}
 
   async findAll(orgId: string, query: { search?: string; status?: string; page?: number; limit?: number } = {}) {
@@ -43,6 +45,9 @@ export class ContactsService {
     const contact = await this.prisma.contact.create({ data: { ...dto, orgId } })
     // Fire new_contact trigger (fire-and-forget)
     this.workflowEngine?.fire(orgId, 'new_contact', contact.id, { source: contact.source }).catch(() => {})
+    this.webhooks?.dispatch(orgId, 'contact.created', {
+      id: contact.id, name: contact.name, phone: contact.phone, email: contact.email, source: contact.source, status: contact.status,
+    }).catch(() => {})
     return contact
   }
 
