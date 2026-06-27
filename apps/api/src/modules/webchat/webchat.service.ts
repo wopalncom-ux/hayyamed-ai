@@ -9,6 +9,7 @@ import { isWithinHours } from '../../common/util/business-hours.util'
 import { isSubstantiveQuestion } from '../../common/util/question.util'
 import { computeLeadScore } from '../../common/util/lead-score.util'
 import { detectNegative } from '../../common/util/sentiment.util'
+import { WorkflowEngineService } from '../workflows/workflow-engine.service'
 
 @Injectable()
 export class WebchatService {
@@ -20,6 +21,7 @@ export class WebchatService {
     private rag: RagService,
     @Optional() private notifications?: NotificationsService,
     @Optional() private webhooks?: WebhooksService,
+    @Optional() private workflows?: WorkflowEngineService,
   ) {}
 
   // Lazily ensure the org has a LIVE_CHAT (website) channel.
@@ -71,6 +73,9 @@ export class WebchatService {
       data: { conversationId: conv.id, senderId: null, type: 'TEXT', content: text.trim() },
     })
     await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: text.trim(), lastMsgAt: new Date(), isRead: false } })
+
+    // Keyword-triggered automations run on the inbound text (non-blocking).
+    this.workflows?.fire(orgId, 'keyword', conv.contactId || undefined, { text: text.trim() }).catch(() => {})
 
     // Satisfaction rating: if we asked for a rating, capture a leading 1–5.
     if ((conv.metadata as any)?.awaitingRating) {

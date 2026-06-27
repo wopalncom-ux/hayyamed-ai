@@ -521,6 +521,26 @@ export default function WorkflowsPage() {
                       </label>
                     ))}
                   </div>
+
+                  {/* Condition input for keyword / status triggers */}
+                  {trigger === 'keyword' && (
+                    <div style={{ marginTop: '12px' }}>
+                      <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Keyword the customer message must contain</label>
+                      <input value={conditions.keyword || ''} onChange={e => setConditions({ ...conditions, keyword: e.target.value })}
+                        placeholder="e.g. price, booking, refund"
+                        style={{ width: '100%', background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '9px 11px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  )}
+                  {trigger === 'status_changed' && (
+                    <div style={{ marginTop: '12px' }}>
+                      <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Only when status becomes (optional)</label>
+                      <select value={conditions.status || ''} onChange={e => setConditions({ ...conditions, status: e.target.value || undefined })}
+                        style={{ width: '100%', background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '9px 11px', color: '#e2e8f0', fontSize: '13px', cursor: 'pointer' }}>
+                        <option value="">Any status</option>
+                        {['NEW','CONTACTED','QUALIFYING','QUALIFIED','PROPOSAL','NEGOTIATION','WON','LOST'].map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}

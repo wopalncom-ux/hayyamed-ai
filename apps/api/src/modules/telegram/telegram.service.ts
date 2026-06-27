@@ -11,13 +11,14 @@ import { isWithinHours } from '../../common/util/business-hours.util'
 import { isSubstantiveQuestion } from '../../common/util/question.util'
 import { computeLeadScore } from '../../common/util/lead-score.util'
 import { detectNegative } from '../../common/util/sentiment.util'
+import { WorkflowEngineService } from '../workflows/workflow-engine.service'
 
 @Injectable()
 export class TelegramService {
   private readonly logger = new Logger(TelegramService.name)
   private api(token: string) { return `https://api.telegram.org/bot${token}` }
 
-  constructor(private prisma: PrismaService, private ai: AIService, private rag: RagService, @Optional() private notifications?: NotificationsService, @Optional() private webhooks?: WebhooksService) {}
+  constructor(private prisma: PrismaService, private ai: AIService, private rag: RagService, @Optional() private notifications?: NotificationsService, @Optional() private webhooks?: WebhooksService, @Optional() private workflows?: WorkflowEngineService) {}
 
   // Connect a Telegram bot: validate token, store channel, register webhook.
   async connect(orgId: string, botToken: string) {
@@ -81,6 +82,9 @@ export class TelegramService {
 
     await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, type: 'TEXT', content: msg.text } })
     await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: msg.text, lastMsgAt: new Date(), isRead: false } })
+
+    // Keyword-triggered automations run on the inbound text (non-blocking).
+    this.workflows?.fire(orgId, 'keyword', conv.contactId || undefined, { text: msg.text }).catch(() => {})
 
     // A new message on a resolved conversation reopens it.
     if ((conv as any).status === 'RESOLVED') {

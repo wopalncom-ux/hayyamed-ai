@@ -232,6 +232,11 @@ export class WorkflowEngineService {
     if (conditions.tag && extra.tags) {
       if (!Array.isArray(extra.tags) || !extra.tags.includes(conditions.tag)) return false
     }
+    // Keyword trigger: the inbound message text must contain the configured keyword.
+    if (conditions.keyword) {
+      const text = String(extra.text || '').toLowerCase()
+      if (!text.includes(String(conditions.keyword).toLowerCase())) return false
+    }
     return true
   }
 }
