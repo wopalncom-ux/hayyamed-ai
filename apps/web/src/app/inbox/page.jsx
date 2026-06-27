@@ -353,8 +353,9 @@ function InboxInner() {
       const savedMsg = await api.sendMessage(selected.convId, text)
       // Replace optimistic with real message
       setMessages(prev => prev.map(m => m.id === tmpId ? { ...m, id: savedMsg.id } : m))
-      // Update conversation preview
-      setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, msg: text, time: 'Now' } : c))
+      // Sending takes over → AI auto-pauses server-side; reflect it in the UI.
+      setSelected(s => ({ ...s, aiPaused: true }))
+      setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, msg: text, time: 'Now', aiPaused: true } : c))
     } catch {
       // Remove optimistic on failure
       setMessages(prev => prev.filter(m => m.id !== tmpId))
@@ -447,6 +448,7 @@ function InboxInner() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', background: (statusColors[c.status] || '#64748b') + '22', color: statusColors[c.status] || '#64748b' }}>{c.status}</span>
                         {c.score > 0 && <span style={{ fontSize: '9px', color: '#475569' }}>★{c.score}</span>}
+                        {c.aiPaused && <span title="A human is handling this — AI paused" style={{ fontSize: '9px' }}>🙋</span>}
                       </div>
                     </div>
                   </div>

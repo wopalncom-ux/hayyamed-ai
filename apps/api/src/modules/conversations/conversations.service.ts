@@ -142,9 +142,15 @@ export class ConversationsService {
     const msg = await this.prisma.message.create({
       data: { conversationId, content, senderId, type: 'TEXT', status: 'SENT' },
     })
+    // A human agent replying = implicit takeover → auto-pause the AI for this conversation.
+    let metadataUpdate: Record<string, any> = {}
+    if (senderId) {
+      const existing = await this.prisma.conversation.findUnique({ where: { id: conversationId }, select: { metadata: true } })
+      metadataUpdate = { metadata: { ...((existing?.metadata as any) || {}), aiPaused: true } }
+    }
     const conv = await this.prisma.conversation.update({
       where: { id: conversationId },
-      data: { lastMessage: content, lastMsgAt: new Date() },
+      data: { lastMessage: content, lastMsgAt: new Date(), ...metadataUpdate },
     })
     // Emit real-time event to all agents in this org
     this.gateway?.emitNewMessage(conv.orgId, conversationId, {
