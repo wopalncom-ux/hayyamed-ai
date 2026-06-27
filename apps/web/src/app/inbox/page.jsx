@@ -220,6 +220,7 @@ function InboxInner() {
   }
   const [filterChannel, setFilterChannel] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
+  const [escalatedOnly, setEscalatedOnly] = useState(false)
   const [liveStatus, setLiveStatus] = useState('connecting')
   const [newMsgFlash, setNewMsgFlash] = useState(false)
   const bottomRef = useRef(null)
@@ -337,8 +338,10 @@ function InboxInner() {
     if (!c.name.toLowerCase().includes(search.toLowerCase()) && !c.msg.toLowerCase().includes(search.toLowerCase())) return false
     if (filterChannel !== 'All' && c.channel !== filterChannel) return false
     if (filterStatus !== 'All' && c.status !== filterStatus) return false
+    if (escalatedOnly && !c.escalated) return false
     return true
   })
+  const escalatedCount = contacts.filter(c => c.escalated).length
 
   const sendMessage = async () => {
     if (!input.trim() || !selected || sending) return
@@ -406,6 +409,13 @@ function InboxInner() {
               placeholder="Search conversations..."
               style={{ width: '100%', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '7px 10px', color: '#e2e8f0', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}
             />
+            {escalatedCount > 0 && (
+              <button onClick={() => setEscalatedOnly(v => !v)}
+                style={{ marginTop: '8px', width: '100%', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 700, textAlign: 'left',
+                  background: escalatedOnly ? 'rgba(239,68,68,.18)' : 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.35)', color: '#ef4444' }}>
+                ⚠ {escalatedCount} need{escalatedCount === 1 ? 's' : ''} a human {escalatedOnly ? '· showing only these' : '— tap to filter'}
+              </button>
+            )}
             <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' }}>
               {['All', ...Array.from(new Set(contacts.map(c => c.channel)))].map(ch => {
                 const meta = ch === 'All' ? null : channelMeta(ch)
