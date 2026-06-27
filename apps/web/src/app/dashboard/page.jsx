@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [auth, setAuth] = useState({})
   const [onboarding, setOnboarding] = useState(null)
+  const [todayStats, setTodayStats] = useState(null)
 
   useEffect(() => {
     setAuth(getAuth())
@@ -69,6 +70,7 @@ export default function Dashboard() {
       setLoading(false)
     })
     api.getOnboarding().then(setOnboarding).catch(() => {})
+    api.getToday().then(setTodayStats).catch(() => {})
   }, [])
 
   const kpis = full?.kpis
@@ -125,6 +127,23 @@ export default function Dashboard() {
               <QuickAction href="/analytics" icon="📈" label="Analytics" color="#fbbf24" />
             </div>
           </div>
+
+          {/* Today's pulse */}
+          {todayStats && (
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '10px', padding: '12px 16px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>Today</span>
+              {[
+                { icon: '🌱', label: 'leads', value: todayStats.newLeads, color: '#00e5a0' },
+                { icon: '💬', label: 'conversations', value: todayStats.newConvs, color: '#3b82f6' },
+                { icon: '✉️', label: 'messages', value: todayStats.messages, color: '#a78bfa' },
+                { icon: '📅', label: 'bookings', value: todayStats.bookings, color: '#fbbf24' },
+              ].map(s => (
+                <span key={s.label} style={{ fontSize: '13px', color: '#cbd5e1' }}>
+                  {s.icon} <strong style={{ color: s.color, fontWeight: 800 }}>{s.value}</strong> {s.label}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Getting Started checklist — shows until the workspace is set up */}
           {onboarding && !(onboarding.hasKnowledge && onboarding.hasAgent && onboarding.hasChannel && onboarding.hasConversation) && (

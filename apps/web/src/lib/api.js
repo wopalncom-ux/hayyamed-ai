@@ -103,6 +103,8 @@ export const api = {
     request('/reports/full'),
   getOnboarding: () =>
     request('/reports/onboarding'),
+  getToday: () =>
+    request('/reports/today'),
   // Outbound webhooks
   getWebhooks: () =>
     request('/webhooks'),

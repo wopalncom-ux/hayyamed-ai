@@ -93,6 +93,24 @@ export class ReportsController {
     return { period, days: result }
   }
 
+  // Today's activity pulse.
+  @Get('today')
+  async getToday(@CurrentUser() user: JwtPayload) {
+    const orgId = user.orgId
+    const start = new Date(); start.setHours(0, 0, 0, 0)
+    const [newLeads, newConvs, bookings, msgRows] = await Promise.all([
+      this.prisma.contact.count({ where: { orgId, createdAt: { gte: start } } }),
+      this.prisma.conversation.count({ where: { orgId, createdAt: { gte: start } } }),
+      this.prisma.booking.count({ where: { orgId, createdAt: { gte: start } } }),
+      this.prisma.$queryRaw<{ c: bigint }[]>`
+        SELECT COUNT(*) AS c FROM "messages" m
+        JOIN "conversations" c ON c."id" = m."conversationId"
+        WHERE c."orgId" = ${orgId} AND m."createdAt" >= ${start}
+      `,
+    ])
+    return { newLeads, newConvs, bookings, messages: Number(msgRows[0]?.c || 0) }
+  }
+
   // Getting-started checklist status for new workspaces.
   @Get('onboarding')
   async getOnboarding(@CurrentUser() user: JwtPayload) {
