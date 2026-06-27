@@ -145,6 +145,8 @@ export const api = {
     request('/payments/myfatoorah/pay', { method: 'POST', body: JSON.stringify(dto) }),
   getMyFatoorahPayments: () =>
     request('/payments/myfatoorah/payments'),
+  getMyFatoorahSummary: () =>
+    request('/payments/myfatoorah/summary'),
   // Platform billing account (collects tenant subscription payments)
   getMyFatoorahPlatformStatus: () =>
     request('/payments/myfatoorah/platform-status'),

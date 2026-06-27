@@ -58,6 +58,11 @@ export class MyFatoorahController {
     return this.svc.listPayments(user.orgId)
   }
 
+  @Get('summary')
+  summary(@CurrentUser() user: JwtPayload) {
+    return this.svc.summary(user.orgId)
+  }
+
   // Re-check a recorded payment's status against MyFatoorah.
   @Post('payments/:id/refresh')
   refreshPayment(@CurrentUser() user: JwtPayload, @Param('id') id: string) {

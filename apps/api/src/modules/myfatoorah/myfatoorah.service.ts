@@ -79,6 +79,29 @@ export class MyFatoorahService {
     `
   }
 
+  // Revenue overview: counts + paid totals per currency (overall and this month).
+  async summary(orgId: string) {
+    const rows = await this.prisma.$queryRaw<any[]>`
+      SELECT status, currency, amount, "createdAt" FROM "payments" WHERE "orgId" = ${orgId}
+    `
+    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
+    let paidCount = 0, pendingCount = 0
+    const paidByCurrency: Record<string, number> = {}
+    const monthByCurrency: Record<string, number> = {}
+    for (const r of rows) {
+      const s = String(r.status || '').toLowerCase()
+      if (s === 'paid') {
+        paidCount++
+        const amt = Number(r.amount) || 0
+        paidByCurrency[r.currency] = (paidByCurrency[r.currency] || 0) + amt
+        if (new Date(r.createdAt) >= monthStart) monthByCurrency[r.currency] = (monthByCurrency[r.currency] || 0) + amt
+      } else if (s === 'pending') {
+        pendingCount++
+      }
+    }
+    return { total: rows.length, paidCount, pendingCount, paidByCurrency, monthByCurrency }
+  }
+
   // Re-checks a recorded payment against MyFatoorah and updates its stored status.
   async refreshPayment(orgId: string, id: string) {
     const rows = await this.prisma.$queryRaw<any[]>`

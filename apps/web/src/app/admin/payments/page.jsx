@@ -35,10 +35,15 @@ export default function PaymentsControl() {
   const [pfSaving, setPfSaving] = useState(false)
   const loadPf = () => api.getMyFatoorahPlatformStatus().then(s => { setPfStatus(s); if (s?.country) setPfCountry(s.country); setPfTest(s?.isTest ?? true) }).catch(() => setPfStatus({ configured: false }))
 
-  // Payment history
+  // Payment history + summary
   const [payments, setPayments] = useState([])
+  const [summary, setSummary] = useState(null)
   const [refreshing, setRefreshing] = useState(null)
-  const loadPayments = () => api.getMyFatoorahPayments().then(p => setPayments(Array.isArray(p) ? p : [])).catch(() => {})
+  const loadPayments = () => {
+    api.getMyFatoorahPayments().then(p => setPayments(Array.isArray(p) ? p : [])).catch(() => {})
+    api.getMyFatoorahSummary().then(setSummary).catch(() => {})
+  }
+  const money = (obj) => { const e = Object.entries(obj || {}); return e.length ? e.map(([c, v]) => `${c} ${Number(v).toLocaleString()}`).join(' · ') : '—' }
 
   const showToast = (ok, msg) => { setToast({ ok, msg }); setTimeout(() => setToast(null), 3500) }
 
@@ -122,6 +127,23 @@ export default function PaymentsControl() {
           </span>
           {status?.configured && <button onClick={disconnect} style={{ fontSize: '11px', color: '#ef4444', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>Disconnect</button>}
         </div>
+
+        {/* Revenue summary */}
+        {summary && summary.total > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+            {[
+              { label: 'Received', value: money(summary.paidByCurrency), color: '#00e5a0' },
+              { label: 'This month', value: money(summary.monthByCurrency), color: '#a78bfa' },
+              { label: 'Paid', value: String(summary.paidCount), color: '#3b82f6' },
+              { label: 'Pending', value: String(summary.pendingCount), color: '#fbbf24' },
+            ].map(s => (
+              <div key={s.label} style={{ background: '#0c0f1a', border: '1px solid #1a2235', borderTop: `2px solid ${s.color}`, borderRadius: '8px', padding: '12px 14px' }}>
+                <div style={{ fontSize: '10px', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>{s.label}</div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: s.color }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Config card */}
         <div style={{ background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
