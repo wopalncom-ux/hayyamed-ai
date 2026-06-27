@@ -110,6 +110,13 @@ export const api = {
     request('/webhooks/test', { method: 'POST', body: JSON.stringify({ url }) }),
   deleteWebhook: (id) =>
     request(`/webhooks/${id}`, { method: 'DELETE' }),
+  // API keys (public inbound API)
+  getApiKeys: () =>
+    request('/api-keys'),
+  createApiKey: (name) =>
+    request('/api-keys', { method: 'POST', body: JSON.stringify({ name }) }),
+  deleteApiKey: (id) =>
+    request(`/api-keys/${id}`, { method: 'DELETE' }),
   getSalesReport: () =>
     request('/reports/sales'),
 
