@@ -146,7 +146,7 @@ export class ConversationsService {
     let metadataUpdate: Record<string, any> = {}
     if (senderId) {
       const existing = await this.prisma.conversation.findUnique({ where: { id: conversationId }, select: { metadata: true } })
-      metadataUpdate = { metadata: { ...((existing?.metadata as any) || {}), aiPaused: true } }
+      metadataUpdate = { metadata: { ...((existing?.metadata as any) || {}), aiPaused: true, escalated: false } }
     }
     const conv = await this.prisma.conversation.update({
       where: { id: conversationId },

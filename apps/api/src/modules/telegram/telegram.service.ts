@@ -4,6 +4,7 @@ import { PrismaService } from '../../database/prisma.service'
 import { AIService } from '../ai/ai.service'
 import { RagService } from '../knowledge-base/rag.service'
 import { encrypt, decrypt } from '../../common/crypto/crypto.util'
+import { wantsHuman } from '../../common/util/escalation.util'
 
 @Injectable()
 export class TelegramService {
@@ -76,6 +77,17 @@ export class TelegramService {
 
     // Human takeover: skip the AI auto-reply when paused for this conversation.
     if ((conv.metadata as any)?.aiPaused) return
+
+    // Auto-escalation: customer asked for a human → pause AI, flag, acknowledge once.
+    if (wantsHuman(msg.text)) {
+      const md = { ...((conv.metadata as any) || {}), aiPaused: true, escalated: true }
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { metadata: md, priority: 'HIGH' as any } })
+      const ack = 'Of course — I’m connecting you with a member of our team. They’ll reply here shortly. 🙏'
+      await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: ack } })
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: ack, lastMsgAt: new Date() } })
+      try { await axios.post(`${this.api(token)}/sendMessage`, { chat_id: chatId, text: ack }) } catch {}
+      return
+    }
 
     // AI reply grounded in the org's knowledge base
     let reply = ''

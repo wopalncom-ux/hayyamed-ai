@@ -43,6 +43,7 @@ function toUiConv(c) {
     tags: c.tags || [],
     lastMsgAt: c.lastMsgAt,
     aiPaused: !!(c.metadata && c.metadata.aiPaused),
+    escalated: !!(c.metadata && c.metadata.escalated),
   }
 }
 
@@ -354,8 +355,8 @@ function InboxInner() {
       // Replace optimistic with real message
       setMessages(prev => prev.map(m => m.id === tmpId ? { ...m, id: savedMsg.id } : m))
       // Sending takes over → AI auto-pauses server-side; reflect it in the UI.
-      setSelected(s => ({ ...s, aiPaused: true }))
-      setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, msg: text, time: 'Now', aiPaused: true } : c))
+      setSelected(s => ({ ...s, aiPaused: true, escalated: false }))
+      setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, msg: text, time: 'Now', aiPaused: true, escalated: false } : c))
     } catch {
       // Remove optimistic on failure
       setMessages(prev => prev.filter(m => m.id !== tmpId))
@@ -448,7 +449,9 @@ function InboxInner() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', background: (statusColors[c.status] || '#64748b') + '22', color: statusColors[c.status] || '#64748b' }}>{c.status}</span>
                         {c.score > 0 && <span style={{ fontSize: '9px', color: '#475569' }}>★{c.score}</span>}
-                        {c.aiPaused && <span title="A human is handling this — AI paused" style={{ fontSize: '9px' }}>🙋</span>}
+                        {c.escalated
+                          ? <span title="Customer asked for a human" style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', background: 'rgba(239,68,68,.15)', color: '#ef4444', fontWeight: 700 }}>⚠ Needs human</span>
+                          : c.aiPaused && <span title="A human is handling this — AI paused" style={{ fontSize: '9px' }}>🙋</span>}
                       </div>
                     </div>
                   </div>

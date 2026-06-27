@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { AIService } from '../ai/ai.service'
 import { RagService } from '../knowledge-base/rag.service'
+import { wantsHuman } from '../../common/util/escalation.util'
 
 @Injectable()
 export class WebchatService {
@@ -64,6 +65,17 @@ export class WebchatService {
     // a human is handling it. The message is stored and surfaces in the inbox.
     if ((conv.metadata as any)?.aiPaused) {
       return { paused: true, sessionId }
+    }
+
+    // Auto-escalation: customer is asking for a human → pause AI, flag the
+    // conversation for human attention, and acknowledge once.
+    if (wantsHuman(text)) {
+      const md = { ...((conv.metadata as any) || {}), aiPaused: true, escalated: true }
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { metadata: md, priority: 'HIGH' as any } })
+      const ack = 'Of course — I’m connecting you with a member of our team. They’ll reply here shortly. 🙏'
+      await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: ack } })
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: ack, lastMsgAt: new Date() } })
+      return { reply: ack, sessionId, escalated: true }
     }
 
     // Build an AI reply grounded in the org's knowledge base (graceful if no AI/KB)
