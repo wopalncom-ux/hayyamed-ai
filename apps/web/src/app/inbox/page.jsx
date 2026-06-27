@@ -388,13 +388,13 @@ function InboxInner() {
     // Text search is handled server-side (matches message content + phone too).
     if (filterChannel !== 'All' && c.channel !== filterChannel) return false
     if (filterStatus !== 'All' && c.status !== filterStatus) return false
-    if (escalatedOnly && !c.escalated) return false
+    if (escalatedOnly && !(c.escalated || c.negative)) return false
     if (quickFilter === 'unread' && !(c.unread > 0)) return false
     if (quickFilter === 'mine' && c.assigneeId !== myUserId) return false
     if (quickFilter === 'unassigned' && c.assigneeId) return false
     return true
   })
-  const escalatedCount = contacts.filter(c => c.escalated).length
+  const escalatedCount = contacts.filter(c => c.escalated || c.negative).length
 
   const sendMessage = async () => {
     if (!input.trim() || !selected || sending) return
@@ -481,7 +481,7 @@ function InboxInner() {
               <button onClick={() => setEscalatedOnly(v => !v)}
                 style={{ marginTop: '8px', width: '100%', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 700, textAlign: 'left',
                   background: escalatedOnly ? 'rgba(239,68,68,.18)' : 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.35)', color: '#ef4444' }}>
-                ⚠ {escalatedCount} need{escalatedCount === 1 ? 's' : ''} a human {escalatedOnly ? '· showing only these' : '— tap to filter'}
+                ⚠ {escalatedCount} need{escalatedCount === 1 ? 's' : ''} attention {escalatedOnly ? '· showing only these' : '— tap to filter'}
               </button>
             )}
             <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' }}>
