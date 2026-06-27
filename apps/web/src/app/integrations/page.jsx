@@ -42,6 +42,20 @@ const INTEGRATIONS = [
     docs:'',
   },
   {
+    id:'webhooks', category:'Developer', color:'#a78bfa', setupUrl:'/integrations/webhooks',
+    name:'Webhooks', icon:'🔗',
+    desc:'Send real-time events (new lead, escalation, payment) to your own systems — Zapier, Make, Slack, or your backend. Live now.',
+    badge:'Live', fields:[],
+    docs:'',
+  },
+  {
+    id:'apikeys', category:'Developer', color:'#00e5a0', setupUrl:'/integrations/api',
+    name:'API & Keys', icon:'🔑',
+    desc:'Push leads into your CRM from website forms, landing pages, or ad platforms using the public API. Generate a key and go. Live now.',
+    badge:'Live', fields:[],
+    docs:'',
+  },
+  {
     id:'instagram', category:'Social & Messaging', color:'#ec4899',
     name:'Instagram Messaging', icon:'📸',
     desc:'Receive and reply to Instagram DMs and story mentions directly from your inbox.',
