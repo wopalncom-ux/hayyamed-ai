@@ -20,6 +20,7 @@ const ACTION_TYPES = [
   { type: 'remove_tag',      label: 'Remove Tag',        icon: '❌' },
   { type: 'wait',            label: 'Wait / Delay',      icon: '⏳' },
   { type: 'create_activity', label: 'Log Activity',      icon: '📝' },
+  { type: 'assign_to',       label: 'Assign to Agent',   icon: '👤' },
   { type: 'stop',            label: 'Stop Workflow',     icon: '🛑' },
 ]
 
@@ -97,7 +98,7 @@ const TEMPLATES = [
   },
 ]
 
-function ActionCard({ action, idx, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst, isLast }) {
+function ActionCard({ action, idx, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst, isLast, members = [] }) {
   const meta = ACTION_TYPES.find(a => a.type === action.type) || {}
   return (
     <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '14px 16px', position: 'relative' }}>
@@ -150,6 +151,13 @@ function ActionCard({ action, idx, onUpdate, onRemove, onMoveUp, onMoveDown, isF
       {(action.type === 'add_tag' || action.type === 'remove_tag') && (
         <input value={action.tag || ''} onChange={e => onUpdate({ ...action, tag: e.target.value })}
           placeholder="Tag name" style={inputStyle} />
+      )}
+
+      {action.type === 'assign_to' && (
+        <select value={action.userId || ''} onChange={e => onUpdate({ ...action, userId: e.target.value })} style={inputStyle}>
+          <option value="">— pick a team member —</option>
+          {members.map(m => <option key={m.id} value={m.id}>{m.name || m.email}</option>)}
+        </select>
       )}
 
       {action.type === 'wait' && (
@@ -207,6 +215,7 @@ export default function WorkflowsPage() {
   const [actions, setActions] = useState([])
   const [conditions, setConditions] = useState({})
   const [savingId, setSavingId] = useState(null)
+  const [members, setMembers] = useState([])
 
   const showToast = (msg, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3000) }
 
@@ -224,6 +233,7 @@ export default function WorkflowsPage() {
   }
 
   useEffect(() => { load() }, [])
+  useEffect(() => { api.getTeam().then(t => setMembers(Array.isArray(t) ? t : (t?.data || []))).catch(() => {}) }, [])
 
   const installTemplate = async (tpl) => {
     setInstalling(tpl.id)
@@ -570,6 +580,7 @@ export default function WorkflowsPage() {
                           onMoveDown={() => moveAction(idx, 1)}
                           isFirst={idx === 0}
                           isLast={idx === actions.length - 1}
+                          members={members}
                         />
                       ))}
                     </div>

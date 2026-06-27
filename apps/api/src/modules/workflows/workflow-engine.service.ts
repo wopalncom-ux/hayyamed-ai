@@ -13,7 +13,7 @@ import { AuditService } from '../audit/audit.service'
 //  { type: 'add_tag',       tag: 'vip' }
 //  { type: 'remove_tag',    tag: 'cold' }
 //  { type: 'wait',          seconds: 86400 }   // resumes via CRON
-//  { type: 'assign_to',     userId: 'uuid' }   // not yet wired to users module
+//  { type: 'assign_to',     userId: 'uuid' }   // assigns the contact's latest conversation
 //  { type: 'create_activity', title: '...' }
 //  { type: 'stop' }                            // end the workflow
 
@@ -206,6 +206,24 @@ export class WorkflowEngineService {
             data: { title: this.interpolate(step.title || 'Workflow step executed', context) },
           },
         })
+        break
+      }
+
+      case 'assign_to': {
+        if (!contact?.id || !step.userId) return
+        // Verify the assignee belongs to this org, then assign the contact's
+        // most recent conversation to them.
+        const member = await this.prisma.user.findFirst({ where: { id: step.userId, orgId }, select: { id: true } })
+        if (!member) break
+        const conv = await this.prisma.conversation.findFirst({
+          where: { orgId, contactId: contact.id },
+          orderBy: { lastMsgAt: 'desc' },
+          select: { id: true },
+        })
+        if (conv) {
+          await this.prisma.conversation.update({ where: { id: conv.id }, data: { assigneeId: step.userId } })
+          this.audit.log({ orgId, action: 'workflow.assign_to', category: 'workflow', resource: 'conversation', resourceId: conv.id })
+        }
         break
       }
 
