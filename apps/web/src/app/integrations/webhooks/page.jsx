@@ -6,6 +6,8 @@ import NavSidebar from '@/components/NavSidebar'
 const EVENTS = [
   { id: '*', label: 'All events' },
   { id: 'contact.created', label: 'New lead / contact created' },
+  { id: 'conversation.escalated', label: 'Conversation escalated to human' },
+  { id: 'payment.created', label: 'Payment link created' },
 ]
 
 const inp = { width: '100%', padding: '10px 12px', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }

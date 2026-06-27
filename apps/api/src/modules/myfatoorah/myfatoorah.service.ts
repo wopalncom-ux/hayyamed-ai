@@ -1,6 +1,7 @@
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException, Optional } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 import { PrismaService } from '../../database/prisma.service'
+import { WebhooksService } from '../webhooks/webhooks.service'
 import { encryptJson, decryptJson } from '../../common/crypto/crypto.util'
 
 // MyFatoorah — GCC/MENA payment gateway (KNET, mada, cards, Apple Pay…).
@@ -9,7 +10,7 @@ const TYPE = 'myfatoorah'
 
 @Injectable()
 export class MyFatoorahService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, @Optional() private webhooks?: WebhooksService) {}
 
   // Region-aware API host. Test uses the shared sandbox; live depends on the
   // MyFatoorah account country (SA/EG have dedicated hosts; the rest share api.).
@@ -70,6 +71,7 @@ export class MyFatoorahService {
       `
     } catch { /* recording is best-effort; never block the payment link */ }
 
+    this.webhooks?.dispatch(orgId, 'payment.created', { invoiceId, amount: dto.amount, currency: dto.currency || 'QAR', paymentUrl, reference: dto.reference }).catch(() => {})
     return { invoiceId, paymentUrl }
   }
 
@@ -220,6 +222,7 @@ export class MyFatoorahService {
         VALUES (${randomUUID()}, ${orgId}, 'myfatoorah', ${invoiceId}, ${dto.amount}, ${dto.currency || 'QAR'}, ${dto.customerName || 'Subscription'}, 'Pending', ${paymentUrl}, ${dto.reference || null}, NOW(), NOW())
       `
     } catch { /* best-effort */ }
+    this.webhooks?.dispatch(orgId, 'payment.created', { invoiceId, amount: dto.amount, currency: dto.currency || 'QAR', paymentUrl, reference: dto.reference }).catch(() => {})
     return { invoiceId, paymentUrl }
   }
 

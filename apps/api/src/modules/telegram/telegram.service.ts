@@ -4,6 +4,7 @@ import { PrismaService } from '../../database/prisma.service'
 import { AIService } from '../ai/ai.service'
 import { RagService } from '../knowledge-base/rag.service'
 import { NotificationsService } from '../notifications/notifications.service'
+import { WebhooksService } from '../webhooks/webhooks.service'
 import { encrypt, decrypt } from '../../common/crypto/crypto.util'
 import { wantsHuman } from '../../common/util/escalation.util'
 import { isWithinHours } from '../../common/util/business-hours.util'
@@ -14,7 +15,7 @@ export class TelegramService {
   private readonly logger = new Logger(TelegramService.name)
   private api(token: string) { return `https://api.telegram.org/bot${token}` }
 
-  constructor(private prisma: PrismaService, private ai: AIService, private rag: RagService, @Optional() private notifications?: NotificationsService) {}
+  constructor(private prisma: PrismaService, private ai: AIService, private rag: RagService, @Optional() private notifications?: NotificationsService, @Optional() private webhooks?: WebhooksService) {}
 
   // Connect a Telegram bot: validate token, store channel, register webhook.
   async connect(orgId: string, botToken: string) {
@@ -98,6 +99,7 @@ export class TelegramService {
         assigneeId: (conv as any).assigneeId, type: 'escalation', conversationId: conv.id,
         title: '⚠ A customer needs a human', body: `${name} asked to speak with your team on Telegram.`,
       }).catch(() => {})
+      this.webhooks?.dispatch(orgId, 'conversation.escalated', { conversationId: conv.id, contactId: conv.contactId, channel: 'telegram', question: msg.text }).catch(() => {})
       return
     }
 

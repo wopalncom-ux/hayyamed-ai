@@ -3,6 +3,7 @@ import { PrismaService } from '../../database/prisma.service'
 import { AIService } from '../ai/ai.service'
 import { RagService } from '../knowledge-base/rag.service'
 import { NotificationsService } from '../notifications/notifications.service'
+import { WebhooksService } from '../webhooks/webhooks.service'
 import { wantsHuman } from '../../common/util/escalation.util'
 import { isWithinHours } from '../../common/util/business-hours.util'
 import { isSubstantiveQuestion } from '../../common/util/question.util'
@@ -16,6 +17,7 @@ export class WebchatService {
     private ai: AIService,
     private rag: RagService,
     @Optional() private notifications?: NotificationsService,
+    @Optional() private webhooks?: WebhooksService,
   ) {}
 
   // Lazily ensure the org has a LIVE_CHAT (website) channel.
@@ -101,6 +103,7 @@ export class WebchatService {
         assigneeId: (conv as any).assigneeId, type: 'escalation', conversationId: conv.id,
         title: '⚠ A customer needs a human', body: 'A website chat visitor asked to speak with your team.',
       }).catch(() => {})
+      this.webhooks?.dispatch(orgId, 'conversation.escalated', { conversationId: conv.id, contactId: conv.contactId, channel: 'webchat', question: text }).catch(() => {})
       return { reply: ack, sessionId, escalated: true }
     }
 
