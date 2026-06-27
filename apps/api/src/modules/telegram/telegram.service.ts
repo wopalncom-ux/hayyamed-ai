@@ -6,6 +6,7 @@ import { RagService } from '../knowledge-base/rag.service'
 import { NotificationsService } from '../notifications/notifications.service'
 import { encrypt, decrypt } from '../../common/crypto/crypto.util'
 import { wantsHuman } from '../../common/util/escalation.util'
+import { isWithinHours } from '../../common/util/business-hours.util'
 
 @Injectable()
 export class TelegramService {
@@ -91,6 +92,16 @@ export class TelegramService {
         assigneeId: (conv as any).assigneeId, type: 'escalation', conversationId: conv.id,
         title: '⚠ A customer needs a human', body: `${name} asked to speak with your team on Telegram.`,
       }).catch(() => {})
+      return
+    }
+
+    // Business hours: outside open hours → away message, skip the AI answer.
+    const settings = await this.prisma.orgSettings.findUnique({ where: { orgId }, select: { workingHours: true, autoReplyMsg: true } })
+    if (settings && !isWithinHours(settings.workingHours as any)) {
+      const away = settings.autoReplyMsg?.trim() || 'Thanks for your message! We’re currently closed and will get back to you during our working hours.'
+      await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: away } })
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: away, lastMsgAt: new Date() } })
+      try { await axios.post(`${this.api(token)}/sendMessage`, { chat_id: chatId, text: away }) } catch {}
       return
     }
 

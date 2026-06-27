@@ -4,6 +4,7 @@ import { AIService } from '../ai/ai.service'
 import { RagService } from '../knowledge-base/rag.service'
 import { NotificationsService } from '../notifications/notifications.service'
 import { wantsHuman } from '../../common/util/escalation.util'
+import { isWithinHours } from '../../common/util/business-hours.util'
 
 @Injectable()
 export class WebchatService {
@@ -82,6 +83,15 @@ export class WebchatService {
         title: '⚠ A customer needs a human', body: 'A website chat visitor asked to speak with your team.',
       }).catch(() => {})
       return { reply: ack, sessionId, escalated: true }
+    }
+
+    // Business hours: outside open hours → send the away message, skip the AI answer.
+    const settings = await this.prisma.orgSettings.findUnique({ where: { orgId }, select: { workingHours: true, autoReplyMsg: true } })
+    if (settings && !isWithinHours(settings.workingHours as any)) {
+      const away = settings.autoReplyMsg?.trim() || 'Thanks for your message! We’re currently closed and will get back to you during our working hours.'
+      await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: away } })
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: away, lastMsgAt: new Date() } })
+      return { reply: away, sessionId, away: true }
     }
 
     // Build an AI reply grounded in the org's knowledge base (graceful if no AI/KB)

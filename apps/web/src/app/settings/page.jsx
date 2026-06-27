@@ -111,6 +111,12 @@ export default function Settings() {
   const [aiLang, setAiLang]         = useState('en')
   const [autoReply, setAutoReply]   = useState(true)
   const [autoMsg, setAutoMsg]       = useState('Hello! We will get back to you within a few minutes. Thank you for reaching out.')
+  // Business hours
+  const DEFAULT_DAYS = [0,1,2,3,4,5,6].map(() => ({ off: false, open: '09:00', close: '21:00' }))
+  const [whEnabled, setWhEnabled]   = useState(false)
+  const [whTz, setWhTz]             = useState('Asia/Qatar')
+  const [whDays, setWhDays]         = useState(DEFAULT_DAYS)
+  const setDay = (i, patch) => setWhDays(prev => prev.map((d, idx) => idx === i ? { ...d, ...patch } : d))
   const [waToken, setWaToken]       = useState('')
   const [waPhone, setWaPhone]       = useState('')
   const [addCredit, setAddCredit]   = useState('100')
@@ -131,7 +137,13 @@ export default function Settings() {
       if (s.aiEnabled !== undefined) setAiEnabled(s.aiEnabled)
       if (s.aiLanguage) setAiLang(s.aiLanguage)
       if (s.autoReply !== undefined) setAutoReply(s.autoReply)
-      if (s.autoMessage) setAutoMsg(s.autoMessage)
+      if (s.autoReplyMsg) setAutoMsg(s.autoReplyMsg)
+      const wh = s.workingHours
+      if (wh && typeof wh === 'object') {
+        setWhEnabled(!!wh.enabled)
+        if (wh.timezone) setWhTz(wh.timezone)
+        if (wh.days) setWhDays([0,1,2,3,4,5,6].map(i => wh.days[i] || wh.days[String(i)] || { off: false, open: '09:00', close: '21:00' }))
+      }
     }).catch(() => {})
 
     api.getTeam().then(members => {
@@ -614,9 +626,43 @@ export default function Settings() {
                     <option>GPT-3.5 Turbo (Faster — lower cost)</option>
                   </select>
                 </div>
+                {/* Business hours */}
+                <div style={{borderTop:'1px solid #1a2235', paddingTop:'16px'}}>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px'}}>
+                    <label style={lbl}>🕐 BUSINESS HOURS</label>
+                    <button onClick={() => setWhEnabled(!whEnabled)} style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: whEnabled ? '#00e5a0' : '#1a2235', position:'relative'}}>
+                      <span style={{position:'absolute', top:'4px', left: whEnabled ? '22px' : '4px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', display:'block', transition:'left .2s'}}></span>
+                    </button>
+                  </div>
+                  <div style={{fontSize:'11px', color:'#64748b', marginBottom:'12px'}}>When enabled, outside these hours the AI sends your away message instead of answering. Great for Friday closures and set hours.</div>
+                  {whEnabled && (
+                    <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+                      <div><label style={lbl}>TIMEZONE</label>
+                        <select value={whTz} onChange={e=>setWhTz(e.target.value)} style={{...inp, cursor:'pointer'}}>
+                          {['Asia/Qatar','Asia/Riyadh','Asia/Dubai','Asia/Kuwait','Asia/Bahrain','Asia/Muscat','Africa/Cairo','Asia/Amman'].map(z => <option key={z} value={z}>{z}</option>)}
+                        </select>
+                      </div>
+                      {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((dn, i) => (
+                        <div key={dn} style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                          <span style={{width:'78px', fontSize:'12px', color:'#94a3b8'}}>{dn}</span>
+                          <label style={{display:'flex', alignItems:'center', gap:'5px', fontSize:'11px', color:'#64748b', cursor:'pointer'}}>
+                            <input type="checkbox" checked={!whDays[i].off} onChange={e=>setDay(i, { off: !e.target.checked })} style={{accentColor:'#00e5a0'}} /> Open
+                          </label>
+                          {!whDays[i].off && <>
+                            <input type="time" value={whDays[i].open} onChange={e=>setDay(i, { open: e.target.value })} style={{...inp, width:'110px', padding:'5px 8px'}} />
+                            <span style={{color:'#475569'}}>–</span>
+                            <input type="time" value={whDays[i].close} onChange={e=>setDay(i, { close: e.target.value })} style={{...inp, width:'110px', padding:'5px 8px'}} />
+                          </>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <button onClick={async () => {
                   try {
-                    await api.saveSettings({ aiEnabled, aiLanguage: aiLang, autoReply, autoMessage: autoMsg })
+                    const workingHours = { enabled: whEnabled, timezone: whTz, days: Object.fromEntries(whDays.map((d, i) => [i, d])) }
+                    await api.saveSettings({ aiEnabled, autoReply, autoReplyMsg: autoMsg, language: aiLang === 'both' ? 'ar+en' : aiLang, workingHours })
                     saveMsg('AI settings saved!')
                   } catch { saveMsg('Save failed') }
                 }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save AI Settings</button>
