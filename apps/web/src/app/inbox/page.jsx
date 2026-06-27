@@ -202,15 +202,24 @@ function InboxInner() {
     } catch (e) { alert('Export failed: ' + (e?.message || 'error')) }
   }
 
+  const [suggestedTags, setSuggestedTags] = useState([])
   const runSummary = async () => {
     if (!selected) return
-    setSummaryLoading(true); setSummary(null)
+    setSummaryLoading(true); setSummary(null); setSuggestedTags([])
     try {
       const r = await api.summarizeConversation(selected.convId)
       setSummary(r.summary)
+      setSuggestedTags(Array.isArray(r.tags) ? r.tags : [])
     } catch (e) {
       setSummary('⚠️ ' + (e?.message || 'Summary failed'))
     } finally { setSummaryLoading(false) }
+  }
+  const applySuggestedTag = async (tag) => {
+    if (!selected || (selected.tags || []).includes(tag)) return
+    const tags = [...(selected.tags || []), tag]
+    setSelected(s => ({ ...s, tags }))
+    setSuggestedTags(prev => prev.filter(t => t !== tag))
+    try { await api.setConversationTags(selected.convId, tags) } catch {}
   }
 
   const suggestReply = async () => {
@@ -599,6 +608,17 @@ function InboxInner() {
                     <button onClick={() => setSummary(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px' }}>×</button>
                   </div>
                   <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{summary}</div>
+                  {suggestedTags.length > 0 && (
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginTop: '10px' }}>
+                      <span style={{ fontSize: '10px', color: '#64748b' }}>Suggested tags:</span>
+                      {suggestedTags.map(t => (
+                        <button key={t} onClick={() => applySuggestedTag(t)} title="Add this tag"
+                          style={{ fontSize: '11px', padding: '2px 9px', background: 'rgba(59,130,246,.1)', border: '1px dashed rgba(59,130,246,.4)', borderRadius: '12px', color: '#3b82f6', cursor: 'pointer' }}>
+                          + {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

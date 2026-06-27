@@ -73,16 +73,24 @@ export class ConversationsService {
       .map(m => `${m.senderId ? 'Agent' : 'Customer'}: ${m.content || `(${m.type})`}`)
       .join('\n')
 
-    const prompt = `Summarize this customer conversation in 3-4 short bullet points: the customer's intent, key questions/requests, sentiment, and the recommended next action. Be concise.\n\nCustomer: ${conv.contact?.name || 'Unknown'} (lead status: ${conv.contact?.status || 'NEW'})\n\nTranscript:\n${transcript}`
+    const prompt = `Summarize this customer conversation in 3-4 short bullet points: the customer's intent, key questions/requests, sentiment, and the recommended next action. Be concise.\nThen, on a final separate line, output 2-4 short lowercase topic tags as: TAGS: tag1, tag2, tag3 (e.g. pricing, booking, complaint, support).\n\nCustomer: ${conv.contact?.name || 'Unknown'} (lead status: ${conv.contact?.status || 'NEW'})\n\nTranscript:\n${transcript}`
 
     try {
-      const summary = await this.ai.complete(
+      const raw = await this.ai.complete(
         [{ role: 'user', content: prompt }],
-        { maxTokens: 250, temperature: 0.4, orgId, module: 'inbox', action: 'summarize' },
+        { maxTokens: 280, temperature: 0.4, orgId, module: 'inbox', action: 'summarize' },
       )
-      return { summary }
+      // Split out the TAGS line.
+      let summary = raw
+      let tags: string[] = []
+      const m = raw.match(/TAGS:\s*(.+)$/im)
+      if (m) {
+        tags = m[1].split(',').map(t => t.trim().toLowerCase().replace(/[^a-z0-9 \-]/g, '')).filter(Boolean).slice(0, 4)
+        summary = raw.slice(0, m.index).trim()
+      }
+      return { summary, tags }
     } catch {
-      return { summary: '⚠️ AI summary unavailable — no valid AI provider configured.' }
+      return { summary: '⚠️ AI summary unavailable — no valid AI provider configured.', tags: [] }
     }
   }
 
