@@ -2,6 +2,7 @@ import { Injectable, Optional, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { WorkflowEngineService } from '../workflows/workflow-engine.service'
 import { WebhooksService } from '../webhooks/webhooks.service'
+import { computeLeadScore, statusFloor } from '../../common/util/lead-score.util'
 
 @Injectable()
 export class ContactsService {
@@ -42,7 +43,9 @@ export class ContactsService {
   }
 
   async create(orgId: string, dto: any) {
-    const contact = await this.prisma.contact.create({ data: { ...dto, orgId } })
+    // Give new leads a sensible starting score (unless one was provided).
+    const score = dto.score != null ? dto.score : computeLeadScore(dto)
+    const contact = await this.prisma.contact.create({ data: { ...dto, score, orgId } })
     // Fire new_contact trigger (fire-and-forget)
     this.workflowEngine?.fire(orgId, 'new_contact', contact.id, { source: contact.source }).catch(() => {})
     this.webhooks?.dispatch(orgId, 'contact.created', {
@@ -52,9 +55,15 @@ export class ContactsService {
   }
 
   async update(id: string, orgId: string, dto: any) {
-    const before = await this.prisma.contact.findUnique({ where: { id }, select: { status: true } })
-    const contact = await this.prisma.contact.update({ where: { id }, data: dto })
-    // Fire status_changed if status was updated
+    const before = await this.prisma.contact.findUnique({ where: { id }, select: { status: true, score: true } })
+    // On status change, raise the score to the pipeline floor — never lower it
+    // or overwrite a higher (e.g. AI) score.
+    const data: any = { ...dto }
+    if (dto.status && before?.status !== dto.status && dto.score == null) {
+      const floor = statusFloor(dto.status)
+      if ((before?.score ?? 0) < floor) data.score = floor
+    }
+    const contact = await this.prisma.contact.update({ where: { id }, data })
     if (dto.status && before?.status !== dto.status) {
       this.workflowEngine?.fire(orgId, 'status_changed', id, { oldStatus: before?.status, status: dto.status }).catch(() => {})
     }
