@@ -7,6 +7,7 @@ const EVENTS = [
   { id: '*', label: 'All events' },
   { id: 'contact.created', label: 'New lead / contact created' },
   { id: 'conversation.escalated', label: 'Conversation escalated to human' },
+  { id: 'booking.created', label: 'New booking' },
   { id: 'payment.created', label: 'Payment link created' },
 ]
 

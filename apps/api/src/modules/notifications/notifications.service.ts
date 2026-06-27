@@ -95,6 +95,12 @@ export class NotificationsService {
     return this.prisma.notification.deleteMany({ where: { id, userId } })
   }
 
+  // Notify everyone in an org (in-app + web push), best-effort.
+  async notifyOrgUsers(orgId: string, type: string, title: string, body: string, url?: string) {
+    const users = await this.prisma.user.findMany({ where: { orgId }, select: { id: true } })
+    await Promise.all(users.map(u => this.create(u.id, type, title, body, (url ? { url } : undefined) as any).catch(() => null)))
+  }
+
   // Notify the people responsible for a conversation: the assignee if set,
   // otherwise everyone in the org. In-app + web push, best-effort.
   async notifyConversation(orgId: string, opts: { assigneeId?: string | null; type: string; title: string; body: string; conversationId: string }) {
