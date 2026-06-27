@@ -7,6 +7,7 @@ import { WebhooksService } from '../webhooks/webhooks.service'
 import { wantsHuman } from '../../common/util/escalation.util'
 import { isWithinHours } from '../../common/util/business-hours.util'
 import { isSubstantiveQuestion } from '../../common/util/question.util'
+import { computeLeadScore } from '../../common/util/lead-score.util'
 
 @Injectable()
 export class WebchatService {
@@ -39,18 +40,21 @@ export class WebchatService {
     if (conv) return conv
 
     const channel = await this.ensureChannel(orgId)
+    const cName = name?.trim() || 'Website Visitor'
     const contact = await this.prisma.contact.create({
       data: {
         orgId,
-        name: name?.trim() || 'Website Visitor',
+        name: cName,
         source: 'website',
         status: 'NEW',
+        score: computeLeadScore({ status: 'NEW', name: cName }),
         metadata: { webchatSession: sessionId },
       },
     })
     conv = await this.prisma.conversation.create({
       data: { orgId, channelId: channel.id, contactId: contact.id, externalId: sessionId, status: 'OPEN', subject: 'Website chat' },
     })
+    this.webhooks?.dispatch(orgId, 'contact.created', { id: contact.id, name: contact.name, source: 'website', status: 'NEW' }).catch(() => {})
     return conv
   }
 

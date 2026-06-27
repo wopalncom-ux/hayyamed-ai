@@ -9,6 +9,7 @@ import { encrypt, decrypt } from '../../common/crypto/crypto.util'
 import { wantsHuman } from '../../common/util/escalation.util'
 import { isWithinHours } from '../../common/util/business-hours.util'
 import { isSubstantiveQuestion } from '../../common/util/question.util'
+import { computeLeadScore } from '../../common/util/lead-score.util'
 
 @Injectable()
 export class TelegramService {
@@ -72,8 +73,9 @@ export class TelegramService {
     // Find/create conversation keyed by telegram chat id
     let conv = await this.prisma.conversation.findFirst({ where: { orgId, channelId: channel.id, externalId: sessionId } })
     if (!conv) {
-      const contact = await this.prisma.contact.create({ data: { orgId, name, source: 'telegram', status: 'NEW', metadata: { telegramChatId: String(chatId) } } })
+      const contact = await this.prisma.contact.create({ data: { orgId, name, source: 'telegram', status: 'NEW', score: computeLeadScore({ status: 'NEW', name }), metadata: { telegramChatId: String(chatId) } } })
       conv = await this.prisma.conversation.create({ data: { orgId, channelId: channel.id, contactId: contact.id, externalId: sessionId, status: 'OPEN', subject: 'Telegram chat' } })
+      this.webhooks?.dispatch(orgId, 'contact.created', { id: contact.id, name: contact.name, source: 'telegram', status: 'NEW' }).catch(() => {})
     }
 
     await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, type: 'TEXT', content: msg.text } })
