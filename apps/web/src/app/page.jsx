@@ -217,6 +217,7 @@ export default function LandingPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontWeight: '700', fontSize: '14px' }}>Hayya<span style={{ color: '#00e5a0' }}> AI</span></div>
           <div style={{ display: 'flex', gap: '16px' }}>
+            <Link href="/developers" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Developers</Link>
             <Link href="/login" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Log in</Link>
             <Link href="/register" style={{ fontSize: '11px', color: '#00e5a0', textDecoration: 'none' }}>Sign up free</Link>
           </div>
