@@ -55,7 +55,7 @@ export class ContactsService {
   }
 
   async update(id: string, orgId: string, dto: any) {
-    const before = await this.prisma.contact.findUnique({ where: { id }, select: { status: true, score: true } })
+    const before = await this.prisma.contact.findUnique({ where: { id }, select: { status: true, score: true, tags: true } })
     // On status change, raise the score to the pipeline floor — never lower it
     // or overwrite a higher (e.g. AI) score.
     const data: any = { ...dto }
@@ -66,6 +66,15 @@ export class ContactsService {
     const contact = await this.prisma.contact.update({ where: { id }, data })
     if (dto.status && before?.status !== dto.status) {
       this.workflowEngine?.fire(orgId, 'status_changed', id, { oldStatus: before?.status, status: dto.status }).catch(() => {})
+    }
+    // Fire tag_added for each newly-added tag.
+    if (Array.isArray(dto.tags)) {
+      const had = new Set((before?.tags as string[]) || [])
+      for (const tag of dto.tags as string[]) {
+        if (!had.has(tag)) {
+          this.workflowEngine?.fire(orgId, 'tag_added', id, { tag, tags: dto.tags }).catch(() => {})
+        }
+      }
     }
     return contact
   }
@@ -95,6 +104,9 @@ export class ContactsService {
         await this.prisma.$transaction(
           toTag.map(c => this.prisma.contact.update({ where: { id: c.id }, data: { tags: { push: tag } } })),
         )
+        for (const c of toTag) {
+          this.workflowEngine?.fire(orgId, 'tag_added', c.id, { tag, tags: [...c.tags, tag] }).catch(() => {})
+        }
       }
       return { ok: true, action, count: toTag.length }
     }

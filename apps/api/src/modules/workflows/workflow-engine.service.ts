@@ -229,8 +229,14 @@ export class WorkflowEngineService {
     if (!conditions || typeof conditions !== 'object') return true
     if (conditions.source && extra.source && conditions.source !== extra.source) return false
     if (conditions.status && extra.status && conditions.status !== extra.status) return false
-    if (conditions.tag && extra.tags) {
-      if (!Array.isArray(extra.tags) || !extra.tags.includes(conditions.tag)) return false
+    if (conditions.tag) {
+      // tag_added passes the newly-added tag in extra.tag; other triggers match
+      // against the contact's current tags.
+      if (extra.tag != null) {
+        if (extra.tag !== conditions.tag) return false
+      } else if (Array.isArray(extra.tags)) {
+        if (!extra.tags.includes(conditions.tag)) return false
+      } else return false
     }
     // Keyword trigger: the inbound message text must contain the configured keyword.
     if (conditions.keyword) {

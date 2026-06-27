@@ -531,6 +531,14 @@ export default function WorkflowsPage() {
                         style={{ width: '100%', background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '9px 11px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
                     </div>
                   )}
+                  {trigger === 'tag_added' && (
+                    <div style={{ marginTop: '12px' }}>
+                      <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Which tag triggers this? (leave blank for any)</label>
+                      <input value={conditions.tag || ''} onChange={e => setConditions({ ...conditions, tag: e.target.value || undefined })}
+                        placeholder="e.g. vip, hot-lead"
+                        style={{ width: '100%', background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '9px 11px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  )}
                   {trigger === 'status_changed' && (
                     <div style={{ marginTop: '12px' }}>
                       <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Only when status becomes (optional)</label>
