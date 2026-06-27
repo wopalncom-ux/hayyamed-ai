@@ -48,6 +48,16 @@ function toUiConv(c) {
   }
 }
 
+// How long a conversation has been waiting for a reply (color-coded SLA hint).
+function waitingInfo(lastMsgAt) {
+  if (!lastMsgAt) return null
+  const mins = Math.floor((Date.now() - new Date(lastMsgAt).getTime()) / 60000)
+  if (mins < 1) return { text: 'now', color: '#00e5a0' }
+  const text = mins < 60 ? `${mins}m` : mins < 1440 ? `${Math.floor(mins / 60)}h` : `${Math.floor(mins / 1440)}d`
+  const color = mins < 10 ? '#00e5a0' : mins < 30 ? '#fbbf24' : '#ef4444'
+  return { text, color }
+}
+
 function toUiMsg(m) {
   // senderId null means customer sent it (inbound); isAI/isFromBot = AI-generated reply
   const from = !m.senderId ? 'contact' : (m.isAI || m.isFromBot) ? 'ai' : 'agent'
@@ -482,6 +492,7 @@ function InboxInner() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', background: (statusColors[c.status] || '#64748b') + '22', color: statusColors[c.status] || '#64748b' }}>{c.status}</span>
                         {c.score > 0 && <span style={{ fontSize: '9px', color: '#475569' }}>★{c.score}</span>}
+                        {c.unread > 0 && c.convStatus !== 'RESOLVED' && (() => { const w = waitingInfo(c.lastMsgAt); return w ? <span title="Waiting for a reply" style={{ fontSize: '9px', fontWeight: 700, color: w.color }}>⏱ {w.text}</span> : null })()}
                         {c.escalated
                           ? <span title="Customer asked for a human" style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', background: 'rgba(239,68,68,.15)', color: '#ef4444', fontWeight: 700 }}>⚠ Needs human</span>
                           : c.aiPaused && <span title="A human is handling this — AI paused" style={{ fontSize: '9px' }}>🙋</span>}
