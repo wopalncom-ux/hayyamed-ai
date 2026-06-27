@@ -185,7 +185,7 @@ export class ConversationsService {
     // Resolving ends any human takeover (AI resumes for future messages) and,
     // on website chat, asks the visitor for a quick satisfaction rating.
     if (status === 'RESOLVED') {
-      const md: any = { ...((conv.metadata as any) || {}), aiPaused: false, escalated: false }
+      const md: any = { ...((conv.metadata as any) || {}), aiPaused: false, escalated: false, negative: false }
       if (conv.channel?.type === 'LIVE_CHAT' && !md.rating) {
         md.awaitingRating = true
         await this.prisma.message.create({

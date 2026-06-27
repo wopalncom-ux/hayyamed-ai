@@ -44,6 +44,7 @@ function toUiConv(c) {
     lastMsgAt: c.lastMsgAt,
     aiPaused: !!(c.metadata && c.metadata.aiPaused),
     escalated: !!(c.metadata && c.metadata.escalated),
+    negative: !!(c.metadata && c.metadata.negative),
     rating: (c.metadata && c.metadata.rating) || 0,
   }
 }
@@ -237,9 +238,9 @@ function InboxInner() {
     if (!selected) return
     try {
       await api.updateConversationStatus(selected.convId, status)
-      const reset = status === 'RESOLVED' ? { aiPaused: false, escalated: false } : {}
+      const reset = status === 'RESOLVED' ? { aiPaused: false, escalated: false, negative: false } : {}
       setSelected(s => ({ ...s, convStatus: status, ...reset }))
-      if (status === 'RESOLVED') setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, aiPaused: false, escalated: false } : c))
+      if (status === 'RESOLVED') setContacts(prev => prev.map(c => c.id === selected.id ? { ...c, aiPaused: false, escalated: false, negative: false } : c))
     } catch {}
   }
 
@@ -527,6 +528,7 @@ function InboxInner() {
                         <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', background: (statusColors[c.status] || '#64748b') + '22', color: statusColors[c.status] || '#64748b' }}>{c.status}</span>
                         {c.score > 0 && <span style={{ fontSize: '9px', color: '#475569' }}>★{c.score}</span>}
                         {c.unread > 0 && c.convStatus !== 'RESOLVED' && (() => { const w = waitingInfo(c.lastMsgAt); return w ? <span title="Waiting for a reply" style={{ fontSize: '9px', fontWeight: 700, color: w.color }}>⏱ {w.text}</span> : null })()}
+                        {c.negative && <span title="Customer sounds frustrated" style={{ fontSize: '9px' }}>😟</span>}
                         {c.escalated
                           ? <span title="Customer asked for a human" style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', background: 'rgba(239,68,68,.15)', color: '#ef4444', fontWeight: 700 }}>⚠ Needs human</span>
                           : c.aiPaused && <span title="A human is handling this — AI paused" style={{ fontSize: '9px' }}>🙋</span>}

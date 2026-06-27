@@ -10,6 +10,7 @@ import { wantsHuman } from '../../common/util/escalation.util'
 import { isWithinHours } from '../../common/util/business-hours.util'
 import { isSubstantiveQuestion } from '../../common/util/question.util'
 import { computeLeadScore } from '../../common/util/lead-score.util'
+import { detectNegative } from '../../common/util/sentiment.util'
 
 @Injectable()
 export class TelegramService {
@@ -84,6 +85,12 @@ export class TelegramService {
     // A new message on a resolved conversation reopens it.
     if ((conv as any).status === 'RESOLVED') {
       await this.prisma.conversation.update({ where: { id: conv.id }, data: { status: 'OPEN' } })
+    }
+
+    // Negative sentiment: flag frustrated customers + alert the team (non-blocking).
+    if (detectNegative(msg.text) && !(conv.metadata as any)?.negative) {
+      this.prisma.conversation.update({ where: { id: conv.id }, data: { priority: 'HIGH' as any, metadata: { ...((conv.metadata as any) || {}), negative: true } } }).catch(() => {})
+      this.notifications?.notifyConversation(orgId, { assigneeId: (conv as any).assigneeId, type: 'sentiment', conversationId: conv.id, title: '😟 Unhappy customer', body: `${name} sounds frustrated on Telegram — may need attention.` }).catch(() => {})
     }
 
     // Human takeover: skip the AI auto-reply when paused for this conversation.
