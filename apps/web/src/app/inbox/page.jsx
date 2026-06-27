@@ -221,6 +221,8 @@ function InboxInner() {
   const [filterChannel, setFilterChannel] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
   const [escalatedOnly, setEscalatedOnly] = useState(false)
+  const [quickFilter, setQuickFilter] = useState('all') // all | unread | mine | unassigned
+  const myUserId = getAuth().userId
   const [liveStatus, setLiveStatus] = useState('connecting')
   const [newMsgFlash, setNewMsgFlash] = useState(false)
   const bottomRef = useRef(null)
@@ -339,6 +341,9 @@ function InboxInner() {
     if (filterChannel !== 'All' && c.channel !== filterChannel) return false
     if (filterStatus !== 'All' && c.status !== filterStatus) return false
     if (escalatedOnly && !c.escalated) return false
+    if (quickFilter === 'unread' && !(c.unread > 0)) return false
+    if (quickFilter === 'mine' && c.assigneeId !== myUserId) return false
+    if (quickFilter === 'unassigned' && c.assigneeId) return false
     return true
   })
   const escalatedCount = contacts.filter(c => c.escalated).length
@@ -409,6 +414,21 @@ function InboxInner() {
               placeholder="Search conversations..."
               style={{ width: '100%', background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '7px 10px', color: '#e2e8f0', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}
             />
+            <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+              {[['all', 'All'], ['unread', 'Unread'], ['mine', 'Mine'], ['unassigned', 'Unassigned']].map(([id, label]) => {
+                const active = quickFilter === id
+                const n = id === 'unread' ? contacts.filter(c => c.unread > 0).length
+                  : id === 'mine' ? contacts.filter(c => c.assigneeId === myUserId).length
+                  : id === 'unassigned' ? contacts.filter(c => !c.assigneeId).length : 0
+                return (
+                  <button key={id} onClick={() => setQuickFilter(id)}
+                    style={{ flex: 1, padding: '5px 6px', borderRadius: '5px', cursor: 'pointer', fontSize: '10px', fontWeight: 700,
+                      background: active ? 'rgba(0,229,160,.15)' : '#111622', border: `1px solid ${active ? '#00e5a0' : '#1a2235'}`, color: active ? '#00e5a0' : '#64748b' }}>
+                    {label}{id !== 'all' && n > 0 ? ` ${n}` : ''}
+                  </button>
+                )
+              })}
+            </div>
             {escalatedCount > 0 && (
               <button onClick={() => setEscalatedOnly(v => !v)}
                 style={{ marginTop: '8px', width: '100%', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 700, textAlign: 'left',
