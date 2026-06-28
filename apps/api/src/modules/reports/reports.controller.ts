@@ -98,7 +98,7 @@ export class ReportsController {
   async getToday(@CurrentUser() user: JwtPayload) {
     const orgId = user.orgId
     const start = new Date(); start.setHours(0, 0, 0, 0)
-    const [newLeads, newConvs, bookings, msgRows] = await Promise.all([
+    const [newLeads, newConvs, bookings, msgRows, openConvs] = await Promise.all([
       this.prisma.contact.count({ where: { orgId, createdAt: { gte: start } } }),
       this.prisma.conversation.count({ where: { orgId, createdAt: { gte: start } } }),
       this.prisma.booking.count({ where: { orgId, createdAt: { gte: start } } }),
@@ -107,8 +107,13 @@ export class ReportsController {
         JOIN "conversations" c ON c."id" = m."conversationId"
         WHERE c."orgId" = ${orgId} AND m."createdAt" >= ${start}
       `,
+      this.prisma.conversation.findMany({ where: { orgId, status: 'OPEN' }, select: { metadata: true } }),
     ])
-    return { newLeads, newConvs, bookings, messages: Number(msgRows[0]?.c || 0) }
+    const needsAttention = openConvs.filter(c => {
+      const m: any = c.metadata || {}
+      return m.escalated || m.negative
+    }).length
+    return { newLeads, newConvs, bookings, messages: Number(msgRows[0]?.c || 0), needsAttention }
   }
 
   // Customer satisfaction (CSAT) + first-response time over the last 90 days.

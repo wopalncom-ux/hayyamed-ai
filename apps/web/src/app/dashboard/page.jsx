@@ -142,6 +142,11 @@ export default function Dashboard() {
                   {s.icon} <strong style={{ color: s.color, fontWeight: 800 }}>{s.value}</strong> {s.label}
                 </span>
               ))}
+              {todayStats.needsAttention > 0 && (
+                <a href="/inbox" style={{ fontSize: '13px', color: '#ef4444', textDecoration: 'none', marginLeft: 'auto', background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '8px', padding: '3px 10px', fontWeight: 700 }}>
+                  ⚠ {todayStats.needsAttention} need{todayStats.needsAttention === 1 ? 's' : ''} attention →
+                </a>
+              )}
             </div>
           )}
 
