@@ -202,6 +202,10 @@ export const api = {
     request('/billing/plans'),
   updatePlans: (plans) =>
     request('/billing/plans', { method: 'PATCH', body: JSON.stringify({ plans }) }),
+  getPlansWithCost: () =>
+    request('/billing/plans-cost'),
+  updateCostModel: (model) =>
+    request('/billing/cost-model', { method: 'PATCH', body: JSON.stringify(model) }),
   getCurrentPlan: () =>
     request('/billing/current-plan'),
   createCheckout: (planId) =>

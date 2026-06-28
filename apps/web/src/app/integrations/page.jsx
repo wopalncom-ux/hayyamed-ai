@@ -159,10 +159,18 @@ const INTEGRATIONS = [
   {
     id:'openai', category:'AI & Automation', color:'#a78bfa',
     name:'OpenAI / GPT', icon:'🤖',
-    desc:'Power AI auto-replies, chatbot responses, and the AI advisor with OpenAI GPT-4. Required for all AI features.',
+    desc:'Power AI auto-replies, chatbot responses, and the AI advisor with OpenAI. Pick any model. If OpenAI is unavailable, the engine automatically falls back to your other connected AI providers (Claude, Gemini, Groq).',
     badge:'OpenAI API', fields:[
       { key:'openai_key',   label:'API KEY',   placeholder:'sk-proj-...', type:'password' },
-      { key:'openai_model', label:'MODEL',     placeholder:'gpt-4o', type:'text' },
+      { key:'openai_model', label:'DEFAULT MODEL', type:'select', options:[
+        { value:'gpt-4o',        label:'GPT-4o — best quality' },
+        { value:'gpt-4o-mini',   label:'GPT-4o mini — fast & cheap (recommended)' },
+        { value:'gpt-4-turbo',   label:'GPT-4 Turbo' },
+        { value:'gpt-4.1',       label:'GPT-4.1' },
+        { value:'gpt-4.1-mini',  label:'GPT-4.1 mini' },
+        { value:'o1-mini',       label:'o1-mini — reasoning' },
+        { value:'gpt-3.5-turbo', label:'GPT-3.5 Turbo — cheapest' },
+      ], hint:'Used for AI replies unless an AI Agent overrides it.' },
     ],
     docs:'https://platform.openai.com',
   },
@@ -366,13 +374,24 @@ export default function Integrations() {
                               {intg.fields.map(f => (
                                 <div key={f.key}>
                                   <label style={lbl}>{f.label}</label>
-                                  <input
-                                    type={state?.showKeys ? 'text' : f.type}
-                                    value={state?.values?.[f.key] || ''}
-                                    onChange={e => updateValue(intg.id, f.key, e.target.value)}
-                                    placeholder={f.placeholder}
-                                    style={inp}
-                                  />
+                                  {f.type === 'select' ? (
+                                    <select
+                                      value={state?.values?.[f.key] || f.options?.[0]?.value || ''}
+                                      onChange={e => updateValue(intg.id, f.key, e.target.value)}
+                                      style={{ ...inp, cursor: 'pointer' }}
+                                    >
+                                      {(f.options || []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                    </select>
+                                  ) : (
+                                    <input
+                                      type={state?.showKeys ? 'text' : f.type}
+                                      value={state?.values?.[f.key] || ''}
+                                      onChange={e => updateValue(intg.id, f.key, e.target.value)}
+                                      placeholder={f.placeholder}
+                                      style={inp}
+                                    />
+                                  )}
+                                  {f.hint && <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px' }}>{f.hint}</div>}
                                 </div>
                               ))}
                               <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', paddingTop:'4px'}}>

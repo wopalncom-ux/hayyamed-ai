@@ -16,11 +16,25 @@ export class BillingController {
     return this.billing.getPlans()
   }
 
-  // Owner-only: update plan prices/names from the Master Dashboard.
+  // Owner-only: update plan name/price/limits from the Master Dashboard.
   @Patch('plans')
   @UseGuards(OwnerGuard)
-  updatePlans(@Body() body: { plans: { id: string; name?: string; price?: number }[] }) {
+  updatePlans(@Body() body: { plans: any[] }) {
     return this.billing.updatePlanPricing(body.plans)
+  }
+
+  // Owner-only: plans annotated with estimated platform cost + margin.
+  @Get('plans-cost')
+  @UseGuards(OwnerGuard)
+  getPlansWithCost() {
+    return this.billing.getPlansWithCost()
+  }
+
+  // Owner-only: read/update the cost assumptions used for margin estimates.
+  @Patch('cost-model')
+  @UseGuards(OwnerGuard)
+  updateCostModel(@Body() body: any) {
+    return this.billing.updateCostModel(body || {})
   }
 
   @Get('invoices')

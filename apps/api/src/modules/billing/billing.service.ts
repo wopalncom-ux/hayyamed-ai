@@ -5,12 +5,23 @@ import { EmailService } from '../email/email.service'
 import { MyFatoorahService } from '../myfatoorah/myfatoorah.service'
 import Stripe from 'stripe'
 
-// Default plan catalog. Prices are owner-editable and stored in platform_settings.
+// Default plan catalog. Owner-editable (price, name, limits) — stored in platform_settings.
 const DEFAULT_PLANS = [
-  { id: 'starter', name: 'Starter', price: 150, currency: 'QAR', contacts: 1000, messages: 10000, aiResponses: 5000 },
-  { id: 'growth', name: 'Growth', price: 599, currency: 'QAR', contacts: 5000, messages: 50000, aiResponses: 20000 },
-  { id: 'enterprise', name: 'Enterprise', price: 990, currency: 'QAR', contacts: 999999, messages: 999999, aiResponses: 999999 },
+  { id: 'starter', name: 'Starter', price: 150, currency: 'QAR', contacts: 1000, messages: 10000, aiResponses: 5000, teamSeats: 5 },
+  { id: 'growth', name: 'Growth', price: 599, currency: 'QAR', contacts: 5000, messages: 50000, aiResponses: 20000, teamSeats: 15 },
+  { id: 'enterprise', name: 'Enterprise', price: 990, currency: 'QAR', contacts: 999999, messages: 999999, aiResponses: 999999, teamSeats: 999 },
 ]
+
+// Owner-editable cost assumptions used to estimate the platform's per-tenant cost
+// so the owner can price with a known margin. Stored in platform_settings.
+const DEFAULT_COST_MODEL = {
+  aiCostPerResponse: 0.02,   // QAR per AI response (≈ gpt-4o-mini, ~1k tokens)
+  whatsappPerMonth: 20,      // QAR per connected WhatsApp account (Unipile)
+  infraPerTenant: 5,         // QAR fixed infra per tenant / month
+  currency: 'QAR',
+}
+
+const NUMERIC_LIMITS = ['price', 'contacts', 'messages', 'aiResponses', 'teamSeats'] as const
 
 @Injectable()
 export class BillingService {
@@ -38,21 +49,67 @@ export class BillingService {
     } catch { /* table not migrated yet → defaults */ }
     return DEFAULT_PLANS.map(p => {
       const o = overrides.find(x => x.id === p.id)
-      return o ? { ...p, name: o.name ?? p.name, price: o.price ?? p.price } : p
+      if (!o) return p
+      const merged: any = { ...p, name: o.name ?? p.name }
+      for (const k of NUMERIC_LIMITS) if (o[k] != null) merged[k] = Number(o[k])
+      return merged
     })
   }
 
-  // Owner-only: update plan prices/names.
-  async updatePlanPricing(plans: { id: string; name?: string; price?: number }[]) {
+  // Owner-only: update plan name + price + limits (contacts/messages/aiResponses/teamSeats).
+  async updatePlanPricing(plans: { id: string; name?: string; price?: number; contacts?: number; messages?: number; aiResponses?: number; teamSeats?: number }[]) {
     const clean = (plans || [])
       .filter(p => DEFAULT_PLANS.some(d => d.id === p.id))
-      .map(p => ({ id: p.id, name: p.name, price: p.price != null ? Math.max(0, Number(p.price)) : undefined }))
+      .map(p => {
+        const row: any = { id: p.id }
+        if (p.name != null) row.name = String(p.name).slice(0, 60)
+        for (const k of NUMERIC_LIMITS) if ((p as any)[k] != null) row[k] = Math.max(0, Number((p as any)[k]))
+        return row
+      })
     await this.prisma.platformSetting.upsert({
       where: { key: 'plan_pricing' },
       update: { value: clean as any },
       create: { key: 'plan_pricing', value: clean as any },
     })
     return this.getPlans()
+  }
+
+  // Owner-editable cost model used for margin estimation.
+  async getCostModel() {
+    try {
+      const row = await this.prisma.platformSetting.findUnique({ where: { key: 'cost_model' } })
+      if (row?.value && typeof row.value === 'object') return { ...DEFAULT_COST_MODEL, ...(row.value as any) }
+    } catch { /* defaults */ }
+    return DEFAULT_COST_MODEL
+  }
+
+  async updateCostModel(dto: Partial<typeof DEFAULT_COST_MODEL>) {
+    const clean: any = {}
+    for (const k of ['aiCostPerResponse', 'whatsappPerMonth', 'infraPerTenant'] as const) {
+      if (dto?.[k] != null) clean[k] = Math.max(0, Number(dto[k]))
+    }
+    const merged = { ...DEFAULT_COST_MODEL, ...clean }
+    await this.prisma.platformSetting.upsert({
+      where: { key: 'cost_model' },
+      update: { value: merged as any },
+      create: { key: 'cost_model', value: merged as any },
+    })
+    return merged
+  }
+
+  // Plans annotated with estimated platform cost + margin, for the owner editor.
+  async getPlansWithCost() {
+    const [plans, cost] = await Promise.all([this.getPlans(), this.getCostModel()])
+    return {
+      cost,
+      plans: plans.map(p => {
+        const aiCost = (p.aiResponses >= 999999 ? 50000 : p.aiResponses) * cost.aiCostPerResponse
+        const estCost = +(aiCost + cost.whatsappPerMonth + cost.infraPerTenant).toFixed(2)
+        const margin = +(p.price - estCost).toFixed(2)
+        const marginPct = p.price > 0 ? Math.round(margin / p.price * 100) : 0
+        return { ...p, estCost, margin, marginPct }
+      }),
+    }
   }
 
   private async findPlan(id: string) {

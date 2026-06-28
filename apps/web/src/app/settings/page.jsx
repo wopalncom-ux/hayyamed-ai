@@ -3,6 +3,9 @@ import NavSidebar from '@/components/NavSidebar'
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { getAuth, isOwnerRole } from '@/lib/auth'
+
+const fmtLimit = (n) => (n >= 999999 ? 'Unlimited' : Number(n).toLocaleString())
 
 // ── Permission matrix per role ──────────────────────────────────────────────
 const ALL_PERMISSIONS = [
@@ -126,6 +129,13 @@ export default function Settings() {
   const [newPwd, setNewPwd]         = useState('')
   const [confPwd, setConfPwd]       = useState('')
   const [pwdSaving, setPwdSaving]   = useState(false)
+  const owner = isOwnerRole(getAuth()?.role)
+  const [livePlans, setLivePlans]   = useState(null)
+  const [costData, setCostData]     = useState(null)   // owner: { cost, plans:[...estCost/margin] }
+  const [editPlans, setEditPlans]   = useState(null)   // owner editable copy
+  const [costModel, setCostModel]   = useState(null)
+  const [planSaving, setPlanSaving] = useState(false)
+  const [planMsg, setPlanMsg]       = useState(null)
 
   useEffect(() => {
     api.getSettings().then(s => {
@@ -145,6 +155,16 @@ export default function Settings() {
         if (wh.days) setWhDays([0,1,2,3,4,5,6].map(i => wh.days[i] || wh.days[String(i)] || { off: false, open: '09:00', close: '21:00' }))
       }
     }).catch(() => {})
+
+    // Live plan catalog (single source — same as the public website).
+    api.getPlans().then(p => setLivePlans(Array.isArray(p) ? p : [])).catch(() => {})
+    if (owner) {
+      api.getPlansWithCost().then(d => {
+        setCostData(d)
+        setEditPlans(d.plans.map(p => ({ ...p })))
+        setCostModel(d.cost)
+      }).catch(() => {})
+    }
 
     api.getTeam().then(members => {
       if (Array.isArray(members) && members.length > 0) {
@@ -244,6 +264,27 @@ export default function Settings() {
       } else saveMsg('Plan selected — billing coming soon!')
     } catch (e) { saveMsg(e?.message || 'Checkout failed') }
     setCheckoutLoading(false)
+  }
+
+  // Live cost/margin estimate as the owner edits (mirrors the server formula).
+  const estimateFor = (plan) => {
+    if (!costModel) return { estCost: 0, margin: 0, marginPct: 0 }
+    const ai = (Number(plan.aiResponses) >= 999999 ? 50000 : Number(plan.aiResponses) || 0) * Number(costModel.aiCostPerResponse || 0)
+    const estCost = +(ai + Number(costModel.whatsappPerMonth || 0) + Number(costModel.infraPerTenant || 0)).toFixed(2)
+    const margin = +((Number(plan.price) || 0) - estCost).toFixed(2)
+    const marginPct = Number(plan.price) > 0 ? Math.round(margin / Number(plan.price) * 100) : 0
+    return { estCost, margin, marginPct }
+  }
+  const setEditField = (id, key, val) => setEditPlans(prev => prev.map(p => p.id === id ? { ...p, [key]: val } : p))
+  const savePlans = async () => {
+    setPlanSaving(true); setPlanMsg(null)
+    try {
+      await api.updateCostModel(costModel)
+      const saved = await api.updatePlans(editPlans.map(p => ({ id: p.id, name: p.name, price: +p.price, contacts: +p.contacts, messages: +p.messages, aiResponses: +p.aiResponses, teamSeats: +p.teamSeats })))
+      setLivePlans(saved)
+      setPlanMsg({ ok: true, text: 'Plans + costs saved. The public website pricing is updated too.' })
+    } catch (e) { setPlanMsg({ ok: false, text: e?.message || 'Save failed' }) }
+    setPlanSaving(false)
   }
 
   const tabs = [
@@ -502,30 +543,101 @@ export default function Settings() {
                 <div style={{fontSize:'12px', color:'#7a8fa6'}}>Choose a plan that fits your business size</div>
               </div>
 
-              <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap:'14px'}}>
-                {PLANS.map(plan => (
-                  <div key={plan.id} style={{background:'#0f1520', border:`1px solid ${plan.popular ? plan.color : '#1a2235'}`, borderRadius:'4px', padding:'20px', position:'relative', borderTop:`2px solid ${plan.color}`}}>
-                    {plan.popular && <div style={{position:'absolute', top:'-1px', right:'16px', fontSize:'9px', padding:'3px 8px', background:plan.color, color:'#07090f', fontWeight:'800', borderRadius:'0 0 4px 4px', letterSpacing:'1px'}}>POPULAR</div>}
-                    <div style={{fontSize:'13px', fontWeight:'700', color:plan.color, marginBottom:'4px'}}>{plan.name}</div>
-                    <div style={{marginBottom:'16px'}}>
-                      <span style={{fontSize:'28px', fontWeight:'800'}}>{plan.price}</span>
-                      <span style={{fontSize:'12px', color:'#7a8fa6'}}>{plan.period}</span>
-                    </div>
-                    {plan.note && <div style={{fontSize:'10px', color:'#fbbf24', marginBottom:'12px', padding:'6px 8px', background:'rgba(251,191,36,.08)', borderRadius:'3px'}}>{plan.note}</div>}
-                    <div style={{marginBottom:'16px'}}>
-                      {plan.features.map(f => (
-                        <div key={f} style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'7px', display:'flex', alignItems:'center', gap:'6px'}}>
-                          <span style={{color:plan.color}}>✓</span> {f}
+              {(() => {
+                const COLORS = { starter:'#3b82f6', growth:'#00e5a0', enterprise:'#a78bfa' }
+                const cards = livePlans || []
+                return (
+                  <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : `repeat(${Math.min(cards.length || 1, 3)},1fr)`, gap:'14px'}}>
+                    {cards.map(plan => {
+                      const color = COLORS[plan.id] || '#3b82f6'
+                      const popular = plan.id === 'growth'
+                      const features = [
+                        `${fmtLimit(plan.messages)} messages/mo`,
+                        `${fmtLimit(plan.aiResponses)} AI responses`,
+                        `${fmtLimit(plan.contacts)} contacts`,
+                        `${fmtLimit(plan.teamSeats)} team members`,
+                      ]
+                      return (
+                        <div key={plan.id} style={{background:'#0f1520', border:`1px solid ${popular ? color : '#1a2235'}`, borderRadius:'4px', padding:'20px', position:'relative', borderTop:`2px solid ${color}`}}>
+                          {popular && <div style={{position:'absolute', top:'-1px', right:'16px', fontSize:'9px', padding:'3px 8px', background:color, color:'#07090f', fontWeight:'800', borderRadius:'0 0 4px 4px', letterSpacing:'1px'}}>POPULAR</div>}
+                          <div style={{fontSize:'13px', fontWeight:'700', color, marginBottom:'4px'}}>{plan.name}</div>
+                          <div style={{marginBottom:'16px'}}>
+                            <span style={{fontSize:'28px', fontWeight:'800'}}>{plan.currency} {Number(plan.price).toLocaleString()}</span>
+                            <span style={{fontSize:'12px', color:'#7a8fa6'}}>/month</span>
+                          </div>
+                          <div style={{marginBottom:'16px'}}>
+                            {features.map(f => (
+                              <div key={f} style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'7px', display:'flex', alignItems:'center', gap:'6px'}}>
+                                <span style={{color}}>✓</span> {f}
+                              </div>
+                            ))}
+                          </div>
+                          <button onClick={() => checkout(plan.id)} disabled={checkoutLoading === plan.id}
+                            style={{width:'100%', padding:'9px', background: popular ? color : `${color}20`, border:`1px solid ${color}40`, borderRadius:'4px', color: popular ? '#07090f' : color, fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
+                            {checkoutLoading === plan.id ? 'Processing...' : (liveUsage?.plan === plan.name ? '✅ Current Plan' : 'Select Plan')}
+                          </button>
                         </div>
-                      ))}
-                    </div>
-                    <button onClick={() => checkout(plan.id)} disabled={checkoutLoading === plan.id}
-                      style={{width:'100%', padding:'9px', background: plan.popular ? plan.color : `${plan.color}20`, border:`1px solid ${plan.color}40`, borderRadius:'4px', color: plan.popular ? '#07090f' : plan.color, fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
-                      {checkoutLoading === plan.id ? 'Processing...' : liveUsage?.plan === plan.name ? '✅ Current Plan' : 'Select Plan'}
-                    </button>
+                      )
+                    })}
                   </div>
-                ))}
-              </div>
+                )
+              })()}
+
+              {/* ── OWNER: editable plan + cost/margin control ── */}
+              {owner && editPlans && costModel && (
+                <div style={{background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', padding:'18px'}}>
+                  <div style={{fontWeight:'800', fontSize:'14px', marginBottom:'2px'}}>⚙️ Owner — Plan & Pricing Control</div>
+                  <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'14px'}}>Edit prices and limits. Estimated cost + your margin update live. Saving updates the public website pricing too.</div>
+
+                  {/* Cost assumptions */}
+                  <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:'10px', marginBottom:'16px'}}>
+                    {[
+                      { k:'aiCostPerResponse', label:'AI cost / response (QAR)', step:'0.001' },
+                      { k:'whatsappPerMonth',  label:'WhatsApp / mo (QAR)', step:'1' },
+                      { k:'infraPerTenant',    label:'Infra / tenant (QAR)', step:'1' },
+                    ].map(c => (
+                      <div key={c.k}>
+                        <div style={{fontSize:'10px', color:'#7a8fa6', marginBottom:'4px'}}>{c.label}</div>
+                        <input type="number" step={c.step} value={costModel[c.k]} onChange={e => setCostModel(m => ({ ...m, [c.k]: e.target.value }))}
+                          style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 10px', color:'#e2e8f0', fontSize:'12px', outline:'none', boxSizing:'border-box'}} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Per-plan editor */}
+                  <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+                    {editPlans.map(plan => {
+                      const est = estimateFor(plan)
+                      const fields = [['name','Name','text'],['price','Price','number'],['messages','Messages','number'],['aiResponses','AI responses','number'],['contacts','Contacts','number'],['teamSeats','Seats','number']]
+                      return (
+                        <div key={plan.id} style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'12px'}}>
+                          <div style={{display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(6,1fr)', gap:'8px', marginBottom:'10px'}}>
+                            {fields.map(([k,label,type]) => (
+                              <div key={k}>
+                                <div style={{fontSize:'9px', color:'#7a8fa6', marginBottom:'3px', textTransform:'uppercase'}}>{label}</div>
+                                <input type={type} value={plan[k]} onChange={e => setEditField(plan.id, k, e.target.value)}
+                                  style={{width:'100%', background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'4px', padding:'7px 8px', color:'#e2e8f0', fontSize:'12px', outline:'none', boxSizing:'border-box'}} />
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{display:'flex', gap:'16px', fontSize:'11px', flexWrap:'wrap'}}>
+                            <span style={{color:'#7a8fa6'}}>Est. cost: <strong style={{color:'#fbbf24'}}>QAR {est.estCost}</strong></span>
+                            <span style={{color:'#7a8fa6'}}>Your margin: <strong style={{color: est.margin >= 0 ? '#00e5a0' : '#ef4444'}}>QAR {est.margin} ({est.marginPct}%)</strong></span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <div style={{display:'flex', alignItems:'center', gap:'12px', marginTop:'14px'}}>
+                    <button onClick={savePlans} disabled={planSaving}
+                      style={{padding:'9px 20px', background: planSaving ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'4px', color: planSaving ? '#64748b' : '#07090f', fontWeight:'800', fontSize:'12px', cursor: planSaving ? 'wait' : 'pointer'}}>
+                      {planSaving ? 'Saving…' : 'Save plans & costs'}
+                    </button>
+                    {planMsg && <span style={{fontSize:'12px', color: planMsg.ok ? '#00e5a0' : '#ef4444'}}>{planMsg.ok ? '✓ ' : '⚠️ '}{planMsg.text}</span>}
+                  </div>
+                </div>
+              )}
 
               <div style={{background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.15)', padding:'14px', borderRadius:'4px', fontSize:'11px', color:'#7a8fa6', lineHeight:'1.8'}}>
                 <strong style={{color:'#00e5a0'}}>All plans include:</strong> WhatsApp integration, AI chatbot, contact management, multi-channel inbox, analytics dashboard, 99.9% uptime SLA, data hosted in Qatar region.
