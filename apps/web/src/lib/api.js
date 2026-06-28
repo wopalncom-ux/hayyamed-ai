@@ -339,6 +339,18 @@ export const api = {
     request(`/agency/clients/${id}/brains/${kbId}/sources/${sourceId}`, { method: 'DELETE' }),
   retrainClientBrain: (id, kbId) =>
     request(`/agency/clients/${id}/brains/${kbId}/retrain`, { method: 'POST' }),
+  getClientAgents: (id) =>
+    request(`/agency/clients/${id}/agents`),
+  createClientAgent: (id, dto) =>
+    request(`/agency/clients/${id}/agents`, { method: 'POST', body: JSON.stringify(dto) }),
+  updateClientAgent: (id, agentId, dto) =>
+    request(`/agency/clients/${id}/agents/${agentId}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  removeClientAgent: (id, agentId) =>
+    request(`/agency/clients/${id}/agents/${agentId}`, { method: 'DELETE' }),
+  toggleClientAgent: (id, agentId, isActive) =>
+    request(`/agency/clients/${id}/agents/${agentId}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
+  testClientAgent: (id, agentId, message, history) =>
+    request(`/agency/clients/${id}/agents/${agentId}/test`, { method: 'POST', body: JSON.stringify({ message, history }) }),
   createAgencyClient: (dto) =>
     request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
   updateAgencyClient: (id, dto) =>

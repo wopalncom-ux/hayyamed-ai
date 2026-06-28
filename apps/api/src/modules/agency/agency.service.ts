@@ -1,13 +1,46 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service'
+import { AIAgentsService } from '../ai-agents/ai-agents.service'
 
 @Injectable()
 export class AgencyService {
   constructor(
     private prisma: PrismaService,
     private kb: KnowledgeBaseService,
+    private agents: AIAgentsService,
   ) {}
+
+  // ── Per-client AI Agents (agency-scoped) ───────────────────────────────────
+  async listClientAgents(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.agents.findAll(clientId)
+  }
+
+  async createClientAgent(agencyOrgId: string, clientId: string, dto: any) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.agents.create(clientId, dto)
+  }
+
+  async updateClientAgent(agencyOrgId: string, clientId: string, agentId: string, dto: any) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.agents.update(agentId, clientId, dto)
+  }
+
+  async removeClientAgent(agencyOrgId: string, clientId: string, agentId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.agents.remove(agentId, clientId)
+  }
+
+  async toggleClientAgent(agencyOrgId: string, clientId: string, agentId: string, isActive: boolean) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.agents.toggle(agentId, clientId, isActive)
+  }
+
+  async testClientAgent(agencyOrgId: string, clientId: string, agentId: string, message: string, history: any[] = []) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.agents.runAgent(agentId, clientId, message, history)
+  }
 
   // ── Per-client AI Brain (agency-scoped — operates on the client's org) ──────
   async listClientBrains(agencyOrgId: string, clientId: string) {

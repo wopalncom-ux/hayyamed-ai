@@ -77,6 +77,37 @@ export class AgencyController {
     return this.agency.retrainClientBrain(user.orgId, id, kbId)
   }
 
+  // ── Per-client AI Agents ─────────────────────────────────────────────────
+  @Get('clients/:id/agents')
+  listAgents(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.listClientAgents(user.orgId, id)
+  }
+
+  @Post('clients/:id/agents')
+  createAgent(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: any) {
+    return this.agency.createClientAgent(user.orgId, id, dto)
+  }
+
+  @Patch('clients/:id/agents/:agentId')
+  updateAgent(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('agentId') agentId: string, @Body() dto: any) {
+    return this.agency.updateClientAgent(user.orgId, id, agentId, dto)
+  }
+
+  @Delete('clients/:id/agents/:agentId')
+  removeAgent(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('agentId') agentId: string) {
+    return this.agency.removeClientAgent(user.orgId, id, agentId)
+  }
+
+  @Post('clients/:id/agents/:agentId/toggle')
+  toggleAgent(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('agentId') agentId: string, @Body() body: { isActive: boolean }) {
+    return this.agency.toggleClientAgent(user.orgId, id, agentId, !!body.isActive)
+  }
+
+  @Post('clients/:id/agents/:agentId/test')
+  testAgent(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('agentId') agentId: string, @Body() body: { message: string; history?: any[] }) {
+    return this.agency.testClientAgent(user.orgId, id, agentId, body.message, body.history || [])
+  }
+
   // ── Packages ───────────────────────────────────────────────────────────────
 
   @Get('packages')

@@ -14,6 +14,21 @@ const PAYMENT = [
   { v: 'owner', label: 'I pay & charge the client' },
   { v: 'hybrid', label: 'Hybrid / shared cost' },
 ]
+const ROLES = [
+  ['sales', 'WhatsApp Sales Agent'], ['support', 'Customer Support Agent'], ['receptionist', 'Receptionist Agent'],
+  ['marketing', 'Marketing Agent'], ['appointment', 'Appointment Agent'], ['campaign', 'Campaign Agent'], ['custom', 'Custom Agent'],
+]
+const AGENT_CHANNELS = [
+  ['whatsapp_unipile', 'WhatsApp (Unipile)'], ['whatsapp_meta', 'WhatsApp (Meta Cloud)'],
+  ['email', 'Email'], ['website', 'Website chatbot'], ['instagram', 'Instagram / Messenger'],
+]
+const PROVIDERS = [
+  { id: 'openai', label: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-3.5-turbo'] },
+  { id: 'anthropic', label: 'Claude', models: ['claude-sonnet-4-6', 'claude-haiku-4-5', 'claude-opus-4-8'] },
+  { id: 'gemini', label: 'Gemini', models: ['gemini-2.0-flash', 'gemini-1.5-pro'] },
+  { id: 'groq', label: 'Groq', models: ['llama-3.3-70b-versatile'] },
+]
+const EMPTY_AGENT = { name: '', role: 'support', knowledgeBaseId: '', aiProvider: 'openai', aiModel: 'gpt-4o-mini', channels: [], isActive: false, escalationRules: { humanTakeover: true } }
 const card = { background: '#0f1520', border: '1px solid #1a2235', borderRadius: '10px', padding: '18px' }
 const input = { width: '100%', padding: '9px 11px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '6px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }
 const lbl = { fontSize: '10px', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }
@@ -40,6 +55,34 @@ export default function ClientsConsole() {
   const [srcType, setSrcType] = useState('text')
   const [srcName, setSrcName] = useState('')
   const [srcBody, setSrcBody] = useState('')
+  // Agents (Phase 3)
+  const [agents, setAgents] = useState([])
+  const [agentForm, setAgentForm] = useState(null)   // EMPTY_AGENT for new, or an agent for edit
+  const [agentBusy, setAgentBusy] = useState(false)
+  const [testMsg, setTestMsg] = useState('')
+  const [testReply, setTestReply] = useState(null)
+  const [testing, setTesting] = useState(false)
+
+  const loadAgents = async (id) => { try { const a = await api.getClientAgents(id); setAgents(Array.isArray(a) ? a : []) } catch {} }
+  const aset = (k, v) => setAgentForm(p => ({ ...p, [k]: v }))
+  const toggleChannel = (c) => setAgentForm(p => ({ ...p, channels: p.channels.includes(c) ? p.channels.filter(x => x !== c) : [...p.channels, c] }))
+  const saveAgent = async () => {
+    if (!agentForm?.name?.trim() || !selected) { setMsg({ ok: false, text: 'Agent name is required' }); return }
+    setAgentBusy(true); setMsg(null)
+    const dto = { name: agentForm.name.trim(), role: agentForm.role, knowledgeBaseId: agentForm.knowledgeBaseId || null, aiProvider: agentForm.aiProvider, aiModel: agentForm.aiModel, channels: agentForm.channels, escalationRules: agentForm.escalationRules }
+    try {
+      if (agentForm.id) await api.updateClientAgent(selected.id, agentForm.id, dto)
+      else await api.createClientAgent(selected.id, dto)
+      setAgentForm(null); setTestReply(null); loadAgents(selected.id); openClient(selected.id)
+    } catch (e) { setMsg({ ok: false, text: e?.message || 'Save failed' }) } finally { setAgentBusy(false) }
+  }
+  const delAgent = async (agentId) => { if (!selected) return; try { await api.removeClientAgent(selected.id, agentId); loadAgents(selected.id); openClient(selected.id) } catch {} }
+  const toggleAgent = async (a) => { if (!selected) return; try { await api.toggleClientAgent(selected.id, a.id, !a.isActive); loadAgents(selected.id) } catch {} }
+  const runTest = async () => {
+    if (!testMsg.trim() || !agentForm?.id || !selected) return
+    setTesting(true)
+    try { const r = await api.testClientAgent(selected.id, agentForm.id, testMsg.trim(), []); setTestReply(r?.reply || r?.message || JSON.stringify(r)) } catch (e) { setTestReply('⚠️ ' + (e?.message || 'Test failed')) } finally { setTesting(false) }
+  }
 
   const loadBrains = async (id) => {
     try {
@@ -72,7 +115,7 @@ export default function ClientsConsole() {
 
   const openClient = async (id) => {
     setMsg(null)
-    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
+    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
   }
   const newClient = () => { setSelected(null); setEditing({ ...EMPTY }); setTab('profile'); setMsg(null) }
   const set = (k, v) => setEditing(p => ({ ...p, [k]: v }))
@@ -151,7 +194,7 @@ export default function ClientsConsole() {
 
               {/* Tabs */}
               <div style={{ display: 'flex', gap: '6px', marginBottom: '18px', flexWrap: 'wrap' }}>
-                {[['profile', '👤 Profile'], ['resources', '🧠 Resources'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
+                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
                   <button key={id} onClick={() => setTab(id)} disabled={id !== 'profile' && !selected}
                     style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: id !== 'profile' && !selected ? 'not-allowed' : 'pointer',
                       background: tab === id ? '#1a2235' : 'transparent', color: tab === id ? '#e2e8f0' : (id !== 'profile' && !selected ? '#3d4f63' : '#7a8fa6'), border: '1px solid #1a2235' }}>{label}</button>
@@ -263,6 +306,71 @@ export default function ClientsConsole() {
                   <div style={{ ...card, background: 'rgba(167,139,250,.05)', borderColor: 'rgba(167,139,250,.2)', fontSize: '12px', color: '#94a3b8', lineHeight: 1.7 }}>
                     🤖 Agent Manager and ⚡ client-scoped Automations are rolling out next (Phases 3–5). Each client's resources are already fully isolated.
                   </div>
+                </div>
+              )}
+
+              {/* AGENTS */}
+              {tab === 'agents' && selected && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {!agentForm ? (
+                    <>
+                      <button onClick={() => { setAgentForm({ ...EMPTY_AGENT }); setTestReply(null) }} style={{ alignSelf: 'flex-start', padding: '9px 18px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>+ New AI Agent</button>
+                      {agents.length === 0 ? <div style={{ ...card, fontSize: '12px', color: '#64748b' }}>No agents yet. Create an AI agent, give it a role and a knowledge base, assign channels, then test and publish.</div>
+                        : agents.map(a => (
+                          <div key={a.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontSize: '22px' }}>🤖</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontWeight: 700, fontSize: '14px' }}>{a.name}</div>
+                              <div style={{ fontSize: '11px', color: '#64748b' }}>{(ROLES.find(r => r[0] === a.role) || [, a.role])[1]} · {a.aiProvider}/{a.aiModel} · {(a.channels || []).length} channel{(a.channels || []).length === 1 ? '' : 's'}</div>
+                            </div>
+                            <button onClick={() => toggleAgent(a)} style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', border: '1px solid', borderColor: a.isActive ? 'rgba(0,229,160,.4)' : '#1a2235', background: a.isActive ? 'rgba(0,229,160,.12)' : 'transparent', color: a.isActive ? '#00e5a0' : '#64748b', fontWeight: 700 }}>{a.isActive ? '● Published' : '○ Draft'}</button>
+                            <button onClick={() => { setAgentForm({ ...EMPTY_AGENT, ...a, escalationRules: a.escalationRules || { humanTakeover: true } }); setTestReply(null) }} style={{ fontSize: '11px', padding: '4px 10px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '6px', color: '#7a8fa6', cursor: 'pointer' }}>Edit</button>
+                            <button onClick={() => delAgent(a.id)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>✕</button>
+                          </div>
+                        ))}
+                    </>
+                  ) : (
+                    <>
+                      <div style={card}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '14px' }}>{agentForm.id ? 'Edit agent' : 'New AI agent'}</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px' }}>
+                          <Field label="Agent name"><input style={input} value={agentForm.name} onChange={e => aset('name', e.target.value)} placeholder="e.g. Reception Bot" /></Field>
+                          <Field label="Role"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.role} onChange={e => aset('role', e.target.value)}>{ROLES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
+                          <Field label="AI Brain (knowledge base)"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.knowledgeBaseId || ''} onChange={e => aset('knowledgeBaseId', e.target.value)}><option value="">— none —</option>{brains.map(kb => <option key={kb.id} value={kb.id}>{kb.name}</option>)}</select></Field>
+                          <Field label="AI Provider"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.aiProvider} onChange={e => { const p = PROVIDERS.find(x => x.id === e.target.value); aset('aiProvider', e.target.value); aset('aiModel', p?.models[0]) }}>{PROVIDERS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></Field>
+                          <Field label="Model"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.aiModel} onChange={e => aset('aiModel', e.target.value)}>{(PROVIDERS.find(p => p.id === agentForm.aiProvider)?.models || []).map(m => <option key={m} value={m}>{m}</option>)}</select></Field>
+                        </div>
+                        <div style={{ marginTop: '12px' }}>
+                          <label style={lbl}>Channels</label>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {AGENT_CHANNELS.map(([v, l]) => (
+                              <button key={v} onClick={() => toggleChannel(v)} style={{ fontSize: '11px', padding: '6px 11px', borderRadius: '7px', cursor: 'pointer', border: '1px solid', borderColor: agentForm.channels.includes(v) ? 'rgba(0,229,160,.4)' : '#1a2235', background: agentForm.channels.includes(v) ? 'rgba(0,229,160,.1)' : 'transparent', color: agentForm.channels.includes(v) ? '#00e5a0' : '#7a8fa6' }}>{agentForm.channels.includes(v) ? '✓ ' : ''}{l}</button>
+                            ))}
+                          </div>
+                        </div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '14px', fontSize: '12px', color: '#94a3b8', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={!!agentForm.escalationRules?.humanTakeover} onChange={e => aset('escalationRules', { ...agentForm.escalationRules, humanTakeover: e.target.checked })} />
+                          Allow human takeover (pause AI when a customer asks for a human)
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                          <button onClick={saveAgent} disabled={agentBusy} style={{ padding: '9px 20px', background: agentBusy ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '7px', color: agentBusy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{agentBusy ? 'Saving…' : (agentForm.id ? 'Save agent' : 'Create agent')}</button>
+                          <button onClick={() => { setAgentForm(null); setTestReply(null) }} style={{ padding: '9px 18px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '13px', cursor: 'pointer' }}>Back</button>
+                        </div>
+                      </div>
+                      {/* Test chat (existing agents) */}
+                      {agentForm.id && (
+                        <div style={card}>
+                          <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '10px' }}>🧪 Test this agent</div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <input style={{ ...input, flex: 1 }} value={testMsg} onChange={e => setTestMsg(e.target.value)} placeholder="Type a customer message…" onKeyDown={e => e.key === 'Enter' && runTest()} />
+                            <button onClick={runTest} disabled={testing || !testMsg.trim()} style={{ padding: '0 16px', background: testing ? '#1a2235' : '#3b82f6', border: 'none', borderRadius: '6px', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>{testing ? '…' : 'Send'}</button>
+                          </div>
+                          {testReply && <div style={{ marginTop: '12px', padding: '12px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '8px', fontSize: '13px', color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>{testReply}</div>}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>
               )}
 
