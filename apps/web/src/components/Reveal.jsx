@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 // Lightweight scroll reveal — no animation library, just IntersectionObserver.
 // Adds the `.in` class when the element scrolls into view (once). GPU-only
 // (opacity/transform) and automatically disabled by prefers-reduced-motion.
-export default function Reveal({ children, delay = 0, as: Tag = 'div', style, ...rest }) {
+export default function Reveal({ children, delay = 0, as: Tag = 'div', style, className = '', ...rest }) {
   const ref = useRef(null)
   const [shown, setShown] = useState(false)
 
@@ -19,7 +19,7 @@ export default function Reveal({ children, delay = 0, as: Tag = 'div', style, ..
   }, [shown])
 
   return (
-    <Tag ref={ref} className={`hai-reveal${shown ? ' in' : ''}`} style={{ transitionDelay: `${delay}ms`, ...style }} {...rest}>
+    <Tag ref={ref} className={`hai-reveal${shown ? ' in' : ''}${className ? ' ' + className : ''}`} style={{ transitionDelay: `${delay}ms`, ...style }} {...rest}>
       {children}
     </Tag>
   )

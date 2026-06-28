@@ -1,33 +1,36 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { getAuth } from '@/lib/auth'
 
-export default function AuthGuard({ children }) {
-  const [status, setStatus] = useState('loading')
+// Public routes must server-render for SEO (and for everyone). Everything else
+// is an authenticated app route. We ALWAYS render children so the HTML is
+// server-rendered (critical for SEO + first paint); the auth check below runs
+// on the client and redirects protected routes. Page data itself is fetched via
+// authenticated API calls (Bearer token → 401 without a session), so an app
+// shell briefly painting before redirect exposes no real data.
+const PUBLIC = new Set([
+  '/', '/about', '/developers', '/pricing',
+  '/login', '/register', '/forgot-password', '/reset-password',
+  '/terms', '/privacy', '/legal',
+])
+const isPublic = (p) => PUBLIC.has(p) || p.startsWith('/blog') || p.startsWith('/legal')
 
+export default function AuthGuard({ children }) {
   useEffect(() => {
-    const { loggedIn, role } = getAuth()
     const path = window.location.pathname
-    if (path === '/login') { setStatus('ok'); return }
-    if (!loggedIn) { setStatus('redirecting'); window.location.replace('/login'); return }
-    if (role === 'client' && path !== '/client') { setStatus('redirecting'); window.location.replace('/client'); return }
+    if (isPublic(path)) return
+
+    const { loggedIn, role } = getAuth()
+    if (!loggedIn) { window.location.replace('/login'); return }
+    if (role === 'client' && path !== '/client') { window.location.replace('/client'); return }
 
     // Owner-only areas — defense in depth (server also enforces via OwnerGuard)
     const ownerRoles = ['owner', 'super_admin', 'admin', 'agency_admin']
     const isOwner = ownerRoles.includes(String(role || '').toLowerCase())
     if ((path.startsWith('/admin') || path.startsWith('/agency')) && !isOwner) {
-      setStatus('redirecting'); window.location.replace('/dashboard'); return
+      window.location.replace('/dashboard')
     }
-    setStatus('ok')
   }, [])
 
-  if (status === 'loading') return (
-    <div style={{background:'#070b0a', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif'}}>
-      <div style={{fontSize:'22px', fontWeight:'900', letterSpacing:'-0.5px', color:'#e2e8f0'}}>
-        Hayya<span style={{color:'#D8B16A'}}> AI</span>
-      </div>
-    </div>
-  )
-  if (status === 'redirecting') return null
   return children
 }

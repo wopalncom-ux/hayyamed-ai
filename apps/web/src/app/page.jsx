@@ -2,6 +2,7 @@ import Link from 'next/link'
 import PricingSection from '@/components/PricingSection'
 import Reveal from '@/components/Reveal'
 import HeroVideo from '@/components/HeroVideo'
+import HomeSections from '@/components/HomeSections'
 
 export const metadata = {
   title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
@@ -165,6 +166,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ─── Portfolio · Industries · Why · Book demo ───────────────── */}
+      <HomeSections />
 
       {/* ─── Pricing (live, owner-editable) ─────────────────────────── */}
       <div id="pricing" style={{ scrollMarginTop: '80px' }}><PricingSection /></div>
