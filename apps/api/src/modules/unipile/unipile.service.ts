@@ -90,7 +90,12 @@ export class UnipileService {
       if (e?.code === 'ENOTFOUND' || e?.code === 'ECONNREFUSED' || /getaddrinfo|ENOTFOUND/.test(String(e?.message))) {
         throw new BadRequestException('Could not reach Unipile at that DSN — check the DSN value (e.g. apiXX.unipile.com:XXXXX).')
       }
-      const msg = detail?.detail || detail?.message || detail?.title || (typeof detail === 'string' ? detail : null)
+      // An HTML body means the DSN pointed at a web page, not the Unipile API.
+      const rawStr = typeof detail === 'string' ? detail.trim() : ''
+      if (rawStr.startsWith('<') || /<!doctype|<html/i.test(rawStr)) {
+        throw new BadRequestException('The Unipile DSN looks wrong — it returned a web page, not the API. Use the exact DSN from your Unipile dashboard (e.g. apiXX.unipile.com:XXXXX), without https://.')
+      }
+      const msg = detail?.detail || detail?.message || detail?.title || (rawStr && rawStr.length < 200 ? rawStr : null)
       throw new BadRequestException(msg ? `Unipile: ${msg}` : `Could not start the WhatsApp connection (HTTP ${status || '?'}).`)
     }
     const accountId = data.account_id || data.accountId || data.id || ''

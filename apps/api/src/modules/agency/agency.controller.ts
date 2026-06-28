@@ -108,6 +108,37 @@ export class AgencyController {
     return this.agency.testClientAgent(user.orgId, id, agentId, body.message, body.history || [])
   }
 
+  // ── Per-client Channels ──────────────────────────────────────────────────
+  @Get('clients/:id/channels')
+  listChannels(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.listClientChannels(user.orgId, id)
+  }
+
+  @Get('clients/:id/channels/unipile/status')
+  unipileStatus(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.clientUnipileStatus(user.orgId, id)
+  }
+
+  @Post('clients/:id/channels/unipile/connect')
+  connectUnipile(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { pairingPhone?: string }) {
+    return this.agency.connectClientUnipile(user.orgId, id, body?.pairingPhone)
+  }
+
+  @Post('clients/:id/channels/meta')
+  connectMeta(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: any) {
+    return this.agency.connectClientMeta(user.orgId, id, dto)
+  }
+
+  @Post('clients/:id/channels/manual')
+  connectManual(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: any) {
+    return this.agency.connectClientManual(user.orgId, id, dto)
+  }
+
+  @Delete('clients/:id/channels/:channelId')
+  disconnectChannel(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('channelId') channelId: string) {
+    return this.agency.disconnectClientChannel(user.orgId, id, channelId)
+  }
+
   // ── Packages ───────────────────────────────────────────────────────────────
 
   @Get('packages')

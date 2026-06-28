@@ -83,6 +83,30 @@ export default function ClientsConsole() {
     setTesting(true)
     try { const r = await api.testClientAgent(selected.id, agentForm.id, testMsg.trim(), []); setTestReply(r?.reply || r?.message || JSON.stringify(r)) } catch (e) { setTestReply('⚠️ ' + (e?.message || 'Test failed')) } finally { setTesting(false) }
   }
+  // Channels (Phase 4)
+  const [channels, setChannels] = useState([])
+  const [waPhone, setWaPhone] = useState('')
+  const [pairing, setPairing] = useState(null)
+  const [meta, setMeta] = useState({ phoneNumberId: '', accessToken: '', businessId: '', webhookSecret: '' })
+  const [manual, setManual] = useState({ name: '', webhookUrl: '' })
+  const loadChannels = async (id) => { try { const c = await api.getClientChannels(id); setChannels(Array.isArray(c) ? c : []) } catch {} }
+  const connectUnipile = async () => {
+    if (!selected) return; setBusy(true); setMsg(null); setPairing(null)
+    try { const r = await api.connectClientUnipile(selected.id, waPhone.replace(/[^0-9]/g, '') || undefined); setPairing(r); setMsg({ ok: true, text: r.code ? 'Enter the code in WhatsApp.' : 'Scan the QR string in WhatsApp.' }); loadChannels(selected.id); openClient(selected.id) }
+    catch (e) { setMsg({ ok: false, text: e?.message || 'Connect failed' }) } finally { setBusy(false) }
+  }
+  const connectMeta = async () => {
+    if (!selected || !meta.phoneNumberId || !meta.accessToken) { setMsg({ ok: false, text: 'Phone Number ID and Access Token are required' }); return }
+    setBusy(true); setMsg(null)
+    try { await api.connectClientMeta(selected.id, meta); setMsg({ ok: true, text: 'Meta WhatsApp connected ✓' }); setMeta({ phoneNumberId: '', accessToken: '', businessId: '', webhookSecret: '' }); loadChannels(selected.id); openClient(selected.id) }
+    catch (e) { setMsg({ ok: false, text: e?.message || 'Meta connect failed' }) } finally { setBusy(false) }
+  }
+  const connectManual = async () => {
+    if (!selected || !manual.name) return; setBusy(true)
+    try { await api.connectClientManual(selected.id, manual); setMsg({ ok: true, text: 'Custom channel added' }); setManual({ name: '', webhookUrl: '' }); loadChannels(selected.id); openClient(selected.id) }
+    catch (e) { setMsg({ ok: false, text: e?.message || 'Failed' }) } finally { setBusy(false) }
+  }
+  const disconnectChannel = async (chId) => { if (!selected) return; try { await api.disconnectClientChannel(selected.id, chId); loadChannels(selected.id); openClient(selected.id) } catch {} }
 
   const loadBrains = async (id) => {
     try {
@@ -115,7 +139,7 @@ export default function ClientsConsole() {
 
   const openClient = async (id) => {
     setMsg(null)
-    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
+    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
   }
   const newClient = () => { setSelected(null); setEditing({ ...EMPTY }); setTab('profile'); setMsg(null) }
   const set = (k, v) => setEditing(p => ({ ...p, [k]: v }))
@@ -194,7 +218,7 @@ export default function ClientsConsole() {
 
               {/* Tabs */}
               <div style={{ display: 'flex', gap: '6px', marginBottom: '18px', flexWrap: 'wrap' }}>
-                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
+                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['channels', '📡 Channels'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
                   <button key={id} onClick={() => setTab(id)} disabled={id !== 'profile' && !selected}
                     style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: id !== 'profile' && !selected ? 'not-allowed' : 'pointer',
                       background: tab === id ? '#1a2235' : 'transparent', color: tab === id ? '#e2e8f0' : (id !== 'profile' && !selected ? '#3d4f63' : '#7a8fa6'), border: '1px solid #1a2235' }}>{label}</button>
@@ -370,6 +394,62 @@ export default function ClientsConsole() {
                       )}
                     </>
                   )}
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                </div>
+              )}
+
+              {/* CHANNELS */}
+              {tab === 'channels' && selected && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Connected channels */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '10px' }}>Connected channels</div>
+                    {channels.length === 0 ? <div style={{ fontSize: '12px', color: '#64748b' }}>No channels connected yet. Connect WhatsApp below so this client's published agents can message customers.</div>
+                      : channels.map(ch => (
+                        <div key={ch.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #1a2235', fontSize: '12px' }}>
+                          <span>📡 {ch.name} <span style={{ color: '#64748b' }}>· {ch.provider}</span></span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ color: ch.isActive ? (ch.isVerified ? '#00e5a0' : '#fbbf24') : '#64748b' }}>{ch.isActive ? (ch.isVerified ? '🟢 Active' : '🟡 Pending') : '⚪ Off'}</span>
+                            {ch.isActive && <button onClick={() => disconnectChannel(ch.id)} style={{ fontSize: '11px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>Disconnect</button>}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Option A: Unipile */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>💚 WhatsApp via Unipile (QR / code) <span style={{ fontSize: '10px', color: '#00e5a0' }}>· no Meta approval</span></div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>Fast 2-way support inbox. Enter the client's WhatsApp number to get a pairing code.</div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input style={{ ...input, flex: 1 }} value={waPhone} onChange={e => setWaPhone(e.target.value)} placeholder="+974 5XXX XXXX" />
+                      <button onClick={connectUnipile} disabled={busy} style={{ padding: '0 16px', background: '#25D366', border: 'none', borderRadius: '6px', color: '#07090f', fontWeight: 800, cursor: 'pointer' }}>Get code</button>
+                    </div>
+                    {pairing?.code && <div style={{ marginTop: '12px', textAlign: 'center', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '8px', padding: '14px' }}><div style={{ fontSize: '10px', color: '#64748b' }}>PAIRING CODE</div><div style={{ fontSize: '26px', fontWeight: 900, letterSpacing: '5px', color: '#25D366' }}>{pairing.code}</div><div style={{ fontSize: '10px', color: '#64748b', marginTop: '6px' }}>WhatsApp → Settings → Linked Devices → Link with phone number</div></div>}
+                    {pairing?.qrCodeString && !pairing?.code && <div style={{ marginTop: '12px', fontSize: '10px', color: '#64748b', wordBreak: 'break-all' }}>QR: <code style={{ color: '#cbd5e1' }}>{pairing.qrCodeString}</code></div>}
+                  </div>
+
+                  {/* Option B: Meta Cloud API */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>📨 WhatsApp via Meta Cloud API</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>Official business messaging + campaign templates. Verified against Meta on connect.</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
+                      <Field label="Phone Number ID"><input style={input} value={meta.phoneNumberId} onChange={e => setMeta({ ...meta, phoneNumberId: e.target.value })} /></Field>
+                      <Field label="WhatsApp Business Account ID"><input style={input} value={meta.businessId} onChange={e => setMeta({ ...meta, businessId: e.target.value })} /></Field>
+                      <Field label="Access Token"><input type="password" style={input} value={meta.accessToken} onChange={e => setMeta({ ...meta, accessToken: e.target.value })} /></Field>
+                      <Field label="Webhook Verify Token / App Secret"><input type="password" style={input} value={meta.webhookSecret} onChange={e => setMeta({ ...meta, webhookSecret: e.target.value })} /></Field>
+                    </div>
+                    <button onClick={connectMeta} disabled={busy} style={{ marginTop: '12px', padding: '9px 18px', background: '#3b82f6', border: 'none', borderRadius: '7px', color: '#fff', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{busy ? 'Connecting…' : 'Connect Meta'}</button>
+                  </div>
+
+                  {/* Option C: Manual */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '12px' }}>🔧 Manual / custom provider</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
+                      <Field label="Channel name"><input style={input} value={manual.name} onChange={e => setManual({ ...manual, name: e.target.value })} placeholder="e.g. Custom SMS gateway" /></Field>
+                      <Field label="Webhook URL"><input style={input} value={manual.webhookUrl} onChange={e => setManual({ ...manual, webhookUrl: e.target.value })} placeholder="https://…" /></Field>
+                    </div>
+                    <button onClick={connectManual} disabled={busy || !manual.name} style={{ marginTop: '12px', padding: '9px 18px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '13px', cursor: 'pointer' }}>Add channel</button>
+                  </div>
                   {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>
               )}

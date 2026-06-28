@@ -351,6 +351,18 @@ export const api = {
     request(`/agency/clients/${id}/agents/${agentId}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
   testClientAgent: (id, agentId, message, history) =>
     request(`/agency/clients/${id}/agents/${agentId}/test`, { method: 'POST', body: JSON.stringify({ message, history }) }),
+  getClientChannels: (id) =>
+    request(`/agency/clients/${id}/channels`),
+  clientUnipileStatus: (id) =>
+    request(`/agency/clients/${id}/channels/unipile/status`),
+  connectClientUnipile: (id, pairingPhone) =>
+    request(`/agency/clients/${id}/channels/unipile/connect`, { method: 'POST', body: JSON.stringify({ pairingPhone }) }),
+  connectClientMeta: (id, dto) =>
+    request(`/agency/clients/${id}/channels/meta`, { method: 'POST', body: JSON.stringify(dto) }),
+  connectClientManual: (id, dto) =>
+    request(`/agency/clients/${id}/channels/manual`, { method: 'POST', body: JSON.stringify(dto) }),
+  disconnectClientChannel: (id, channelId) =>
+    request(`/agency/clients/${id}/channels/${channelId}`, { method: 'DELETE' }),
   createAgencyClient: (dto) =>
     request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
   updateAgencyClient: (id, dto) =>

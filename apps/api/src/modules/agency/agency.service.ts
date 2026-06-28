@@ -2,6 +2,8 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../../database/prisma.service'
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service'
 import { AIAgentsService } from '../ai-agents/ai-agents.service'
+import { UnipileService } from '../unipile/unipile.service'
+import { WhatsAppService } from '../whatsapp/whatsapp.service'
 
 @Injectable()
 export class AgencyService {
@@ -9,7 +11,58 @@ export class AgencyService {
     private prisma: PrismaService,
     private kb: KnowledgeBaseService,
     private agents: AIAgentsService,
+    private unipile: UnipileService,
+    private whatsapp: WhatsAppService,
   ) {}
+
+  // ── Per-client Channels (agency-scoped) ────────────────────────────────────
+  async listClientChannels(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const channels = await this.prisma.channel.findMany({
+      where: { orgId: clientId },
+      select: { id: true, type: true, name: true, identifier: true, isActive: true, isVerified: true, metadata: true },
+      orderBy: { createdAt: 'desc' },
+    })
+    return channels.map(c => ({ ...c, provider: (c.metadata as any)?.provider || (c.type === 'WHATSAPP' ? 'meta' : c.type.toLowerCase()) }))
+  }
+
+  // WhatsApp via Unipile (QR/pairing code) for a client.
+  async connectClientUnipile(agencyOrgId: string, clientId: string, pairingPhone?: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.unipile.connectWhatsapp(clientId, pairingPhone)
+  }
+  async clientUnipileStatus(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.unipile.status(clientId)
+  }
+
+  // WhatsApp via Meta Cloud API for a client.
+  async connectClientMeta(agencyOrgId: string, clientId: string, dto: { name?: string; phoneNumberId: string; accessToken: string; businessId?: string; webhookSecret?: string }) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.whatsapp.connectChannel(clientId, {
+      name: dto.name || 'WhatsApp (Meta Cloud API)',
+      phoneNumberId: dto.phoneNumberId, accessToken: dto.accessToken,
+      businessId: dto.businessId, webhookSecret: dto.webhookSecret,
+    })
+  }
+
+  // Manual / custom webhook channel for a client.
+  async connectClientManual(agencyOrgId: string, clientId: string, dto: { name?: string; type?: string; webhookUrl?: string }) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.prisma.channel.create({
+      data: {
+        orgId: clientId, type: 'WHATSAPP', name: dto.name || 'Custom provider',
+        identifier: `manual-${Date.now()}`, isActive: true, isVerified: false,
+        metadata: { provider: 'manual', webhookUrl: dto.webhookUrl || '' } as any,
+      },
+    })
+  }
+
+  async disconnectClientChannel(agencyOrgId: string, clientId: string, channelId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    await this.prisma.channel.updateMany({ where: { id: channelId, orgId: clientId }, data: { isActive: false } })
+    return { ok: true }
+  }
 
   // ── Per-client AI Agents (agency-scoped) ───────────────────────────────────
   async listClientAgents(agencyOrgId: string, clientId: string) {
