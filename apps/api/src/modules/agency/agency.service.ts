@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service'
+import { RagService } from '../knowledge-base/rag.service'
 import { AIAgentsService } from '../ai-agents/ai-agents.service'
 import { UnipileService } from '../unipile/unipile.service'
 import { WhatsAppService } from '../whatsapp/whatsapp.service'
@@ -37,6 +38,7 @@ export class AgencyService {
   constructor(
     private prisma: PrismaService,
     private kb: KnowledgeBaseService,
+    private rag: RagService,
     private agents: AIAgentsService,
     private unipile: UnipileService,
     private whatsapp: WhatsAppService,
@@ -207,8 +209,11 @@ export class AgencyService {
   async addClientSource(agencyOrgId: string, clientId: string, kbId: string, dto: any) {
     await this.assertOwns(agencyOrgId, clientId)
     const sizeBytes = dto?.content ? Buffer.byteLength(String(dto.content), 'utf8') : 0
-    const status = dto?.type === 'text' || dto?.type === 'faq' ? 'ready' : 'pending'
-    return this.kb.addSource(kbId, clientId, { ...dto, sizeBytes, status })
+    const source = await this.kb.addSource(kbId, clientId, { ...dto, sizeBytes, status: 'pending' })
+    // Chunk + embed (fetches the URL for url-type sources). Async — status moves
+    // pending → processing → ready/failed, visible in the storage/source list.
+    if (source?.id) this.rag.indexSource(source.id).catch(() => {})
+    return source
   }
 
   async removeClientSource(agencyOrgId: string, clientId: string, kbId: string, sourceId: string) {

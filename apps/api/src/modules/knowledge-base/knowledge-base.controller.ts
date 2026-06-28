@@ -54,8 +54,9 @@ export class KnowledgeBaseController {
   @Post(':id/sources')
   async addSource(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Body() dto: any) {
     const source = await this.svc.addSource(id, user.orgId, dto)
-    // Trigger async indexing — don't await so response is immediate
-    if (source?.id && dto.content) {
+    // Trigger async indexing — don't await so response is immediate.
+    // Covers text/FAQ (content) AND url sources (the worker fetches the page).
+    if (source?.id && (dto.content || dto.url || dto.type === 'url')) {
       this.rag.indexSource(source.id).catch(() => {})
     }
     return source

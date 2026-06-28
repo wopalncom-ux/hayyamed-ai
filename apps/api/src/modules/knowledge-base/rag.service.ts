@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { randomUUID } from 'crypto'
+import axios from 'axios'
 import { PrismaService } from '../../database/prisma.service'
 import OpenAI from 'openai'
 
@@ -65,12 +66,26 @@ export class RagService {
     }
   }
 
+  // Fetch a web page and reduce it to readable plain text (no extra deps).
+  private async fetchUrlText(url: string): Promise<string> {
+    const res = await axios.get(url, {
+      timeout: 15000, maxContentLength: 8_000_000, maxRedirects: 5,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HayyaAI-KB/1.0)' },
+      responseType: 'text',
+    })
+    let html = String(res.data || '')
+    html = html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<!--[\s\S]*?-->/g, ' ')
+    let text = html.replace(/<(br|\/p|\/div|\/h[1-6]|\/li)>/gi, '\n').replace(/<[^>]+>/g, ' ')
+    text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&[a-z]+;/gi, ' ')
+    return text.replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim()
+  }
+
   async indexSource(sourceId: string): Promise<void> {
     const source = await this.prisma.knowledgeSource.findUnique({
       where: { id: sourceId },
       include: { knowledgeBase: { select: { orgId: true } } },
     })
-    if (!source || !source.content) return
+    if (!source) return
     const orgId = (source as any).knowledgeBase?.orgId || ''
 
     await this.prisma.knowledgeSource.update({
@@ -79,10 +94,22 @@ export class RagService {
     })
 
     try {
+      // Resolve the text to index: stored content, or fetch a URL source live.
+      let content = source.content || ''
+      if (!content && source.type === 'url' && source.url) {
+        content = await this.fetchUrlText(source.url)
+        // Persist the crawled text so it's visible + re-indexable.
+        await this.prisma.knowledgeSource.update({ where: { id: sourceId }, data: { content: content.slice(0, 200000) } })
+      }
+      if (!content.trim()) {
+        await this.prisma.knowledgeSource.update({ where: { id: sourceId }, data: { status: 'failed' } })
+        return
+      }
+
       // Delete old chunks for this source
       await this.prisma.knowledgeChunk.deleteMany({ where: { sourceId } })
 
-      const chunks = this.chunkText(source.content)
+      const chunks = this.chunkText(content)
       let indexed = 0
 
       for (let i = 0; i < chunks.length; i++) {
@@ -117,7 +144,7 @@ export class RagService {
 
       await this.prisma.knowledgeSource.update({
         where: { id: sourceId },
-        data: { status: 'ready', chunkCount: indexed, lastIndexed: new Date() },
+        data: { status: 'ready', chunkCount: indexed, sizeBytes: Buffer.byteLength(content, 'utf8'), lastIndexed: new Date() },
       })
 
       this.logger.log(`Indexed source ${sourceId}: ${indexed} chunks`)
