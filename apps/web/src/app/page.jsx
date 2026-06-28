@@ -202,6 +202,26 @@ export default function LandingPage() {
       {/* ─── Pricing (live, owner-editable) ─────────────────────────── */}
       <PricingSection />
 
+      {/* ─── Backed by Hayya Med AI ─────────────────────────────────── */}
+      <section style={{ borderTop: '1px solid #1a2235', padding: '72px 24px', textAlign: 'center', maxWidth: '820px', margin: '0 auto' }}>
+        <div style={{ fontSize: '11px', color: '#00e5a0', fontWeight: '800', letterSpacing: '0.12em', marginBottom: '12px' }}>BUILT &amp; OPERATED BY</div>
+        <h2 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '14px' }}>Hayya Med AI</h2>
+        <p style={{ fontSize: '15px', color: '#94a3b8', lineHeight: '1.8', marginBottom: '18px' }}>
+          Hayya AI is built and operated by <strong style={{ color: '#e2e8f0' }}>Hayya Med AI</strong> — an Artificial
+          Intelligence Solutions &amp; Enterprise Technology company established in <strong style={{ color: '#e2e8f0' }}>Doha,
+          Qatar</strong> with a global vision. We design and build AI-powered platforms, enterprise software and
+          automation for businesses across the GCC and beyond.
+        </p>
+        <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '700', letterSpacing: '0.04em', marginBottom: '20px' }}>
+          Qatar-Born · GCC-Proven · Globally Ready
+        </div>
+        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', fontSize: '12px', color: '#64748b' }}>
+          <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#00e5a0', textDecoration: 'none' }}>hayyamed.ai ↗</a>
+          <span>Founded by Abbas Al Masri</span>
+          <span>Doha, Qatar</span>
+        </div>
+      </section>
+
       {/* ─── Final CTA ──────────────────────────────────────────────── */}
       <section style={{ background: '#0c0f1a', borderTop: '1px solid #1a2235', padding: '80px 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>Start automating your business today</h2>
@@ -223,7 +243,8 @@ export default function LandingPage() {
           </div>
         </div>
         <div style={{ fontSize: '11px', color: '#475569', marginTop: '16px', textAlign: 'center', lineHeight: '1.8' }}>
-          Owned and managed by <strong style={{ color: '#94a3b8' }}>Hayya Med AI</strong> · Doha, Qatar<br />
+          Owned and managed by <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>Hayya Med AI</strong></a> — Artificial Intelligence Solutions &amp; Enterprise Technology · Doha, Qatar<br />
+          Contact: abbas@hayyamed.ai · +974 3367 7333<br />
           © {new Date().getFullYear()} Hayya AI. All rights reserved.
         </div>
       </footer>
