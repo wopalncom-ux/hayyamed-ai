@@ -32,13 +32,47 @@ export default function ClientsConsole() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
   const [topup, setTopup] = useState('')
+  // AI Brain (Phase 2)
+  const [brains, setBrains] = useState([])
+  const [storage, setStorage] = useState(null)
+  const [newBrain, setNewBrain] = useState('')
+  const [srcModal, setSrcModal] = useState(null)   // { kbId }
+  const [srcType, setSrcType] = useState('text')
+  const [srcName, setSrcName] = useState('')
+  const [srcBody, setSrcBody] = useState('')
+
+  const loadBrains = async (id) => {
+    try {
+      const [b, s] = await Promise.all([api.getClientBrains(id).catch(() => []), api.getClientStorage(id).catch(() => null)])
+      setBrains(Array.isArray(b) ? b : [])
+      setStorage(s)
+    } catch {}
+  }
+  const createBrain = async () => {
+    if (!newBrain.trim() || !selected) return
+    try { await api.createClientBrain(selected.id, { name: newBrain.trim() }); setNewBrain(''); loadBrains(selected.id); openClient(selected.id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Failed' }) }
+  }
+  const addSource = async () => {
+    if (!srcModal || !selected) return
+    const name = srcName.trim() || (srcType === 'url' ? srcBody.trim() : 'Untitled')
+    const dto = srcType === 'url' ? { type: 'url', name, url: srcBody.trim() } : { type: srcType, name, content: srcBody.trim() }
+    try { await api.addClientSource(selected.id, srcModal.kbId, dto); setSrcModal(null); setSrcName(''); setSrcBody(''); setSrcType('text'); loadBrains(selected.id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Failed to add source' }) }
+  }
+  const delSource = async (kbId, sourceId) => {
+    if (!selected) return
+    try { await api.removeClientSource(selected.id, kbId, sourceId); loadBrains(selected.id) } catch {}
+  }
+  const retrain = async (kbId) => {
+    if (!selected) return
+    try { await api.retrainClientBrain(selected.id, kbId); loadBrains(selected.id) } catch {}
+  }
 
   const loadClients = () => api.getAgencyClients().then(c => setClients(Array.isArray(c) ? c : [])).catch(() => {}).finally(() => setLoading(false))
   useEffect(() => { loadClients() }, [])
 
   const openClient = async (id) => {
     setMsg(null)
-    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile') } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
+    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
   }
   const newClient = () => { setSelected(null); setEditing({ ...EMPTY }); setTab('profile'); setMsg(null) }
   const set = (k, v) => setEditing(p => ({ ...p, [k]: v }))
@@ -179,8 +213,55 @@ export default function ClientsConsole() {
                         </div>
                       ))}
                   </div>
+                  {/* AI Brain (Phase 2) */}
+                  <div style={card}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13px' }}>🧠 AI Brain — knowledge bases</div>
+                    </div>
+                    {/* Storage meter */}
+                    {storage && (
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
+                          <span>Storage</span><span>{storage.usedMb} / {storage.limitMb} MB · {storage.sources} source{storage.sources === 1 ? '' : 's'}</span>
+                        </div>
+                        <div style={{ height: '7px', background: '#1a2235', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${storage.pct}%`, height: '100%', background: storage.pct > 90 ? '#ef4444' : '#00e5a0' }} />
+                        </div>
+                      </div>
+                    )}
+                    {/* Create KB */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                      <input style={{ ...input, flex: 1 }} value={newBrain} onChange={e => setNewBrain(e.target.value)} placeholder="New knowledge base name…" onKeyDown={e => e.key === 'Enter' && createBrain()} />
+                      <button onClick={createBrain} disabled={!newBrain.trim()} style={{ padding: '0 16px', background: newBrain.trim() ? '#00e5a0' : '#1a2235', border: 'none', borderRadius: '6px', color: newBrain.trim() ? '#07090f' : '#64748b', fontWeight: 800, cursor: 'pointer' }}>+ Brain</button>
+                    </div>
+                    {brains.length === 0 ? <div style={{ fontSize: '12px', color: '#64748b' }}>No knowledge bases yet. Create one, then add sources (text, FAQ, website, catalog) to train this client's AI.</div>
+                      : brains.map(kb => (
+                        <div key={kb.id} style={{ border: '1px solid #1a2235', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <div style={{ fontWeight: 700, fontSize: '13px' }}>{kb.name} <span style={{ fontSize: '10px', color: '#64748b' }}>· {kb.sources?.length || 0} sources</span></div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button onClick={() => setSrcModal({ kbId: kb.id })} style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '6px', color: '#00e5a0', cursor: 'pointer' }}>+ Source</button>
+                              <button onClick={() => retrain(kb.id)} title="Re-train / sync" style={{ fontSize: '11px', padding: '4px 10px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '6px', color: '#7a8fa6', cursor: 'pointer' }}>↻ Sync</button>
+                            </div>
+                          </div>
+                          {(kb.sources || []).map(s => {
+                            const sc = { ready: '#00e5a0', pending: '#fbbf24', processing: '#3b82f6', failed: '#ef4444' }[s.status] || '#64748b'
+                            return (
+                              <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: '12px', borderTop: '1px solid #131a28' }}>
+                                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{({ text: '📝', faq: '❓', url: '🌐', pdf: '📄', docx: '📄', product_list: '🏷️', pricing: '💲' }[s.type] || '📎')} {s.name}</span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                  <span style={{ fontSize: '9px', padding: '1px 7px', borderRadius: '10px', background: `${sc}22`, color: sc, fontWeight: 700 }}>{s.status}</span>
+                                  <button onClick={() => delSource(kb.id, s.id)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>✕</button>
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ))}
+                  </div>
+
                   <div style={{ ...card, background: 'rgba(167,139,250,.05)', borderColor: 'rgba(167,139,250,.2)', fontSize: '12px', color: '#94a3b8', lineHeight: 1.7 }}>
-                    🧠 Per-client AI Brain, 🤖 Agent Manager and ⚡ client-scoped Automations are rolling out next (Phases 2–5). Each client's resources are already fully isolated.
+                    🤖 Agent Manager and ⚡ client-scoped Automations are rolling out next (Phases 3–5). Each client's resources are already fully isolated.
                   </div>
                 </div>
               )}
@@ -216,6 +297,33 @@ export default function ClientsConsole() {
           )}
         </div>
       </main>
+
+      {/* Add Source modal */}
+      {srcModal && (
+        <div onClick={() => setSrcModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+          <div onClick={e => e.stopPropagation()} style={{ ...card, width: '460px', maxWidth: '90vw' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ fontWeight: 800, fontSize: '14px' }}>Add knowledge source</div>
+              <button onClick={() => setSrcModal(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '18px' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+              {[['text', '📝 Text'], ['faq', '❓ FAQ'], ['url', '🌐 Website'], ['product_list', '🏷️ Catalog'], ['pricing', '💲 Pricing']].map(([t, label]) => (
+                <button key={t} onClick={() => setSrcType(t)} style={{ fontSize: '11px', padding: '5px 11px', borderRadius: '7px', cursor: 'pointer', background: srcType === t ? '#1a2235' : 'transparent', color: srcType === t ? '#e2e8f0' : '#7a8fa6', border: '1px solid #1a2235' }}>{label}</button>
+              ))}
+            </div>
+            <Field label="Source name"><input style={input} value={srcName} onChange={e => setSrcName(e.target.value)} placeholder={srcType === 'faq' ? 'e.g. Common questions' : 'e.g. Services overview'} /></Field>
+            <div style={{ marginTop: '10px' }}>
+              {srcType === 'url'
+                ? <Field label="Website URL"><input style={input} value={srcBody} onChange={e => setSrcBody(e.target.value)} placeholder="https://client.qa/about" /></Field>
+                : <Field label={srcType === 'faq' ? 'FAQ content (Q&A)' : 'Content'}><textarea style={{ ...input, minHeight: '120px', resize: 'vertical' }} value={srcBody} onChange={e => setSrcBody(e.target.value)} placeholder={srcType === 'faq' ? 'Q: Do you open on Fridays?\nA: Yes, 4pm–10pm.' : 'Paste the text the AI should learn…'} /></Field>}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
+              <button onClick={() => setSrcModal(null)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={addSource} disabled={!srcBody.trim()} style={{ padding: '8px 18px', background: srcBody.trim() ? '#00e5a0' : '#1a2235', border: 'none', borderRadius: '7px', color: srcBody.trim() ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Add source</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,9 +1,60 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
+import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service'
 
 @Injectable()
 export class AgencyService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private kb: KnowledgeBaseService,
+  ) {}
+
+  // ── Per-client AI Brain (agency-scoped — operates on the client's org) ──────
+  async listClientBrains(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.kb.findAll(clientId)
+  }
+
+  async createClientBrain(agencyOrgId: string, clientId: string, dto: { name: string; description?: string }) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.kb.create(clientId, dto)
+  }
+
+  async addClientSource(agencyOrgId: string, clientId: string, kbId: string, dto: any) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const sizeBytes = dto?.content ? Buffer.byteLength(String(dto.content), 'utf8') : 0
+    const status = dto?.type === 'text' || dto?.type === 'faq' ? 'ready' : 'pending'
+    return this.kb.addSource(kbId, clientId, { ...dto, sizeBytes, status })
+  }
+
+  async removeClientSource(agencyOrgId: string, clientId: string, kbId: string, sourceId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.kb.removeSource(kbId, clientId, sourceId)
+  }
+
+  async retrainClientBrain(agencyOrgId: string, clientId: string, kbId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.kb.reindex(kbId, clientId)
+  }
+
+  // Storage usage across all of the client's knowledge sources vs their limit.
+  async clientStorage(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const org = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { storageLimitMb: true } })
+    const rows = await this.prisma.knowledgeSource.findMany({
+      where: { knowledgeBase: { orgId: clientId } },
+      select: { sizeBytes: true },
+    })
+    const usedBytes = rows.reduce((s, r) => s + (r.sizeBytes || 0), 0)
+    const limitMb = org?.storageLimitMb ?? 500
+    return {
+      usedBytes,
+      usedMb: +(usedBytes / 1048576).toFixed(2),
+      limitMb,
+      sources: rows.length,
+      pct: limitMb > 0 ? Math.min(100, Math.round((usedBytes / (limitMb * 1048576)) * 100)) : 0,
+    }
+  }
 
   // ── Clients ────────────────────────────────────────────────────────────────
 

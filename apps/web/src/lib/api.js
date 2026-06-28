@@ -327,6 +327,18 @@ export const api = {
     request('/agency/clients'),
   getAgencyClient: (id) =>
     request(`/agency/clients/${id}`),
+  getClientBrains: (id) =>
+    request(`/agency/clients/${id}/brains`),
+  getClientStorage: (id) =>
+    request(`/agency/clients/${id}/storage`),
+  createClientBrain: (id, dto) =>
+    request(`/agency/clients/${id}/brains`, { method: 'POST', body: JSON.stringify(dto) }),
+  addClientSource: (id, kbId, dto) =>
+    request(`/agency/clients/${id}/brains/${kbId}/sources`, { method: 'POST', body: JSON.stringify(dto) }),
+  removeClientSource: (id, kbId, sourceId) =>
+    request(`/agency/clients/${id}/brains/${kbId}/sources/${sourceId}`, { method: 'DELETE' }),
+  retrainClientBrain: (id, kbId) =>
+    request(`/agency/clients/${id}/brains/${kbId}/retrain`, { method: 'POST' }),
   createAgencyClient: (dto) =>
     request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
   updateAgencyClient: (id, dto) =>

@@ -46,6 +46,37 @@ export class AgencyController {
     return this.agency.deleteClient(user.orgId, id)
   }
 
+  // ── Per-client AI Brain ──────────────────────────────────────────────────
+  @Get('clients/:id/brains')
+  listBrains(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.listClientBrains(user.orgId, id)
+  }
+
+  @Get('clients/:id/storage')
+  storage(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.clientStorage(user.orgId, id)
+  }
+
+  @Post('clients/:id/brains')
+  createBrain(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: { name: string; description?: string }) {
+    return this.agency.createClientBrain(user.orgId, id, dto)
+  }
+
+  @Post('clients/:id/brains/:kbId/sources')
+  addSource(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('kbId') kbId: string, @Body() dto: any) {
+    return this.agency.addClientSource(user.orgId, id, kbId, dto)
+  }
+
+  @Delete('clients/:id/brains/:kbId/sources/:sourceId')
+  removeSource(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('kbId') kbId: string, @Param('sourceId') sourceId: string) {
+    return this.agency.removeClientSource(user.orgId, id, kbId, sourceId)
+  }
+
+  @Post('clients/:id/brains/:kbId/retrain')
+  retrain(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('kbId') kbId: string) {
+    return this.agency.retrainClientBrain(user.orgId, id, kbId)
+  }
+
   // ── Packages ───────────────────────────────────────────────────────────────
 
   @Get('packages')
