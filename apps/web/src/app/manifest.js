@@ -8,7 +8,7 @@ export default function manifest() {
     display: 'standalone',
     orientation: 'portrait-primary',
     background_color: '#07090f',
-    theme_color: '#00e5a0',
+    theme_color: '#C9A96E',
     categories: ['business', 'productivity'],
     icons: [
       { src: '/logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },

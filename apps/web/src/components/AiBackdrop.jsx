@@ -12,10 +12,10 @@ export default function AiBackdrop() {
         WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 30%, #000 30%, transparent 75%)',
         animation: 'hai-grid 14s linear infinite',
       }} />
-      {/* gradient orbs */}
-      <div className="hai-orb" style={{ width: 420, height: 420, top: -120, left: '8%', background: 'rgba(0,229,160,.22)', animation: 'hai-drift 16s ease-in-out infinite' }} />
-      <div className="hai-orb" style={{ width: 360, height: 360, top: 40, right: '6%', background: 'rgba(59,130,246,.20)', animation: 'hai-float 12s ease-in-out infinite' }} />
-      <div className="hai-orb" style={{ width: 300, height: 300, bottom: -80, left: '38%', background: 'rgba(167,139,250,.18)', animation: 'hai-float2 18s ease-in-out infinite' }} />
+      {/* gradient orbs — brand crimson + gold */}
+      <div className="hai-orb" style={{ width: 420, height: 420, top: -120, left: '8%', background: 'rgba(124,21,53,.30)', animation: 'hai-drift 16s ease-in-out infinite' }} />
+      <div className="hai-orb" style={{ width: 360, height: 360, top: 40, right: '6%', background: 'rgba(201,169,110,.22)', animation: 'hai-float 12s ease-in-out infinite' }} />
+      <div className="hai-orb" style={{ width: 300, height: 300, bottom: -80, left: '38%', background: 'rgba(168,29,69,.20)', animation: 'hai-float2 18s ease-in-out infinite' }} />
     </div>
   )
 }

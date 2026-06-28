@@ -105,7 +105,7 @@ export default function RootLayout({ children }) {
           .hai-reveal { opacity:0; transform:translate3d(0,28px,0); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); will-change:opacity,transform; }
           .hai-reveal.in { opacity:1; transform:translate3d(0,0,0); }
           .hai-orb { position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none; }
-          .hai-shimmer { background:linear-gradient(100deg,#e2e8f0 30%,#00e5a0 50%,#e2e8f0 70%); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:hai-shimmer 6s linear infinite; }
+          .hai-shimmer { background:linear-gradient(100deg,#EAD9A6 20%,#C9A96E 45%,#fff7e6 50%,#C9A96E 55%,#A07C3A 80%); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:hai-shimmer 6s linear infinite; }
           @media (prefers-reduced-motion: reduce) {
             .hai-reveal{opacity:1!important;transform:none!important;transition:none!important}
             .hai-orb,.hai-shimmer,[data-anim]{animation:none!important}
