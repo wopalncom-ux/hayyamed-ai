@@ -4,6 +4,13 @@ import axios from 'axios'
 import { PrismaService } from '../../database/prisma.service'
 import { RealtimeGateway } from '../../common/gateways/websocket.gateway'
 import { encrypt, decrypt } from '../../common/crypto/crypto.util'
+import { AIService } from '../ai/ai.service'
+import { RagService } from '../knowledge-base/rag.service'
+import { NotificationsService } from '../notifications/notifications.service'
+import { isModuleEnabled } from '../../common/util/entitlements.util'
+import { detectNegative } from '../../common/util/sentiment.util'
+import { wantsHuman } from '../../common/util/escalation.util'
+import { isSubstantiveQuestion } from '../../common/util/question.util'
 
 @Injectable()
 export class WhatsAppService {
@@ -13,7 +20,10 @@ export class WhatsAppService {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    private ai: AIService,
+    private rag: RagService,
     @Optional() private gateway?: RealtimeGateway,
+    @Optional() private notifications?: NotificationsService,
   ) {}
 
   // ─── CHANNEL MANAGEMENT ──────────────────────────────────────────────────
@@ -286,8 +296,54 @@ export class WhatsAppService {
     this.gateway?.emitNewMessage(orgId, conversation.id, msgPayload)
     if (isNewContact) this.gateway?.emitNewLead(orgId, contact)
 
+    // AI agent auto-reply for text messages (grounded in the org's knowledge).
+    if (content?.trim()) this.autoReply(orgId, conversation.id, contact, content).catch(() => {})
+
     this.logger.log(`📨 WhatsApp ${messageType} from ${from} → org ${orgId}`)
     return { conversationId: conversation.id, contactId: contact.id, content }
+  }
+
+  // The AI agent replies on official Meta WhatsApp — mirrors the other channels:
+  // module gating, frustration flag, human escalation, then a KB-grounded reply.
+  private async autoReply(orgId: string, conversationId: string, contact: any, text: string) {
+    if (!(await isModuleEnabled(this.prisma, orgId, 'whatsapp')) || !(await isModuleEnabled(this.prisma, orgId, 'ai_agents'))) return
+    const conv = await this.prisma.conversation.findUnique({ where: { id: conversationId } })
+    if (!conv) return
+    const meta: any = conv.metadata || {}
+
+    // Negative sentiment → flag + alert the team (non-blocking).
+    if (detectNegative(text) && !meta.negative) {
+      this.prisma.conversation.update({ where: { id: conversationId }, data: { priority: 'HIGH' as any, metadata: { ...meta, negative: true } } }).catch(() => {})
+      this.notifications?.notifyConversation(orgId, { assigneeId: (conv as any).assigneeId, type: 'sentiment', conversationId, title: '😟 Unhappy customer', body: `${contact.name} sounds frustrated on WhatsApp.` }).catch(() => {})
+    }
+
+    // Explicit human request → escalate: pause AI, notify, acknowledge.
+    if (wantsHuman(text)) {
+      await this.prisma.conversation.update({ where: { id: conversationId }, data: { metadata: { ...meta, aiPaused: true, escalated: true } } })
+      this.notifications?.notifyConversation(orgId, { assigneeId: (conv as any).assigneeId, type: 'escalation', conversationId, title: '⚠ Customer asked for a human', body: `${contact.name} requested a human on WhatsApp.` }).catch(() => {})
+      try { await this.sendFromOrg(orgId, contact.phone, "Thanks — I'm connecting you with a team member who'll reply shortly.") } catch {}
+      return
+    }
+    if (meta.aiPaused) return
+
+    try {
+      const org = await this.prisma.organization.findUnique({ where: { id: orgId }, select: { name: true, industry: true } })
+      let knowledge = ''
+      try { knowledge = await this.rag.getContextForQuery(orgId, text, 4) } catch { knowledge = '' }
+      if (!knowledge && isSubstantiveQuestion(text)) this.rag.logGap(orgId, text, 'whatsapp').catch(() => {})
+      const system = `You are the WhatsApp assistant for ${org?.name || 'our business'}${org?.industry ? `, a ${org.industry} business` : ''}. Be concise, warm and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the customer with the team.${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
+      const reply = await this.ai.complete(
+        [{ role: 'system', content: system }, { role: 'user', content: text }],
+        { maxTokens: 300, temperature: 0.5, orgId, module: 'whatsapp', action: 'reply' },
+      )
+      if (reply) {
+        await this.sendFromOrg(orgId, contact.phone, reply)
+        await this.prisma.message.create({ data: { conversationId, type: 'TEXT', content: reply, isAI: true, isFromBot: true, status: 'SENT' } })
+        await this.prisma.conversation.update({ where: { id: conversationId }, data: { lastMessage: reply, lastMsgAt: new Date() } })
+      }
+    } catch (e: any) {
+      this.logger.warn(`WhatsApp AI reply failed: ${e?.message}`)
+    }
   }
 
   private async handleStatusUpdate(status: any) {
