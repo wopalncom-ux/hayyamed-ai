@@ -139,6 +139,42 @@ export class AgencyController {
     return this.agency.disconnectClientChannel(user.orgId, id, channelId)
   }
 
+  // ── Per-client Automations ───────────────────────────────────────────────
+  @Get('automation-templates')
+  automationTemplates() {
+    return this.agency.automationTemplates()
+  }
+
+  @Get('clients/:id/automations')
+  listAutomations(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.listClientAutomations(user.orgId, id)
+  }
+
+  @Get('clients/:id/automation-runs')
+  automationRuns(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.clientAutomationRuns(user.orgId, id)
+  }
+
+  @Post('clients/:id/automations')
+  createAutomation(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: any) {
+    return this.agency.createClientAutomation(user.orgId, id, dto)
+  }
+
+  @Post('clients/:id/automations/install')
+  installTemplate(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { templateId: string }) {
+    return this.agency.installClientTemplate(user.orgId, id, body.templateId)
+  }
+
+  @Post('clients/:id/automations/:wfId/toggle')
+  toggleAutomation(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('wfId') wfId: string, @Body() body: { isActive: boolean }) {
+    return this.agency.toggleClientAutomation(user.orgId, id, wfId, !!body.isActive)
+  }
+
+  @Delete('clients/:id/automations/:wfId')
+  removeAutomation(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('wfId') wfId: string) {
+    return this.agency.removeClientAutomation(user.orgId, id, wfId)
+  }
+
   // ── Packages ───────────────────────────────────────────────────────────────
 
   @Get('packages')

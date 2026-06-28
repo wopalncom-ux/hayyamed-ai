@@ -363,6 +363,18 @@ export const api = {
     request(`/agency/clients/${id}/channels/manual`, { method: 'POST', body: JSON.stringify(dto) }),
   disconnectClientChannel: (id, channelId) =>
     request(`/agency/clients/${id}/channels/${channelId}`, { method: 'DELETE' }),
+  getAutomationTemplates: () =>
+    request('/agency/automation-templates'),
+  getClientAutomations: (id) =>
+    request(`/agency/clients/${id}/automations`),
+  getClientAutomationRuns: (id) =>
+    request(`/agency/clients/${id}/automation-runs`),
+  installClientTemplate: (id, templateId) =>
+    request(`/agency/clients/${id}/automations/install`, { method: 'POST', body: JSON.stringify({ templateId }) }),
+  toggleClientAutomation: (id, wfId, isActive) =>
+    request(`/agency/clients/${id}/automations/${wfId}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
+  removeClientAutomation: (id, wfId) =>
+    request(`/agency/clients/${id}/automations/${wfId}`, { method: 'DELETE' }),
   createAgencyClient: (dto) =>
     request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
   updateAgencyClient: (id, dto) =>

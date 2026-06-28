@@ -4,6 +4,18 @@ import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service'
 import { AIAgentsService } from '../ai-agents/ai-agents.service'
 import { UnipileService } from '../unipile/unipile.service'
 import { WhatsAppService } from '../whatsapp/whatsapp.service'
+import { WorkflowsService } from '../workflows/workflows.service'
+
+// One-click automation templates. Each maps to triggers/actions the engine
+// actually runs today. Time-based templates are flagged (need the scheduler).
+const AUTOMATION_TEMPLATES = [
+  { id: 'new-lead-reply', name: 'New lead — instant reply', desc: 'When a new contact arrives, send a WhatsApp welcome.', trigger: 'new_contact', conditions: {}, actions: [{ type: 'send_whatsapp', message: 'Hi {{name}}! 👋 Thanks for reaching out — how can we help you today?' }] },
+  { id: 'faq-pricing', name: 'FAQ — pricing auto-answer', desc: 'When a customer mentions price, reply and tag them.', trigger: 'keyword', conditions: { keyword: 'price' }, actions: [{ type: 'add_tag', tag: 'price-interest' }, { type: 'send_whatsapp', message: 'Happy to help with pricing, {{name}}! A team member will share details shortly.' }] },
+  { id: 'complaint-escalation', name: 'Complaint — escalate', desc: 'When a customer complains, tag it and log an escalation.', trigger: 'keyword', conditions: { keyword: 'complaint' }, actions: [{ type: 'add_tag', tag: 'complaint' }, { type: 'create_activity', title: 'Complaint received — escalate to manager' }] },
+  { id: 'won-thankyou', name: 'Deal won — thank you', desc: 'When a contact is marked WON, send a thank-you.', trigger: 'status_changed', conditions: { status: 'WON' }, actions: [{ type: 'send_whatsapp', message: 'Thank you for choosing us, {{name}}! 🎉 We look forward to serving you.' }] },
+  { id: 'vip-alert', name: 'VIP tagged — notify team', desc: 'When a contact is tagged vip, log an internal alert.', trigger: 'tag_added', conditions: { tag: 'vip' }, actions: [{ type: 'create_activity', title: 'VIP customer flagged — give white-glove attention' }] },
+  { id: 'human-handoff', name: 'Human handoff request', desc: 'When a customer asks for a human, tag + log for a takeover.', trigger: 'keyword', conditions: { keyword: 'human' }, actions: [{ type: 'add_tag', tag: 'needs-human' }, { type: 'create_activity', title: 'Customer requested a human agent' }] },
+]
 
 @Injectable()
 export class AgencyService {
@@ -13,7 +25,55 @@ export class AgencyService {
     private agents: AIAgentsService,
     private unipile: UnipileService,
     private whatsapp: WhatsAppService,
+    private workflows: WorkflowsService,
   ) {}
+
+  // ── Per-client Automations (agency-scoped) ─────────────────────────────────
+  automationTemplates() {
+    return AUTOMATION_TEMPLATES.map(({ id, name, desc, trigger }) => ({ id, name, desc, trigger }))
+  }
+
+  async listClientAutomations(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.workflows.findAll(clientId)
+  }
+
+  async createClientAutomation(agencyOrgId: string, clientId: string, dto: any) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.workflows.create(clientId, dto)
+  }
+
+  async installClientTemplate(agencyOrgId: string, clientId: string, templateId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const t = AUTOMATION_TEMPLATES.find(x => x.id === templateId)
+    if (!t) throw new NotFoundException('Template not found')
+    return this.workflows.create(clientId, { name: t.name, trigger: t.trigger, conditions: t.conditions, actions: t.actions })
+  }
+
+  async updateClientAutomation(agencyOrgId: string, clientId: string, wfId: string, dto: any) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.workflows.update(wfId, clientId, dto)
+  }
+
+  async toggleClientAutomation(agencyOrgId: string, clientId: string, wfId: string, isActive: boolean) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.workflows.toggle(wfId, clientId, isActive)
+  }
+
+  async removeClientAutomation(agencyOrgId: string, clientId: string, wfId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.workflows.remove(wfId, clientId)
+  }
+
+  async clientAutomationRuns(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.prisma.workflowRun.findMany({
+      where: { orgId: clientId },
+      select: { id: true, workflowId: true, status: true, error: true, createdAt: true, workflow: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    })
+  }
 
   // ── Per-client Channels (agency-scoped) ────────────────────────────────────
   async listClientChannels(agencyOrgId: string, clientId: string) {

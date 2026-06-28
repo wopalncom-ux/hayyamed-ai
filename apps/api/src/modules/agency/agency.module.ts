@@ -6,9 +6,10 @@ import { KnowledgeBaseModule } from '../knowledge-base/knowledge-base.module'
 import { AIAgentsModule } from '../ai-agents/ai-agents.module'
 import { UnipileModule } from '../unipile/unipile.module'
 import { WhatsAppModule } from '../whatsapp/whatsapp.module'
+import { WorkflowsModule } from '../workflows/workflows.module'
 
 @Module({
-  imports: [DatabaseModule, KnowledgeBaseModule, AIAgentsModule, UnipileModule, WhatsAppModule],
+  imports: [DatabaseModule, KnowledgeBaseModule, AIAgentsModule, UnipileModule, WhatsAppModule, WorkflowsModule],
   controllers: [AgencyController],
   providers: [AgencyService],
 })

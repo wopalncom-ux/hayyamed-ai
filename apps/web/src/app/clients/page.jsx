@@ -107,6 +107,17 @@ export default function ClientsConsole() {
     catch (e) { setMsg({ ok: false, text: e?.message || 'Failed' }) } finally { setBusy(false) }
   }
   const disconnectChannel = async (chId) => { if (!selected) return; try { await api.disconnectClientChannel(selected.id, chId); loadChannels(selected.id); openClient(selected.id) } catch {} }
+  // Automations (Phase 5)
+  const [autos, setAutos] = useState([])
+  const [autoTemplates, setAutoTemplates] = useState([])
+  const [autoRuns, setAutoRuns] = useState([])
+  const loadAutos = async (id) => {
+    try { const [a, r] = await Promise.all([api.getClientAutomations(id).catch(() => []), api.getClientAutomationRuns(id).catch(() => [])]); setAutos(Array.isArray(a) ? a : []); setAutoRuns(Array.isArray(r) ? r : []) } catch {}
+  }
+  useEffect(() => { api.getAutomationTemplates().then(t => setAutoTemplates(Array.isArray(t) ? t : [])).catch(() => {}) }, [])
+  const installTemplate = async (tid) => { if (!selected) return; try { await api.installClientTemplate(selected.id, tid); loadAutos(selected.id); openClient(selected.id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Install failed' }) } }
+  const toggleAuto = async (w) => { if (!selected) return; try { await api.toggleClientAutomation(selected.id, w.id, !w.isActive); loadAutos(selected.id) } catch {} }
+  const delAuto = async (wid) => { if (!selected) return; try { await api.removeClientAutomation(selected.id, wid); loadAutos(selected.id); openClient(selected.id) } catch {} }
 
   const loadBrains = async (id) => {
     try {
@@ -139,7 +150,7 @@ export default function ClientsConsole() {
 
   const openClient = async (id) => {
     setMsg(null)
-    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
+    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id); loadAutos(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
   }
   const newClient = () => { setSelected(null); setEditing({ ...EMPTY }); setTab('profile'); setMsg(null) }
   const set = (k, v) => setEditing(p => ({ ...p, [k]: v }))
@@ -218,7 +229,7 @@ export default function ClientsConsole() {
 
               {/* Tabs */}
               <div style={{ display: 'flex', gap: '6px', marginBottom: '18px', flexWrap: 'wrap' }}>
-                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['channels', '📡 Channels'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
+                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['channels', '📡 Channels'], ['automations', '⚡ Automations'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
                   <button key={id} onClick={() => setTab(id)} disabled={id !== 'profile' && !selected}
                     style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: id !== 'profile' && !selected ? 'not-allowed' : 'pointer',
                       background: tab === id ? '#1a2235' : 'transparent', color: tab === id ? '#e2e8f0' : (id !== 'profile' && !selected ? '#3d4f63' : '#7a8fa6'), border: '1px solid #1a2235' }}>{label}</button>
@@ -449,6 +460,59 @@ export default function ClientsConsole() {
                       <Field label="Webhook URL"><input style={input} value={manual.webhookUrl} onChange={e => setManual({ ...manual, webhookUrl: e.target.value })} placeholder="https://…" /></Field>
                     </div>
                     <button onClick={connectManual} disabled={busy || !manual.name} style={{ marginTop: '12px', padding: '9px 18px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '13px', cursor: 'pointer' }}>Add channel</button>
+                  </div>
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                </div>
+              )}
+
+              {/* AUTOMATIONS */}
+              {tab === 'automations' && selected && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Template gallery */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>Quick-install templates</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>One click adds a ready automation to this client. It runs on the client's contacts + channels.</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
+                      {autoTemplates.map(t => (
+                        <div key={t.id} style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ fontWeight: 700, fontSize: '12px' }}>{t.name}</div>
+                          <div style={{ fontSize: '11px', color: '#64748b', flex: 1 }}>{t.desc}</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '9px', color: '#a78bfa', background: 'rgba(167,139,250,.1)', padding: '2px 7px', borderRadius: '10px' }}>{t.trigger}</span>
+                            <button onClick={() => installTemplate(t.id)} style={{ fontSize: '11px', padding: '4px 12px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '6px', color: '#00e5a0', fontWeight: 700, cursor: 'pointer' }}>+ Install</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Client's automations */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '10px' }}>This client's automations</div>
+                    {autos.length === 0 ? <div style={{ fontSize: '12px', color: '#64748b' }}>No automations yet. Install a template above.</div>
+                      : autos.map(w => (
+                        <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 0', borderBottom: '1px solid #1a2235' }}>
+                          <span style={{ fontSize: '16px' }}>⚡</span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700 }}>{w.name}</div>
+                            <div style={{ fontSize: '10px', color: '#64748b' }}>trigger: {w.trigger} · {(Array.isArray(w.actions) ? w.actions.length : 0)} action(s) · {w.runCount || 0} runs</div>
+                          </div>
+                          <button onClick={() => toggleAuto(w)} style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', border: '1px solid', borderColor: w.isActive ? 'rgba(0,229,160,.4)' : '#1a2235', background: w.isActive ? 'rgba(0,229,160,.12)' : 'transparent', color: w.isActive ? '#00e5a0' : '#64748b', fontWeight: 700 }}>{w.isActive ? '● On' : '○ Off'}</button>
+                          <button onClick={() => delAuto(w.id)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>✕</button>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Recent runs / logs */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '10px' }}>Recent runs (logs)</div>
+                    {autoRuns.length === 0 ? <div style={{ fontSize: '12px', color: '#64748b' }}>No runs yet.</div>
+                      : autoRuns.map(r => (
+                        <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '5px 0', borderBottom: '1px solid #131a28' }}>
+                          <span>{r.workflow?.name || r.workflowId} {r.error && <span style={{ color: '#ef4444' }}>· {r.error}</span>}</span>
+                          <span style={{ color: r.status === 'failed' ? '#ef4444' : r.status === 'completed' ? '#00e5a0' : '#fbbf24' }}>{r.status} · {new Date(r.createdAt).toLocaleString()}</span>
+                        </div>
+                      ))}
                   </div>
                   {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>
