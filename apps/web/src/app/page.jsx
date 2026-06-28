@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import PricingSection from '@/components/PricingSection'
+import Reveal from '@/components/Reveal'
+import AiBackdrop from '@/components/AiBackdrop'
 
 export const metadata = {
   title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
@@ -102,9 +104,12 @@ export default function LandingPage() {
       {/* ─── Nav ────────────────────────────────────────────────────── */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(7,9,15,.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(26,34,53,.8)', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontWeight: '900', fontSize: '20px', letterSpacing: '-0.02em' }}>
-          Hayya<span style={{ color: '#00e5a0' }}>med</span> <span style={{ color: '#64748b', fontWeight: '400', fontSize: '16px' }}>AI</span>
+          Hayya<span style={{ color: '#00e5a0' }}> AI</span>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <Link href="/about" style={{ padding: '8px 14px', color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
+            About
+          </Link>
           <Link href="/login" style={{ padding: '8px 18px', background: 'none', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
             Log in
           </Link>
@@ -115,12 +120,16 @@ export default function LandingPage() {
       </nav>
 
       {/* ─── Hero ───────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: '900px', margin: '0 auto', padding: '80px 24px 64px', textAlign: 'center' }}>
+      <section style={{ position: 'relative', overflow: 'hidden', padding: '80px 24px 64px', textAlign: 'center' }}>
+        <AiBackdrop />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto' }}>
         <div style={{ display: 'inline-block', padding: '5px 14px', background: 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.2)', borderRadius: '20px', fontSize: '11px', color: '#00e5a0', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '24px' }}>
           🇶🇦 BUILT FOR QATAR &amp; GCC BUSINESSES
         </div>
-        <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: '900', lineHeight: '1.12', letterSpacing: '-0.03em', marginBottom: '20px', background: 'linear-gradient(135deg, #e2e8f0 30%, #00e5a0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Your AI Sales Team,<br />Active 24/7 on WhatsApp
+        <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: '900', lineHeight: '1.12', letterSpacing: '-0.03em', marginBottom: '20px' }}>
+          <span style={{ background: 'linear-gradient(135deg, #e2e8f0 30%, #00e5a0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Your </span>
+          <span className="hai-shimmer">AI</span>
+          <span style={{ background: 'linear-gradient(135deg, #e2e8f0 30%, #00e5a0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}> Sales Team,<br />Active 24/7 on WhatsApp</span>
         </h1>
         <p style={{ fontSize: '18px', color: '#94a3b8', lineHeight: '1.65', maxWidth: '600px', margin: '0 auto 36px', fontWeight: '400' }}>
           One inbox for all channels. AI replies instantly in Arabic &amp; English.
@@ -135,6 +144,7 @@ export default function LandingPage() {
           </Link>
         </div>
         <p style={{ marginTop: '14px', fontSize: '11px', color: '#475569' }}>No credit card required · Qatar data residency · PDPL compliant</p>
+        </div>
       </section>
 
       {/* ─── Channel badges ─────────────────────────────────────────── */}
@@ -169,12 +179,12 @@ export default function LandingPage() {
           <p style={{ fontSize: '16px', color: '#94a3b8' }}>Replace 6 tools with one platform. Built specifically for the GCC market.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-          {FEATURES.map(f => (
-            <div key={f.title} style={{ padding: '24px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '10px', borderLeft: `3px solid ${f.color}` }}>
+          {FEATURES.map((f, i) => (
+            <Reveal key={f.title} delay={(i % 3) * 80} style={{ padding: '24px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '10px', borderLeft: `3px solid ${f.color}` }}>
               <div style={{ fontSize: '28px', marginBottom: '12px' }}>{f.icon}</div>
               <div style={{ fontWeight: '700', fontSize: '15px', marginBottom: '8px', color: '#e2e8f0' }}>{f.title}</div>
               <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>{f.desc}</div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -237,6 +247,7 @@ export default function LandingPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontWeight: '700', fontSize: '14px' }}>Hayya<span style={{ color: '#00e5a0' }}> AI</span></div>
           <div style={{ display: 'flex', gap: '16px' }}>
+            <Link href="/about" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>About</Link>
             <Link href="/developers" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Developers</Link>
             <Link href="/login" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Log in</Link>
             <Link href="/register" style={{ fontSize: '11px', color: '#00e5a0', textDecoration: 'none' }}>Sign up free</Link>

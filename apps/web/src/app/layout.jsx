@@ -94,6 +94,23 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes hai-float   { 0%,100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(0,-22px,0)} }
+          @keyframes hai-float2  { 0%,100%{transform:translate3d(0,0,0)} 50%{transform:translate3d(0,26px,0)} }
+          @keyframes hai-drift   { 0%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(30px,-20px,0) scale(1.08)} 100%{transform:translate3d(0,0,0) scale(1)} }
+          @keyframes hai-spin    { to{transform:rotate(360deg)} }
+          @keyframes hai-shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+          @keyframes hai-pulse   { 0%,100%{opacity:.5} 50%{opacity:1} }
+          @keyframes hai-grid    { 0%{background-position:0 0} 100%{background-position:48px 48px} }
+          .hai-reveal { opacity:0; transform:translate3d(0,28px,0); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); will-change:opacity,transform; }
+          .hai-reveal.in { opacity:1; transform:translate3d(0,0,0); }
+          .hai-orb { position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none; }
+          .hai-shimmer { background:linear-gradient(100deg,#e2e8f0 30%,#00e5a0 50%,#e2e8f0 70%); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:hai-shimmer 6s linear infinite; }
+          @media (prefers-reduced-motion: reduce) {
+            .hai-reveal{opacity:1!important;transform:none!important;transition:none!important}
+            .hai-orb,.hai-shimmer,[data-anim]{animation:none!important}
+          }
+        ` }} />
       </head>
       <body>
         <AuthGuard>{children}</AuthGuard>
