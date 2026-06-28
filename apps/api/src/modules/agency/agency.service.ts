@@ -5,6 +5,7 @@ import { RagService } from '../knowledge-base/rag.service'
 import { AIAgentsService } from '../ai-agents/ai-agents.service'
 import { UnipileService } from '../unipile/unipile.service'
 import { WhatsAppService } from '../whatsapp/whatsapp.service'
+import { InstagramService } from '../instagram/instagram.service'
 import { WorkflowsService } from '../workflows/workflows.service'
 
 // One-click automation templates. Each maps to triggers/actions the engine
@@ -43,8 +44,15 @@ export class AgencyService {
     private agents: AIAgentsService,
     private unipile: UnipileService,
     private whatsapp: WhatsAppService,
+    private instagram: InstagramService,
     private workflows: WorkflowsService,
   ) {}
+
+  // Instagram DM (Meta) for a client.
+  async connectClientInstagram(agencyOrgId: string, clientId: string, dto: { igAccountId: string; accessToken: string; username?: string }) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.instagram.connectChannel(clientId, dto)
+  }
 
   // ── Per-client Automations (agency-scoped) ─────────────────────────────────
   automationTemplates() {

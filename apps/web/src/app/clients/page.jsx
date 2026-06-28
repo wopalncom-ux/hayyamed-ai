@@ -89,6 +89,13 @@ export default function ClientsConsole() {
   const [pairing, setPairing] = useState(null)
   const [meta, setMeta] = useState({ phoneNumberId: '', accessToken: '', businessId: '', webhookSecret: '' })
   const [manual, setManual] = useState({ name: '', webhookUrl: '' })
+  const [ig, setIg] = useState({ igAccountId: '', accessToken: '', username: '' })
+  const connectInstagram = async () => {
+    if (!selected || !ig.igAccountId || !ig.accessToken) { setMsg({ ok: false, text: 'IG Account ID and Access Token are required' }); return }
+    setBusy(true); setMsg(null)
+    try { await api.connectClientInstagram(selected.id, ig); setMsg({ ok: true, text: 'Instagram connected ✓' }); setIg({ igAccountId: '', accessToken: '', username: '' }); loadChannels(selected.id); openClient(selected.id) }
+    catch (e) { setMsg({ ok: false, text: e?.message || 'Instagram connect failed' }) } finally { setBusy(false) }
+  }
   const loadChannels = async (id) => { try { const c = await api.getClientChannels(id); setChannels(Array.isArray(c) ? c : []) } catch {} }
   const connectUnipile = async () => {
     if (!selected) return; setBusy(true); setMsg(null); setPairing(null)
@@ -527,6 +534,19 @@ export default function ClientsConsole() {
                       <Field label="Webhook Verify Token / App Secret"><input type="password" style={input} value={meta.webhookSecret} onChange={e => setMeta({ ...meta, webhookSecret: e.target.value })} /></Field>
                     </div>
                     <button onClick={connectMeta} disabled={busy} style={{ marginTop: '12px', padding: '9px 18px', background: '#3b82f6', border: 'none', borderRadius: '7px', color: '#fff', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{busy ? 'Connecting…' : 'Connect Meta'}</button>
+                  </div>
+
+                  {/* Instagram DM (Meta) */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>📸 Instagram DM (Meta)</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>AI answers Instagram Direct Messages. Needs an IG professional account linked to a Meta app (instagram_manage_messages). Verified against Meta on connect.</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
+                      <Field label="Instagram Account ID"><input style={input} value={ig.igAccountId} onChange={e => setIg({ ...ig, igAccountId: e.target.value })} /></Field>
+                      <Field label="Username (optional)"><input style={input} value={ig.username} onChange={e => setIg({ ...ig, username: e.target.value })} placeholder="@brand" /></Field>
+                      <div style={{ gridColumn: '1 / -1' }}><Field label="Page / IG Access Token"><input type="password" style={input} value={ig.accessToken} onChange={e => setIg({ ...ig, accessToken: e.target.value })} /></Field></div>
+                    </div>
+                    <button onClick={connectInstagram} disabled={busy} style={{ marginTop: '12px', padding: '9px 18px', background: '#E1306C', border: 'none', borderRadius: '7px', color: '#fff', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{busy ? 'Connecting…' : 'Connect Instagram'}</button>
+                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '8px' }}>Webhook (set in Meta app): <code style={{ color: '#cbd5e1' }}>https://api.hayyaai.com/api/v1/instagram/webhook</code></div>
                   </div>
 
                   {/* Option C: Manual */}

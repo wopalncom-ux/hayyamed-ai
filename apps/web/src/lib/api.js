@@ -376,6 +376,8 @@ export const api = {
     request(`/agency/clients/${id}/channels/meta`, { method: 'POST', body: JSON.stringify(dto) }),
   connectClientManual: (id, dto) =>
     request(`/agency/clients/${id}/channels/manual`, { method: 'POST', body: JSON.stringify(dto) }),
+  connectClientInstagram: (id, dto) =>
+    request(`/agency/clients/${id}/channels/instagram`, { method: 'POST', body: JSON.stringify(dto) }),
   disconnectClientChannel: (id, channelId) =>
     request(`/agency/clients/${id}/channels/${channelId}`, { method: 'DELETE' }),
   getAutomationTemplates: () =>

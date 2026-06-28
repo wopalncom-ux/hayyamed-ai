@@ -179,6 +179,11 @@ export class AgencyController {
     return this.agency.connectClientManual(user.orgId, id, dto)
   }
 
+  @Post('clients/:id/channels/instagram')
+  connectInstagram(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: any) {
+    return this.agency.connectClientInstagram(user.orgId, id, dto)
+  }
+
   @Delete('clients/:id/channels/:channelId')
   disconnectChannel(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('channelId') channelId: string) {
     return this.agency.disconnectClientChannel(user.orgId, id, channelId)
