@@ -9,6 +9,7 @@ import { isWithinHours } from '../../common/util/business-hours.util'
 import { isSubstantiveQuestion } from '../../common/util/question.util'
 import { computeLeadScore } from '../../common/util/lead-score.util'
 import { detectNegative } from '../../common/util/sentiment.util'
+import { isModuleEnabled } from '../../common/util/entitlements.util'
 import { WorkflowEngineService } from '../workflows/workflow-engine.service'
 
 @Injectable()
@@ -65,6 +66,10 @@ export class WebchatService {
     const org = await this.prisma.organization.findUnique({ where: { id: orgId }, select: { id: true, name: true, industry: true } })
     if (!org) return { error: 'Invalid workspace' }
     if (!text?.trim()) return { error: 'Empty message' }
+    // Module gating: owner can disable the website chatbot for a managed client.
+    if (!(await isModuleEnabled(this.prisma, orgId, 'website_chatbot'))) {
+      return { error: 'Chat is currently unavailable.' }
+    }
 
     const conv = await this.getOrCreateConversation(orgId, sessionId, name)
 
@@ -130,6 +135,12 @@ export class WebchatService {
       await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: away } })
       await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: away, lastMsgAt: new Date() } })
       return { reply: away, sessionId, away: true }
+    }
+
+    // Module gating: if AI agents are disabled for this client, leave it for a
+    // human — store the message but don't auto-reply.
+    if (!(await isModuleEnabled(this.prisma, orgId, 'ai_agents'))) {
+      return { sessionId, paused: true }
     }
 
     // Build an AI reply grounded in the org's knowledge base (graceful if no AI/KB)

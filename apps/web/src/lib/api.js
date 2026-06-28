@@ -345,6 +345,15 @@ export const api = {
     request(`/agency/clients/${id}/brains/${kbId}/sources/${sourceId}`, { method: 'DELETE' }),
   retrainClientBrain: (id, kbId) =>
     request(`/agency/clients/${id}/brains/${kbId}/retrain`, { method: 'POST' }),
+  uploadClientFile: (id, kbId, file) => {
+    const auth = getAuth()
+    const form = new FormData()
+    form.append('file', file)
+    return fetch(`${BASE}/api/v1/agency/clients/${id}/brains/${kbId}/upload`, {
+      method: 'POST', body: form,
+      headers: { ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}) },
+    }).then(async r => { if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Upload failed'); return r.json() })
+  },
   getClientAgents: (id) =>
     request(`/agency/clients/${id}/agents`),
   createClientAgent: (id, dto) =>

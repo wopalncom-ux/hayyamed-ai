@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseFloatPipe } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, ParseFloatPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
 import { AgencyService } from './agency.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
+import { extractText } from '../../common/util/extract-text.util'
 
 @Controller('agency')
 export class AgencyController {
@@ -107,6 +109,17 @@ export class AgencyController {
   @Post('clients/:id/brains/:kbId/retrain')
   retrain(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('kbId') kbId: string) {
     return this.agency.retrainClientBrain(user.orgId, id, kbId)
+  }
+
+  // Upload a file (PDF/TXT/CSV/MD/JSON) → extract text → index into the client's brain.
+  @Post('clients/:id/brains/:kbId/upload')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 15 * 1024 * 1024 } }))
+  async uploadSource(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('kbId') kbId: string, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file uploaded')
+    let content = ''
+    try { content = await extractText(file) } catch { throw new BadRequestException('Could not read this file. Supported: PDF, TXT, CSV, MD, JSON.') }
+    if (!content.trim()) throw new BadRequestException('No readable text found in the file.')
+    return this.agency.addClientSource(user.orgId, id, kbId, { type: 'file', name: file.originalname || 'Uploaded file', content: content.slice(0, 200000) })
   }
 
   // ── Per-client AI Agents ─────────────────────────────────────────────────

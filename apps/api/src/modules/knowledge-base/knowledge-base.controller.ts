@@ -5,18 +5,7 @@ import { RagService } from './rag.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
 
-// Extract plain text from an uploaded knowledge file.
-async function extractText(file: Express.Multer.File): Promise<string> {
-  const name = (file.originalname || '').toLowerCase()
-  const mime = file.mimetype || ''
-  if (name.endsWith('.pdf') || mime === 'application/pdf') {
-    const pdfParse = require('pdf-parse')
-    const data = await pdfParse(file.buffer)
-    return data.text || ''
-  }
-  // txt, csv, md, json and other text types — decode the buffer
-  return file.buffer.toString('utf-8')
-}
+import { extractText } from '../../common/util/extract-text.util'
 
 @Controller('knowledge-bases')
 export class KnowledgeBaseController {

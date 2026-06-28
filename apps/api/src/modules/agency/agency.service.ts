@@ -16,6 +16,7 @@ const AUTOMATION_TEMPLATES = [
   { id: 'won-thankyou', name: 'Deal won — thank you', desc: 'When a contact is marked WON, send a thank-you.', trigger: 'status_changed', conditions: { status: 'WON' }, actions: [{ type: 'send_whatsapp', message: 'Thank you for choosing us, {{name}}! 🎉 We look forward to serving you.' }] },
   { id: 'vip-alert', name: 'VIP tagged — notify team', desc: 'When a contact is tagged vip, log an internal alert.', trigger: 'tag_added', conditions: { tag: 'vip' }, actions: [{ type: 'create_activity', title: 'VIP customer flagged — give white-glove attention' }] },
   { id: 'human-handoff', name: 'Human handoff request', desc: 'When a customer asks for a human, tag + log for a takeover.', trigger: 'keyword', conditions: { keyword: 'human' }, actions: [{ type: 'add_tag', tag: 'needs-human' }, { type: 'create_activity', title: 'Customer requested a human agent' }] },
+  { id: 'lead-followup-1d', name: 'New lead — 1-day follow-up', desc: 'If a new lead goes quiet, send a friendly WhatsApp follow-up after 1 day (time-delayed).', trigger: 'new_contact', conditions: {}, actions: [{ type: 'wait', seconds: 86400 }, { type: 'send_whatsapp', message: 'Hi {{name}}, just following up 😊 do you have any questions we can help with?' }] },
 ]
 
 // Internal marketplace — modules the owner can enable/disable per client.

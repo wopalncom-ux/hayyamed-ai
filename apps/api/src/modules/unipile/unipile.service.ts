@@ -7,6 +7,7 @@ import { WebhooksService } from '../webhooks/webhooks.service'
 import { encryptJson, decryptJson } from '../../common/crypto/crypto.util'
 import { computeLeadScore } from '../../common/util/lead-score.util'
 import { detectNegative } from '../../common/util/sentiment.util'
+import { isModuleEnabled } from '../../common/util/entitlements.util'
 import { wantsHuman } from '../../common/util/escalation.util'
 import { WorkflowEngineService } from '../workflows/workflow-engine.service'
 import { NotificationsService } from '../notifications/notifications.service'
@@ -211,6 +212,10 @@ export class UnipileService {
 
     // Don't auto-reply if a human paused the AI for this conversation.
     if ((conv.metadata as any)?.aiPaused) return { ok: true, paused: true }
+    // Module gating: owner can disable WhatsApp / AI agents for a managed client.
+    if (!(await isModuleEnabled(this.prisma, orgId, 'whatsapp')) || !(await isModuleEnabled(this.prisma, orgId, 'ai_agents'))) {
+      return { ok: true, paused: true }
+    }
 
     // Grounded AI reply (graceful if no AI/KB), then send back via Unipile.
     try {

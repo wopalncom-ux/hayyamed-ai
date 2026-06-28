@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { WhatsAppService } from '../whatsapp/whatsapp.service'
 import { EmailService } from '../email/email.service'
@@ -18,8 +18,10 @@ import { AuditService } from '../audit/audit.service'
 //  { type: 'stop' }                            // end the workflow
 
 @Injectable()
-export class WorkflowEngineService {
+export class WorkflowEngineService implements OnModuleInit {
   private readonly logger = new Logger(WorkflowEngineService.name)
+  private pendingTimer?: NodeJS.Timeout
+  private pendingRunning = false
 
   constructor(
     private prisma: PrismaService,
@@ -27,6 +29,18 @@ export class WorkflowEngineService {
     private email: EmailService,
     private audit: AuditService,
   ) {}
+
+  // In-process scheduler: resume due time-delayed (wait-step) automations every
+  // 2 minutes. Runs while a Cloud Run container is warm; for guaranteed delivery
+  // also point a Cloud Scheduler job at POST /workflows/cron/process-pending.
+  onModuleInit() {
+    this.pendingTimer = setInterval(async () => {
+      if (this.pendingRunning) return
+      this.pendingRunning = true
+      try { await this.processPending() } catch (e: any) { this.logger.warn(`scheduler tick failed: ${e?.message}`) } finally { this.pendingRunning = false }
+    }, 2 * 60 * 1000)
+    if (this.pendingTimer.unref) this.pendingTimer.unref()
+  }
 
   // ─── Fire a trigger for all active workflows in an org ─────────────────────
 

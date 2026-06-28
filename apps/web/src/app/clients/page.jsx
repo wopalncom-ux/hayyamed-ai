@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api } from '@/lib/api'
 import { getAuth, isOwnerRole } from '@/lib/auth'
 import NavSidebar from '@/components/NavSidebar'
@@ -166,6 +166,18 @@ export default function ClientsConsole() {
   const retrain = async (kbId) => {
     if (!selected) return
     try { await api.retrainClientBrain(selected.id, kbId); loadBrains(selected.id) } catch {}
+  }
+  const fileRef = useRef(null)
+  const [uploadKb, setUploadKb] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (file && selected && uploadKb) {
+      setUploading(true)
+      try { await api.uploadClientFile(selected.id, uploadKb, file); setMsg({ ok: true, text: `"${file.name}" uploaded — indexing started.` }); loadBrains(selected.id) }
+      catch (err) { setMsg({ ok: false, text: err?.message || 'Upload failed' }) } finally { setUploading(false) }
+    }
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const [overview, setOverview] = useState(null)
@@ -383,6 +395,7 @@ export default function ClientsConsole() {
                             <div style={{ fontWeight: 700, fontSize: '13px' }}>{kb.name} <span style={{ fontSize: '10px', color: '#64748b' }}>· {kb.sources?.length || 0} sources</span></div>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <button onClick={() => setSrcModal({ kbId: kb.id })} style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '6px', color: '#00e5a0', cursor: 'pointer' }}>+ Source</button>
+                              <button onClick={() => { setUploadKb(kb.id); fileRef.current?.click() }} disabled={uploading} title="Upload PDF/TXT/CSV" style={{ fontSize: '11px', padding: '4px 10px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '6px', color: '#7a8fa6', cursor: uploading ? 'wait' : 'pointer' }}>{uploading && uploadKb === kb.id ? '⏳' : '📎 Upload'}</button>
                               <button onClick={() => retrain(kb.id)} title="Re-train / sync" style={{ fontSize: '11px', padding: '4px 10px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '6px', color: '#7a8fa6', cursor: 'pointer' }}>↻ Sync</button>
                             </div>
                           </div>
@@ -675,6 +688,8 @@ export default function ClientsConsole() {
           )}
         </div>
       </main>
+
+      <input ref={fileRef} type="file" accept=".pdf,.txt,.csv,.md,.json" onChange={handleUpload} style={{ display: 'none' }} />
 
       {/* Add Source modal */}
       {srcModal && (
