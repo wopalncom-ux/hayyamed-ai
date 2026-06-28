@@ -157,16 +157,30 @@ export default function Contacts() {
     }
   }
 
-  const exportCSV = () => {
-    const headers = ['Name', 'Phone', 'Email', 'Status', 'Channel', 'Services', 'Score', 'Last Contact', 'Notes']
-    const rows = filtered.map(c => [c.name, c.phone, c.email, c.status, c.channel, c.services.join(';'), c.score, c.lastContact, c.notes])
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'contacts-export.csv'
-    a.click()
+  const [exporting, setExporting] = useState(false)
+  // Export ALL matching leads via the server (not just the rows loaded on screen),
+  // respecting the current status/search filters.
+  const exportCSV = async () => {
+    setExporting(true)
+    try {
+      const params = {}
+      if (filterStatus && filterStatus !== 'All') params.status = filterStatus
+      if (search) params.search = search
+      const res = await api.exportContactsCsv(params)
+      if (!res.ok) throw new Error('Export failed')
+      const csv = await res.text()
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `leads-export-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      alert('Could not export leads. Please try again.')
+    } finally {
+      setExporting(false)
+    }
   }
 
   const toggleService = (service) => {
@@ -217,7 +231,7 @@ export default function Contacts() {
               </select>
 
               <div style={{marginLeft:'auto', display:'flex', gap:'6px'}}>
-                <button onClick={exportCSV} style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
+                <button onClick={exportCSV} disabled={exporting} title="Export all matching leads to CSV" style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor: exporting ? 'wait' : 'pointer'}}>{exporting ? '⏳ Exporting…' : '📥 Export Leads'}</button>
                 <a href="/contacts/import" style={{padding:'6px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer', textDecoration:'none', display:'inline-block'}}>📊 Import CSV</a>
                 <button
                   disabled={scoringAll}
