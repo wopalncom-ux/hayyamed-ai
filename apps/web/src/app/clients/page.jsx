@@ -127,6 +127,20 @@ export default function ClientsConsole() {
     try { await api.setClientModule(selected.id, key, enabled) } catch { loadModules(selected.id) }
   }
   const moduleCost = modules.filter(m => m.enabled && m.price > 0).reduce((s, m) => s + m.price, 0)
+  // Wallet / billing (Phase 7)
+  const [billing, setBilling] = useState(null)
+  const [threshold, setThreshold] = useState('')
+  const [campCost, setCampCost] = useState('')
+  const [campDesc, setCampDesc] = useState('')
+  const loadBilling = async (id) => { try { const b = await api.getClientBilling(id); setBilling(b); setThreshold(String(b?.lowBalanceThreshold ?? '')) } catch {} }
+  const profitPct = Number(editing?.profitPercent) || 0
+  const campProfit = +((Number(campCost) || 0) * profitPct / 100).toFixed(2)
+  const campCharge = +((Number(campCost) || 0) + campProfit).toFixed(2)
+  const chargeClient = async () => {
+    if (!selected || !(Number(campCost) > 0)) return
+    try { await api.chargeClient(selected.id, Number(campCost), campDesc || 'Campaign / usage'); setCampCost(''); setCampDesc(''); loadBilling(selected.id); openClient(selected.id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Charge failed' }) }
+  }
+  const saveThreshold = async () => { if (!selected) return; try { await api.setClientLowBalance(selected.id, Number(threshold) || 0); loadBilling(selected.id) } catch {} }
 
   const loadBrains = async (id) => {
     try {
@@ -159,7 +173,7 @@ export default function ClientsConsole() {
 
   const openClient = async (id) => {
     setMsg(null)
-    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id); loadAutos(id); loadModules(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
+    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id); loadAutos(id); loadModules(id); loadBilling(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
   }
   const newClient = () => { setSelected(null); setEditing({ ...EMPTY }); setTab('profile'); setMsg(null) }
   const set = (k, v) => setEditing(p => ({ ...p, [k]: v }))
@@ -573,12 +587,45 @@ export default function ClientsConsole() {
                     <div style={{ marginTop: '12px' }}><button onClick={save} disabled={busy} style={{ padding: '9px 20px', background: busy ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '7px', color: busy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{busy ? 'Saving…' : 'Save billing'}</button></div>
                   </div>
                   <div style={card}>
-                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '10px' }}>Client wallet</div>
-                    <div style={{ fontSize: '26px', fontWeight: 900, color: '#fbbf24', marginBottom: '12px' }}>QAR {Number(selected.balance || 0).toLocaleString()}</div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <input type="number" style={{ ...input, width: '140px' }} value={topup} onChange={e => setTopup(e.target.value)} placeholder="Amount" />
-                      <button onClick={topUp} style={{ padding: '9px 16px', background: '#3b82f6', border: 'none', borderRadius: '7px', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Top up</button>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13px' }}>Client wallet</div>
+                      {billing?.lowBalance && <span style={{ fontSize: '10px', padding: '2px 9px', borderRadius: '10px', background: 'rgba(239,68,68,.15)', color: '#ef4444', fontWeight: 700 }}>⚠ Low balance</span>}
                     </div>
+                    <div style={{ fontSize: '26px', fontWeight: 900, color: (billing?.lowBalance ? '#ef4444' : '#fbbf24'), marginBottom: '12px' }}>QAR {Number(billing?.balance ?? selected.balance ?? 0).toLocaleString()}</div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <input type="number" style={{ ...input, width: '120px' }} value={topup} onChange={e => setTopup(e.target.value)} placeholder="Top-up" />
+                      <button onClick={topUp} style={{ padding: '9px 16px', background: '#3b82f6', border: 'none', borderRadius: '7px', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Top up</button>
+                      <span style={{ fontSize: '11px', color: '#64748b', marginLeft: 'auto' }}>Alert under</span>
+                      <input type="number" style={{ ...input, width: '80px' }} value={threshold} onChange={e => setThreshold(e.target.value)} onBlur={saveThreshold} placeholder="50" />
+                    </div>
+                  </div>
+
+                  {/* Campaign / usage charge calculator */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>Charge for a campaign / usage</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>Enter the third-party cost. Your {profitPct}% profit is added automatically, then the client wallet is debited.</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <Field label="Provider cost (QAR)"><input type="number" style={input} value={campCost} onChange={e => setCampCost(e.target.value)} placeholder="0.00" /></Field>
+                      <Field label="Description"><input style={input} value={campDesc} onChange={e => setCampDesc(e.target.value)} placeholder="e.g. WhatsApp campaign — 500 msgs" /></Field>
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                      <span style={{ color: '#64748b' }}>Cost: <strong style={{ color: '#e2e8f0' }}>QAR {Number(campCost) || 0}</strong></span>
+                      <span style={{ color: '#64748b' }}>+ Profit ({profitPct}%): <strong style={{ color: '#00e5a0' }}>QAR {campProfit}</strong></span>
+                      <span style={{ color: '#64748b' }}>Client charge: <strong style={{ color: '#fbbf24' }}>QAR {campCharge}</strong></span>
+                    </div>
+                    <button onClick={chargeClient} disabled={!(Number(campCost) > 0)} style={{ padding: '9px 18px', background: Number(campCost) > 0 ? '#00e5a0' : '#1a2235', border: 'none', borderRadius: '7px', color: Number(campCost) > 0 ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Charge wallet QAR {campCharge}</button>
+                  </div>
+
+                  {/* Ledger */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '10px' }}>Wallet transactions</div>
+                    {(!billing?.transactions || billing.transactions.length === 0) ? <div style={{ fontSize: '12px', color: '#64748b' }}>No transactions yet.</div>
+                      : billing.transactions.map(t => (
+                        <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #131a28', fontSize: '12px' }}>
+                          <span>{t.type === 'credit' ? '⬆️' : '⬇️'} {t.description} <span style={{ color: '#64748b', fontSize: '10px' }}>· {new Date(t.createdAt).toLocaleString()}</span></span>
+                          <span style={{ color: t.type === 'credit' ? '#00e5a0' : '#ef4444', fontWeight: 700 }}>{t.type === 'credit' ? '+' : '−'}QAR {t.amount} <span style={{ color: '#64748b', fontWeight: 400 }}>→ {t.balanceAfter}</span></span>
+                        </div>
+                      ))}
                   </div>
                   {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>

@@ -78,11 +78,27 @@ model Organization {
   campaignBilling      String   @default("")
   adminNotes           String   @default("")
   modules              Json?    // per-client enabled modules { key: { enabled, config } }
+  lowBalanceThreshold  Float    @default(50)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("organizations")
+}
+
+// Per-client wallet ledger (credits = top-ups, debits = campaigns/usage charges).
+model WalletTransaction {
+  id           String   @id @default(uuid())
+  orgId        String   // the client org this transaction belongs to
+  type         String   // credit | debit
+  amount       Float
+  description  String   @default("")
+  balanceAfter Float    @default(0)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([orgId])
+  @@map("wallet_transactions")
 }
 
 model AgencyPackage {

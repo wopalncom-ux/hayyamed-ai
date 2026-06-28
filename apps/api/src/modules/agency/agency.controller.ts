@@ -41,6 +41,22 @@ export class AgencyController {
     return this.agency.topUp(user.orgId, id, Number(body.amount) || 0)
   }
 
+  // ── Per-client Wallet / Billing / Profit ─────────────────────────────────
+  @Get('clients/:id/billing')
+  billing(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.clientBilling(user.orgId, id)
+  }
+
+  @Post('clients/:id/charge')
+  charge(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { providerCost: number; description?: string }) {
+    return this.agency.chargeClient(user.orgId, id, Number(body.providerCost) || 0, body.description || '')
+  }
+
+  @Post('clients/:id/low-balance')
+  lowBalance(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { threshold: number }) {
+    return this.agency.setLowBalanceThreshold(user.orgId, id, Number(body.threshold) || 0)
+  }
+
   @Delete('clients/:id')
   deleteClient(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     return this.agency.deleteClient(user.orgId, id)

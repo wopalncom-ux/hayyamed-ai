@@ -381,6 +381,12 @@ export const api = {
     request(`/agency/clients/${id}/modules`),
   setClientModule: (id, moduleKey, enabled) =>
     request(`/agency/clients/${id}/modules/${moduleKey}`, { method: 'POST', body: JSON.stringify({ enabled }) }),
+  getClientBilling: (id) =>
+    request(`/agency/clients/${id}/billing`),
+  chargeClient: (id, providerCost, description) =>
+    request(`/agency/clients/${id}/charge`, { method: 'POST', body: JSON.stringify({ providerCost, description }) }),
+  setClientLowBalance: (id, threshold) =>
+    request(`/agency/clients/${id}/low-balance`, { method: 'POST', body: JSON.stringify({ threshold }) }),
   createAgencyClient: (dto) =>
     request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
   updateAgencyClient: (id, dto) =>

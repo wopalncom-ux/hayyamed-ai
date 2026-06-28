@@ -378,11 +378,57 @@ export class AgencyService {
 
   async topUp(agencyOrgId: string, clientId: string, amount: number) {
     await this.assertOwns(agencyOrgId, clientId)
-    const client = await this.prisma.organization.findUnique({ where: { id: clientId } })
-    return this.prisma.organization.update({
+    return this.walletAdjust(clientId, 'credit', Math.abs(amount), 'Wallet top-up')
+  }
+
+  // ── Wallet ledger + billing/profit (agency-scoped) ─────────────────────────
+  private async walletAdjust(clientId: string, type: 'credit' | 'debit', amount: number, description: string, metadata?: any) {
+    const client = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { agencyBalance: true } })
+    const balanceAfter = +((client?.agencyBalance ?? 0) + (type === 'credit' ? amount : -amount)).toFixed(2)
+    await this.prisma.organization.update({ where: { id: clientId }, data: { agencyBalance: balanceAfter } })
+    await this.prisma.walletTransaction.create({ data: { orgId: clientId, type, amount: +amount.toFixed(2), description, balanceAfter, metadata: metadata || undefined } })
+    return { type, amount: +amount.toFixed(2), balanceAfter }
+  }
+
+  // Campaign/usage charge math: provider cost + owner profit% = client charge.
+  computeCharge(providerCost: number, profitPercent: number) {
+    const cost = Math.max(0, Number(providerCost) || 0)
+    const profit = +(cost * (Math.max(0, Number(profitPercent) || 0) / 100)).toFixed(2)
+    const clientCharge = +(cost + profit).toFixed(2)
+    return { providerCost: cost, profitPercent: Number(profitPercent) || 0, profit, clientCharge }
+  }
+
+  // Debit a client's wallet for a campaign/usage (applies the profit markup).
+  async chargeClient(agencyOrgId: string, clientId: string, providerCost: number, description: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const org = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { profitPercent: true } })
+    const calc = this.computeCharge(providerCost, org?.profitPercent ?? 0)
+    const res = await this.walletAdjust(clientId, 'debit', calc.clientCharge, description || 'Usage charge', { providerCost: calc.providerCost, profit: calc.profit })
+    return { ...calc, ...res }
+  }
+
+  async setLowBalanceThreshold(agencyOrgId: string, clientId: string, threshold: number) {
+    await this.assertOwns(agencyOrgId, clientId)
+    await this.prisma.organization.update({ where: { id: clientId }, data: { lowBalanceThreshold: Math.max(0, Number(threshold) || 0) } })
+    return { lowBalanceThreshold: Math.max(0, Number(threshold) || 0) }
+  }
+
+  async clientBilling(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const org = await this.prisma.organization.findUnique({
       where: { id: clientId },
-      data: { agencyBalance: (client?.agencyBalance ?? 0) + amount },
+      select: { agencyBalance: true, lowBalanceThreshold: true, profitPercent: true, paymentResponsibility: true, campaignBilling: true },
     })
+    const transactions = await this.prisma.walletTransaction.findMany({
+      where: { orgId: clientId }, orderBy: { createdAt: 'desc' }, take: 25,
+    })
+    const balance = org?.agencyBalance ?? 0
+    const threshold = org?.lowBalanceThreshold ?? 0
+    return {
+      balance, lowBalanceThreshold: threshold, lowBalance: balance <= threshold,
+      profitPercent: org?.profitPercent ?? 0, paymentResponsibility: org?.paymentResponsibility,
+      campaignBilling: org?.campaignBilling, transactions,
+    }
   }
 
   async deleteClient(agencyOrgId: string, clientId: string) {
