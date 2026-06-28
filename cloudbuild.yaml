@@ -75,7 +75,7 @@ steps:
       - '--set-env-vars=NODE_ENV=production,VAPID_PUBLIC_KEY=BMXwepZqm65KQ1EWLZbQ7xJCvOK-e2g8SxpMzvFVpPOwE3-D_IlbUDV31Hrz9M-_gSJ4swDjiY3YNbNhRz-h3HE,VAPID_SUBJECT=mailto:support@hayyaai.com'
       - '--add-cloudsql-instances=hayyamed-ai-crm:me-central1:hayyamed-db'
       - >-
-        --update-secrets=DATABASE_URL=hayyamed-database-url:latest,JWT_SECRET=hayyamed-jwt-secret:latest,JWT_REFRESH_SECRET=hayyamed-jwt-refresh-secret:latest,OPENAI_API_KEY=hayyamed-openai-key:latest,ANTHROPIC_API_KEY=hayyamed-anthropic-key:latest,WHATSAPP_ACCESS_TOKEN=hayyamed-whatsapp-token:latest,WHATSAPP_WEBHOOK_TOKEN=hayyamed-whatsapp-webhook-token:latest,META_APP_SECRET=hayyamed-meta-app-secret:latest,POSTMARK_SERVER_TOKEN=hayyamed-postmark-token:latest,FRONTEND_URL=hayyamed-frontend-url:latest,EMAIL_FROM=hayyamed-email-from:latest,VAPID_PRIVATE_KEY=hayyamed-vapid-private:latest
+        --update-secrets=DATABASE_URL=hayyamed-database-url:latest,JWT_SECRET=hayyamed-jwt-secret:latest,JWT_REFRESH_SECRET=hayyamed-jwt-refresh-secret:latest,OPENAI_API_KEY=hayyamed-openai-key:latest,ANTHROPIC_API_KEY=hayyamed-anthropic-key:latest,WHATSAPP_ACCESS_TOKEN=hayyamed-whatsapp-token:latest,WHATSAPP_WEBHOOK_TOKEN=hayyamed-whatsapp-webhook-token:latest,META_APP_SECRET=hayyamed-meta-app-secret:latest,POSTMARK_SERVER_TOKEN=hayyamed-postmark-token:latest,FRONTEND_URL=hayyamed-frontend-url:latest,EMAIL_FROM=hayyamed-email-from:latest,VAPID_PRIVATE_KEY=hayyamed-vapid-private:latest,CRON_SECRET=hayyamed-cron-secret:latest
     waitFor: [push-api]
     id: deploy-api
 
