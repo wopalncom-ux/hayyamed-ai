@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import PricingSection from '@/components/PricingSection'
 import Reveal from '@/components/Reveal'
-import AiBackdrop from '@/components/AiBackdrop'
+import HeroVideo from '@/components/HeroVideo'
 
 export const metadata = {
   title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
@@ -101,52 +101,8 @@ export default function LandingPage() {
   return (
     <div style={{ background: '#07090f', color: '#e2e8f0', fontFamily: 'system-ui, -apple-system, sans-serif', minHeight: '100vh' }}>
 
-      {/* ─── Nav ────────────────────────────────────────────────────── */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(7,9,15,.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(26,34,53,.8)', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', fontWeight: '900', fontSize: '20px', letterSpacing: '-0.02em' }}>
-          <img src="/logo.svg" alt="Hayya AI" width="30" height="30" style={{ display: 'block' }} />
-          Hayya<span style={{ color: '#C9A96E' }}> AI</span>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <Link href="/about" style={{ padding: '8px 14px', color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
-            About
-          </Link>
-          <Link href="/login" style={{ padding: '8px 18px', background: 'none', border: '1px solid #1a2235', borderRadius: '6px', color: '#94a3b8', textDecoration: 'none', fontSize: '13px' }}>
-            Log in
-          </Link>
-          <Link href="/register" style={{ padding: '8px 20px', background: '#C9A96E', borderRadius: '6px', color: '#07090f', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
-            Start Free →
-          </Link>
-        </div>
-      </nav>
-
-      {/* ─── Hero ───────────────────────────────────────────────────── */}
-      <section style={{ position: 'relative', overflow: 'hidden', padding: '80px 24px 64px', textAlign: 'center' }}>
-        <AiBackdrop />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ display: 'inline-block', padding: '5px 14px', background: 'rgba(201,169,110,.08)', border: '1px solid rgba(201,169,110,.2)', borderRadius: '20px', fontSize: '11px', color: '#C9A96E', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '24px' }}>
-          🇶🇦 BUILT FOR QATAR &amp; GCC BUSINESSES
-        </div>
-        <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: '900', lineHeight: '1.12', letterSpacing: '-0.03em', marginBottom: '20px' }}>
-          <span style={{ background: 'linear-gradient(135deg, #e2e8f0 30%, #C9A96E)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Your </span>
-          <span className="hai-shimmer">AI</span>
-          <span style={{ background: 'linear-gradient(135deg, #e2e8f0 30%, #C9A96E)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}> Sales Team,<br />Active 24/7 on WhatsApp</span>
-        </h1>
-        <p style={{ fontSize: '18px', color: '#94a3b8', lineHeight: '1.65', maxWidth: '600px', margin: '0 auto 36px', fontWeight: '400' }}>
-          One inbox for all channels. AI replies instantly in Arabic &amp; English.
-          Qualify leads, book appointments, and run campaigns — all automated.
-        </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/register" style={{ padding: '14px 32px', background: '#C9A96E', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.01em' }}>
-            Start Free — Setup in 5 min →
-          </Link>
-          <Link href="/login" style={{ padding: '14px 24px', background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '8px', color: '#e2e8f0', textDecoration: 'none', fontSize: '15px' }}>
-            View Demo
-          </Link>
-        </div>
-        <p style={{ marginTop: '14px', fontSize: '11px', color: '#475569' }}>No credit card required · Qatar data residency · PDPL compliant</p>
-        </div>
-      </section>
+      {/* ─── Hero (HLS video, glass card, mobile menu) ──────────────── */}
+      <HeroVideo />
 
       {/* ─── Channel badges ─────────────────────────────────────────── */}
       <section style={{ maxWidth: '700px', margin: '0 auto 80px', padding: '0 24px', textAlign: 'center' }}>
@@ -174,7 +130,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Features ───────────────────────────────────────────────── */}
-      <section style={{ maxWidth: '960px', margin: '0 auto', padding: '80px 24px' }}>
+      <section id="features" style={{ maxWidth: '960px', margin: '0 auto', padding: '80px 24px', scrollMarginTop: '80px' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h2 style={{ fontSize: '36px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>Everything your team needs</h2>
           <p style={{ fontSize: '16px', color: '#94a3b8' }}>Replace 6 tools with one platform. Built specifically for the GCC market.</p>
@@ -211,7 +167,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Pricing (live, owner-editable) ─────────────────────────── */}
-      <PricingSection />
+      <div id="pricing" style={{ scrollMarginTop: '80px' }}><PricingSection /></div>
 
       {/* ─── Backed by Hayya Med AI ─────────────────────────────────── */}
       <section style={{ borderTop: '1px solid #1a2235', padding: '72px 24px', textAlign: 'center', maxWidth: '820px', margin: '0 auto' }}>

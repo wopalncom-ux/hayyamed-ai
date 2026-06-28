@@ -1,5 +1,10 @@
+import { Inter, Plus_Jakarta_Sans, Instrument_Serif } from 'next/font/google'
 import AuthGuard from '@/components/AuthGuard'
 import PwaProvider from '@/components/PwaProvider'
+
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '700', '800'], variable: '--font-inter', display: 'swap' })
+const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-jakarta', display: 'swap' })
+const serif = Instrument_Serif({ subsets: ['latin'], weight: '400', style: 'italic', variable: '--font-serif', display: 'swap' })
 
 const SITE = 'https://www.hayyaai.com'
 const DESC = 'Hayya AI is an AI customer-engagement platform: WhatsApp & Instagram AI agents, an omnichannel inbox, CRM, and automation. Built & operated by Hayya Med AI in Doha, Qatar.'
@@ -91,7 +96,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${jakarta.variable} ${serif.variable}`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
         <style dangerouslySetInnerHTML={{ __html: `
