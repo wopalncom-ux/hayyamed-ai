@@ -57,7 +57,7 @@ export default function Webhooks() {
               {EVENTS.map(ev => <option key={ev.id} value={ev.id}>{ev.label}</option>)}
             </select>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={add} disabled={saving} style={{ flex: 1, padding: '11px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{saving ? 'Adding…' : 'Add webhook'}</button>
+              <button onClick={add} disabled={saving} style={{ flex: 1, padding: '11px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{saving ? 'Adding…' : 'Add webhook'}</button>
               <button onClick={test} disabled={testing} style={{ padding: '11px 16px', background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.3)', borderRadius: '8px', color: '#a78bfa', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>{testing ? '…' : 'Send test'}</button>
             </div>
             <div style={{ fontSize: '10px', color: '#475569' }}>Payload: <code style={{ color: '#a78bfa' }}>{'{ event, data, timestamp }'}</code>. Header <code style={{ color: '#a78bfa' }}>X-Hayya-Event</code> identifies the event.</div>
@@ -81,7 +81,7 @@ export default function Webhooks() {
           </div>
         )}
       </main>
-      {toast && <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#07090f' : '#fff', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', zIndex: 100 }}>{toast.msg}</div>}
+      {toast && <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#07090f' : '#fff', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', zIndex: 100 }}>{toast.msg}</div>}
     </div>
   )
 }

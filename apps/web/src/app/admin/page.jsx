@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
-const PLAN_COLORS = { STARTER:'#3b82f6', GROWTH:'#00e5a0', ENTERPRISE:'#a78bfa', SUSPENDED:'#ef4444' }
+const PLAN_COLORS = { STARTER:'#3b82f6', GROWTH:'#D8B16A', ENTERPRISE:'#a78bfa', SUSPENDED:'#ef4444' }
 const PLAN_LABELS = { STARTER:'Starter', GROWTH:'Growth', ENTERPRISE:'Enterprise', SUSPENDED:'Suspended' }
 
 function StatCard({ label, value, icon, color }) {
@@ -39,7 +39,7 @@ function EmailTestPanel() {
     <div style={{ paddingTop: '8px', maxWidth: '560px' }}>
       <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>📧 Email System</div>
       <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '20px' }}>
-        Powered by Postmark. Set <code style={{ background: '#1a2235', padding: '1px 5px', borderRadius: '3px', color: '#00e5a0' }}>POSTMARK_SERVER_TOKEN</code> in GCP Secret Manager to activate. Without it, emails are logged to console only.
+        Powered by Postmark. Set <code style={{ background: '#1a2235', padding: '1px 5px', borderRadius: '3px', color: '#D8B16A' }}>POSTMARK_SERVER_TOKEN</code> in GCP Secret Manager to activate. Without it, emails are logged to console only.
       </div>
 
       <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '10px', padding: '20px' }}>
@@ -56,11 +56,11 @@ function EmailTestPanel() {
             <option value="all">All Templates (4 emails)</option>
           </select>
           <button onClick={send} disabled={sending || !to} style={{
-            padding: '10px 20px', background: sending || !to ? '#1a2235' : '#00e5a0',
+            padding: '10px 20px', background: sending || !to ? '#1a2235' : '#D8B16A',
             color: sending || !to ? '#64748b' : '#0a0f1a', border: 'none', borderRadius: '6px', cursor: sending || !to ? 'not-allowed' : 'pointer', fontWeight: '700', fontSize: '14px',
           }}>{sending ? 'Sending...' : 'Send Test'}</button>
           {result && (
-            <div style={{ padding: '10px 14px', borderRadius: '6px', background: result.ok ? '#00e5a022' : '#ef444422', color: result.ok ? '#00e5a0' : '#ef4444', fontSize: '13px', fontWeight: '600' }}>
+            <div style={{ padding: '10px 14px', borderRadius: '6px', background: result.ok ? '#D8B16A22' : '#ef444422', color: result.ok ? '#D8B16A' : '#ef4444', fontSize: '13px', fontWeight: '600' }}>
               {result.ok ? '✓' : '✗'} {result.msg}
             </div>
           )}
@@ -84,7 +84,7 @@ function EmailTestPanel() {
               <div style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0' }}>{t.name}</div>
               <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{t.trigger}</div>
             </div>
-            <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: '#00e5a022', color: '#00e5a0', fontWeight: '700' }}>{t.tag}</span>
+            <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: '#D8B16A22', color: '#D8B16A', fontWeight: '700' }}>{t.tag}</span>
           </div>
         ))}
       </div>
@@ -171,7 +171,7 @@ export default function MasterAdminPanel() {
           </div>
           <a
             href="/admin/clients/new"
-            style={{ padding:'8px 16px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'13px', cursor:'pointer', textDecoration:'none' }}
+            style={{ padding:'8px 16px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'13px', cursor:'pointer', textDecoration:'none' }}
           >
             + Add New Client
           </a>
@@ -191,7 +191,7 @@ export default function MasterAdminPanel() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              style={{ padding:'12px 20px', background:'none', border:'none', borderBottom: tab===t.id ? '2px solid #00e5a0' : '2px solid transparent', color: tab===t.id ? '#e2e8f0' : '#64748b', fontSize:'13px', fontWeight:'600', cursor:'pointer' }}
+              style={{ padding:'12px 20px', background:'none', border:'none', borderBottom: tab===t.id ? '2px solid #D8B16A' : '2px solid transparent', color: tab===t.id ? '#e2e8f0' : '#64748b', fontSize:'13px', fontWeight:'600', cursor:'pointer' }}
             >
               {t.label}
             </button>
@@ -202,7 +202,7 @@ export default function MasterAdminPanel() {
           {/* Stats Row */}
           {stats && (
             <div style={{ display:'flex', gap:'12px', marginBottom:'20px', flexWrap:'wrap' }}>
-              <StatCard label="Total Orgs" value={stats.totalOrgs} icon="🏢" color="#00e5a0" />
+              <StatCard label="Total Orgs" value={stats.totalOrgs} icon="🏢" color="#D8B16A" />
               <StatCard label="Total Users" value={stats.totalUsers} icon="👥" color="#3b82f6" />
               <StatCard label="Total Contacts" value={stats.totalContacts} icon="📇" color="#a78bfa" />
               <StatCard label="Total Messages" value={stats.totalMessages?.toLocaleString()} icon="💬" color="#f97316" />
@@ -323,7 +323,7 @@ export default function MasterAdminPanel() {
                   <div style={{ fontWeight: '700', fontSize: '16px' }}>AI Observability</div>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Track AI cost, latency, provider usage, and quality across all orgs.</div>
                 </div>
-                <a href="/admin/ai-observability" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                <a href="/admin/ai-observability" style={{ padding: '8px 16px', background: '#D8B16A', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
                   Open Dashboard →
                 </a>
               </div>
@@ -340,7 +340,7 @@ export default function MasterAdminPanel() {
                   <div style={{ fontWeight: '700', fontSize: '16px' }}>Audit Dashboard</div>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Complete append-only audit trail — auth, user, AI, billing, admin, and security events.</div>
                 </div>
-                <a href="/admin/audit" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                <a href="/admin/audit" style={{ padding: '8px 16px', background: '#D8B16A', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
                   Open Log →
                 </a>
               </div>
@@ -357,7 +357,7 @@ export default function MasterAdminPanel() {
                   <div style={{ fontWeight: '700', fontSize: '16px' }}>AI Quality Engine</div>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Success rate, escalation rate, user feedback, and model performance — graded A–F.</div>
                 </div>
-                <a href="/admin/ai-quality" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                <a href="/admin/ai-quality" style={{ padding: '8px 16px', background: '#D8B16A', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
                   Open Dashboard →
                 </a>
               </div>
@@ -374,7 +374,7 @@ export default function MasterAdminPanel() {
                   <div style={{ fontWeight: '700', fontSize: '16px' }}>Customer Health Engine</div>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Engagement, adoption, automation and AI scores per org — identify churn risk early.</div>
                 </div>
-                <a href="/admin/customer-health" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                <a href="/admin/customer-health" style={{ padding: '8px 16px', background: '#D8B16A', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
                   Open Dashboard →
                 </a>
               </div>
@@ -391,7 +391,7 @@ export default function MasterAdminPanel() {
                   <div style={{ fontWeight: '700', fontSize: '16px' }}>Feature Flags</div>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Control platform features globally. Changes take effect within 30s.</div>
                 </div>
-                <a href="/admin/feature-flags" style={{ padding: '8px 16px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                <a href="/admin/feature-flags" style={{ padding: '8px 16px', background: '#D8B16A', color: '#0a0f1a', borderRadius: '6px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
                   Open Full Editor →
                 </a>
               </div>
@@ -498,7 +498,7 @@ export default function MasterAdminPanel() {
               <button onClick={() => setShowCreate(false)} style={{ flex:1, padding:'10px', background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'6px', color:'#64748b', cursor:'pointer', fontSize:'13px' }}>
                 Cancel
               </button>
-              <button onClick={createOrg} disabled={creating} style={{ flex:1, padding:'10px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', cursor:'pointer', fontSize:'13px' }}>
+              <button onClick={createOrg} disabled={creating} style={{ flex:1, padding:'10px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', cursor:'pointer', fontSize:'13px' }}>
                 {creating ? 'Creating...' : 'Create Organization'}
               </button>
             </div>

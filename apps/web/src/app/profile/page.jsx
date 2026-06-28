@@ -54,8 +54,8 @@ export default function Profile() {
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
-        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
+        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
+        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.2)', color:'#D8B16A', borderRadius:'2px'}}>● LIVE</div>
       </div>
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
@@ -117,7 +117,7 @@ export default function Profile() {
                     {label:'Won Leads',      value: kpis.wonLeads},
                   ].map(s => (
                     <div key={s.label} style={{textAlign:'center', padding:'16px', background:'#111622', borderRadius:'6px'}}>
-                      <div style={{fontSize:'22px', fontWeight:'800', color:'#00e5a0', marginBottom:'4px'}}>{s.value ?? '—'}</div>
+                      <div style={{fontSize:'22px', fontWeight:'800', color:'#D8B16A', marginBottom:'4px'}}>{s.value ?? '—'}</div>
                       <div style={{fontSize:'10px', color:'#3d4f63'}}>{s.label}</div>
                     </div>
                   ))}
@@ -127,7 +127,7 @@ export default function Profile() {
 
             <div style={{display:'flex', gap:'10px'}}>
               <button onClick={save}
-                style={{padding:'10px 24px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
+                style={{padding:'10px 24px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
                 {saved ? '✅ Saved!' : 'Save Changes'}
               </button>
               <button onClick={logout}

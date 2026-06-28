@@ -10,7 +10,7 @@ const Code = ({ children }) => (
 )
 const H = ({ children }) => <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '34px 0 8px', color: '#fff' }}>{children}</h2>
 const P = ({ children }) => <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: 1.75, margin: '8px 0' }}>{children}</p>
-const Pill = ({ children, c = '#00e5a0' }) => <span style={{ fontSize: '11px', fontWeight: 800, color: c, background: c + '1a', border: `1px solid ${c}44`, borderRadius: '5px', padding: '2px 8px' }}>{children}</span>
+const Pill = ({ children, c = '#D8B16A' }) => <span style={{ fontSize: '11px', fontWeight: 800, color: c, background: c + '1a', border: `1px solid ${c}44`, borderRadius: '5px', padding: '2px 8px' }}>{children}</span>
 
 export default function Developers() {
   const base = 'https://api.hayyaai.com/api/v1'
@@ -19,10 +19,10 @@ export default function Developers() {
       <div style={{ maxWidth: '820px', margin: '0 auto', padding: '48px 24px 80px' }}>
         <div style={{ fontSize: '11px', color: '#a78bfa', fontWeight: 700, letterSpacing: '0.1em' }}>HAYYA AI</div>
         <h1 style={{ fontSize: '34px', fontWeight: 900, margin: '6px 0 4px' }}>Developer API & Webhooks</h1>
-        <P>Push leads into your CRM from anywhere, and receive real-time events in your own systems. Base URL <code style={{ color: '#00e5a0' }}>{base}</code></P>
+        <P>Push leads into your CRM from anywhere, and receive real-time events in your own systems. Base URL <code style={{ color: '#D8B16A' }}>{base}</code></P>
 
         <H>Authentication</H>
-        <P>Create an API key in your dashboard at <Link href="/integrations/api" style={{ color: '#00e5a0' }}>Integrations → API & Keys</Link>. Send it in the <code style={{ color: '#a78bfa' }}>X-API-Key</code> header on every request. Keys are shown once — store them securely.</P>
+        <P>Create an API key in your dashboard at <Link href="/integrations/api" style={{ color: '#D8B16A' }}>Integrations → API & Keys</Link>. Send it in the <code style={{ color: '#a78bfa' }}>X-API-Key</code> header on every request. Keys are shown once — store them securely.</P>
         <Code>{`X-API-Key: hk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`}</Code>
 
         <H>Create a lead <Pill>POST</Pill></H>
@@ -42,7 +42,7 @@ export default function Developers() {
   "status": "NEW", "score": 33, "source": "website" }`}</Code>
 
         <H>Webhooks</H>
-        <P>Register endpoints at <Link href="/integrations/webhooks" style={{ color: '#00e5a0' }}>Integrations → Webhooks</Link>. We POST a JSON body when an event fires. Available events:</P>
+        <P>Register endpoints at <Link href="/integrations/webhooks" style={{ color: '#D8B16A' }}>Integrations → Webhooks</Link>. We POST a JSON body when an event fires. Available events:</P>
         <ul style={{ color: '#94a3b8', fontSize: '14px', lineHeight: 2, margin: '8px 0 8px 18px' }}>
           <li><code style={{ color: '#a78bfa' }}>contact.created</code> — a new lead was created</li>
           <li><code style={{ color: '#a78bfa' }}>conversation.escalated</code> — a customer asked for a human</li>
@@ -75,7 +75,7 @@ function verify(rawBody, signature, secret) {
         </ul>
 
         <div style={{ marginTop: '40px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <Link href="/integrations/api" style={{ padding: '11px 22px', background: '#00e5a0', color: '#07090f', borderRadius: '8px', fontWeight: 800, fontSize: '13px', textDecoration: 'none' }}>Get an API key →</Link>
+          <Link href="/integrations/api" style={{ padding: '11px 22px', background: '#D8B16A', color: '#07090f', borderRadius: '8px', fontWeight: 800, fontSize: '13px', textDecoration: 'none' }}>Get an API key →</Link>
           <Link href="/integrations/webhooks" style={{ padding: '11px 22px', background: '#111622', border: '1px solid #1a2235', color: '#e2e8f0', borderRadius: '8px', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>Set up webhooks</Link>
         </div>
         <div style={{ marginTop: '40px', borderTop: '1px solid #1a2235', paddingTop: '20px', fontSize: '11px', color: '#475569' }}>

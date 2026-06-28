@@ -21,7 +21,7 @@ function PasswordStrength({ password }) {
     /[^a-zA-Z0-9]/.test(password),
   ]
   const score = checks.filter(Boolean).length
-  const color = score <= 1 ? '#ef4444' : score === 2 ? '#f97316' : score === 3 ? '#fbbf24' : '#00e5a0'
+  const color = score <= 1 ? '#ef4444' : score === 2 ? '#f97316' : score === 3 ? '#fbbf24' : '#D8B16A'
   const label = ['', 'Weak', 'Fair', 'Good', 'Strong'][score]
   return (
     <div style={{ marginTop: '6px' }}>
@@ -98,7 +98,7 @@ export default function Register() {
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <a href="/" style={{ textDecoration: 'none' }}>
             <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', marginBottom: '6px' }}>
-              Hayya<span style={{ color: '#00e5a0' }}>med</span>{' '}
+              Hayya<span style={{ color: '#D8B16A' }}>med</span>{' '}
               <span style={{ color: '#64748b', fontWeight: '400', fontSize: '20px' }}>AI</span>
             </div>
           </a>
@@ -107,9 +107,9 @@ export default function Register() {
             {['① Register', '② Setup', '③ Launch'].map((s, i) => (
               <div key={s} style={{
                 fontSize: '10px', padding: '3px 12px', borderRadius: '12px', fontWeight: i === 0 ? '700' : '400',
-                background: i === 0 ? 'rgba(0,229,160,.12)' : '#0c0f1a',
-                color: i === 0 ? '#00e5a0' : '#3d4f63',
-                border: `1px solid ${i === 0 ? 'rgba(0,229,160,.3)' : '#1a2235'}`,
+                background: i === 0 ? 'rgba(216,177,106,.12)' : '#0c0f1a',
+                color: i === 0 ? '#D8B16A' : '#3d4f63',
+                border: `1px solid ${i === 0 ? 'rgba(216,177,106,.3)' : '#1a2235'}`,
               }}>{s}</div>
             ))}
           </div>
@@ -193,12 +193,12 @@ export default function Register() {
           {/* Terms */}
           <label style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', cursor: 'pointer', marginBottom: '22px' }}>
             <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
-              style={{ marginTop: '2px', accentColor: '#00e5a0', flexShrink: 0, width: '15px', height: '15px' }} />
+              style={{ marginTop: '2px', accentColor: '#D8B16A', flexShrink: 0, width: '15px', height: '15px' }} />
             <span style={{ fontSize: '11px', color: '#64748b', lineHeight: '1.7' }}>
               I agree to the{' '}
-              <a href="/terms" target="_blank" style={{ color: '#00e5a0', textDecoration: 'none' }}>Terms of Service</a>{' '}
+              <a href="/terms" target="_blank" style={{ color: '#D8B16A', textDecoration: 'none' }}>Terms of Service</a>{' '}
               and{' '}
-              <a href="/privacy" target="_blank" style={{ color: '#00e5a0', textDecoration: 'none' }}>Privacy Policy</a>.
+              <a href="/privacy" target="_blank" style={{ color: '#D8B16A', textDecoration: 'none' }}>Privacy Policy</a>.
               Your data stays in Qatar (me-central1) — PDPL &amp; GDPR compliant.
             </span>
           </label>
@@ -206,7 +206,7 @@ export default function Register() {
           {/* CTA */}
           <button onClick={doRegister} disabled={loading} style={{
             width: '100%', height: '50px',
-            background: loading ? '#1a2235' : 'linear-gradient(135deg,#00e5a0,#00c98a)',
+            background: loading ? '#1a2235' : 'linear-gradient(135deg,#D8B16A,#00c98a)',
             color: loading ? '#7a8fa6' : '#07090f',
             border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '800',
             cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.3px', transition: 'opacity .15s',
@@ -224,7 +224,7 @@ export default function Register() {
 
         <div style={{ textAlign: 'center', marginTop: '18px', fontSize: '12px', color: '#3d4f63' }}>
           Already have an account?{' '}
-          <Link href="/login" style={{ color: '#00e5a0', textDecoration: 'none', fontWeight: '700' }}>Sign in →</Link>
+          <Link href="/login" style={{ color: '#D8B16A', textDecoration: 'none', fontWeight: '700' }}>Sign in →</Link>
         </div>
       </div>
     </div>

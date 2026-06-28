@@ -76,7 +76,7 @@ export default function PaymentsControl() {
   }
   const statusColor = (s) => {
     const v = String(s || '').toLowerCase()
-    if (v === 'paid') return '#00e5a0'
+    if (v === 'paid') return '#D8B16A'
     if (v === 'failed' || v === 'expired' || v === 'canceled' || v === 'cancelled') return '#ef4444'
     return '#fbbf24'
   }
@@ -120,9 +120,9 @@ export default function PaymentsControl() {
         {/* Status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
           <span style={{ fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '12px',
-            background: status?.configured ? 'rgba(0,229,160,.12)' : 'rgba(100,116,139,.12)',
-            border: `1px solid ${status?.configured ? 'rgba(0,229,160,.3)' : 'rgba(100,116,139,.3)'}`,
-            color: status?.configured ? '#00e5a0' : '#94a3b8' }}>
+            background: status?.configured ? 'rgba(216,177,106,.12)' : 'rgba(100,116,139,.12)',
+            border: `1px solid ${status?.configured ? 'rgba(216,177,106,.3)' : 'rgba(100,116,139,.3)'}`,
+            color: status?.configured ? '#D8B16A' : '#94a3b8' }}>
             {status == null ? '…' : status.configured ? `● Connected${status.isTest ? ' (Test mode)' : ' (Live)'}` : '○ Not connected'}
           </span>
           {status?.configured && <button onClick={disconnect} style={{ fontSize: '11px', color: '#ef4444', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>Disconnect</button>}
@@ -132,7 +132,7 @@ export default function PaymentsControl() {
         {summary && summary.total > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '20px' }}>
             {[
-              { label: 'Received', value: money(summary.paidByCurrency), color: '#00e5a0' },
+              { label: 'Received', value: money(summary.paidByCurrency), color: '#D8B16A' },
               { label: 'This month', value: money(summary.monthByCurrency), color: '#a78bfa' },
               { label: 'Paid', value: String(summary.paidCount), color: '#3b82f6' },
               { label: 'Pending', value: String(summary.pendingCount), color: '#fbbf24' },
@@ -167,16 +167,16 @@ export default function PaymentsControl() {
                   {[[true, 'Test'], [false, 'Live']].map(([val, lbl]) => (
                     <button key={lbl} onClick={() => setIsTest(val)}
                       style={{ flex: 1, padding: '9px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 700,
-                        background: isTest === val ? (val ? 'rgba(251,191,36,.15)' : 'rgba(0,229,160,.15)') : '#111622',
-                        border: `1px solid ${isTest === val ? (val ? '#fbbf24' : '#00e5a0') : '#1a2235'}`,
-                        color: isTest === val ? (val ? '#fbbf24' : '#00e5a0') : '#64748b' }}>
+                        background: isTest === val ? (val ? 'rgba(251,191,36,.15)' : 'rgba(216,177,106,.15)') : '#111622',
+                        border: `1px solid ${isTest === val ? (val ? '#fbbf24' : '#D8B16A') : '#1a2235'}`,
+                        color: isTest === val ? (val ? '#fbbf24' : '#D8B16A') : '#64748b' }}>
                       {lbl}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-            <button onClick={save} disabled={saving} style={{ padding: '11px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: saving ? 'wait' : 'pointer' }}>
+            <button onClick={save} disabled={saving} style={{ padding: '11px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: saving ? 'wait' : 'pointer' }}>
               {saving ? 'Saving…' : status?.configured ? 'Update configuration' : 'Connect MyFatoorah'}
             </button>
           </div>
@@ -187,8 +187,8 @@ export default function PaymentsControl() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
             <div style={{ fontWeight: 800, fontSize: '15px', color: '#a78bfa' }}>Platform billing account</div>
             <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '10px',
-              background: pfStatus?.configured ? 'rgba(0,229,160,.12)' : 'rgba(100,116,139,.12)',
-              color: pfStatus?.configured ? '#00e5a0' : '#94a3b8' }}>
+              background: pfStatus?.configured ? 'rgba(216,177,106,.12)' : 'rgba(100,116,139,.12)',
+              color: pfStatus?.configured ? '#D8B16A' : '#94a3b8' }}>
               {pfStatus == null ? '…' : pfStatus.configured ? `● Connected${pfStatus.isTest ? ' (Test)' : ''}` : '○ Not connected'}
             </span>
           </div>
@@ -213,7 +213,7 @@ export default function PaymentsControl() {
               <button onClick={savePf} disabled={pfSaving} style={{ flex: 1, padding: '11px', background: '#a78bfa', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: pfSaving ? 'wait' : 'pointer' }}>{pfSaving ? 'Saving…' : pfStatus?.configured ? 'Update platform account' : 'Connect platform billing'}</button>
               {pfStatus?.configured && <button onClick={disconnectPf} style={{ padding: '11px 16px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: '8px', color: '#ef4444', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Disconnect</button>}
             </div>
-            <div style={{ fontSize: '11px', color: pfStatus?.configured ? '#00e5a0' : '#475569' }}>{pfStatus?.configured ? '✓ Subscription checkout is live — customers pay through MyFatoorah and are activated automatically.' : 'Until connected, subscription checkout falls back to simulated activation.'}</div>
+            <div style={{ fontSize: '11px', color: pfStatus?.configured ? '#D8B16A' : '#475569' }}>{pfStatus?.configured ? '✓ Subscription checkout is live — customers pay through MyFatoorah and are activated automatically.' : 'Until connected, subscription checkout falls back to simulated activation.'}</div>
           </div>
         </div>
 
@@ -228,8 +228,8 @@ export default function PaymentsControl() {
             <button onClick={createLink} disabled={paying || !status?.configured} style={{ padding: '10px 18px', height: '40px', background: status?.configured ? '#a78bfa' : '#1a2235', border: 'none', borderRadius: '8px', color: status?.configured ? '#07090f' : '#475569', fontWeight: 800, fontSize: '12px', cursor: paying ? 'wait' : status?.configured ? 'pointer' : 'not-allowed' }}>{paying ? '…' : 'Create link'}</button>
           </div>
           {payResult?.paymentUrl && (
-            <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(0,229,160,.06)', border: '1px solid rgba(0,229,160,.2)', borderRadius: '8px' }}>
-              <div style={{ fontSize: '11px', color: '#00e5a0', fontWeight: 700, marginBottom: '6px' }}>✓ Payment link created (Invoice #{payResult.invoiceId})</div>
+            <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(216,177,106,.06)', border: '1px solid rgba(216,177,106,.2)', borderRadius: '8px' }}>
+              <div style={{ fontSize: '11px', color: '#D8B16A', fontWeight: 700, marginBottom: '6px' }}>✓ Payment link created (Invoice #{payResult.invoiceId})</div>
               <a href={payResult.paymentUrl} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#a78bfa', wordBreak: 'break-all' }}>{payResult.paymentUrl}</a>
             </div>
           )}
@@ -260,7 +260,7 @@ export default function PaymentsControl() {
       </main>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#07090f' : '#fff', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', zIndex: 100 }}>{toast.msg}</div>
+        <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#07090f' : '#fff', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', zIndex: 100 }}>{toast.msg}</div>
       )}
     </div>
   )

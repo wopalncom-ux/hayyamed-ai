@@ -33,11 +33,11 @@ export default function ApiKeys() {
         <div style={{ background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '12px', padding: '20px', margin: '20px 0' }}>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Key name (e.g. Website form)" style={{ ...inp, flex: 1, boxSizing: 'border-box' }} />
-            <button onClick={add} style={{ padding: '10px 18px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Generate key</button>
+            <button onClick={add} style={{ padding: '10px 18px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Generate key</button>
           </div>
           {created && (
-            <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(0,229,160,.06)', border: '1px solid rgba(0,229,160,.25)', borderRadius: '8px' }}>
-              <div style={{ fontSize: '11px', color: '#00e5a0', fontWeight: 700, marginBottom: '6px' }}>✓ Copy this key now — it won’t be shown again</div>
+            <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(216,177,106,.06)', border: '1px solid rgba(216,177,106,.25)', borderRadius: '8px' }}>
+              <div style={{ fontSize: '11px', color: '#D8B16A', fontWeight: 700, marginBottom: '6px' }}>✓ Copy this key now — it won’t be shown again</div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <code style={{ flex: 1, fontSize: '12px', color: '#e2e8f0', wordBreak: 'break-all' }}>{created.key}</code>
                 <button onClick={copy} style={{ padding: '6px 12px', background: '#1a2235', border: 'none', borderRadius: '6px', color: '#e2e8f0', fontSize: '11px', cursor: 'pointer' }}>{copied ? 'Copied' : 'Copy'}</button>

@@ -13,7 +13,7 @@ function PasswordStrength({ password }) {
     /[^a-zA-Z0-9]/.test(password),
   ]
   const score = checks.filter(Boolean).length
-  const color = score <= 1 ? '#ef4444' : score === 2 ? '#f97316' : score === 3 ? '#fbbf24' : '#00e5a0'
+  const color = score <= 1 ? '#ef4444' : score === 2 ? '#f97316' : score === 3 ? '#fbbf24' : '#D8B16A'
   const label = ['', 'Weak', 'Fair', 'Good', 'Strong'][score]
   return (
     <div style={{ marginTop: '6px' }}>
@@ -68,7 +68,7 @@ function ResetForm() {
             Redirecting you to sign in…
           </div>
           <div style={{ width: '100%', height: '3px', background: '#1a2235', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', background: '#00e5a0', animation: 'grow 3s linear forwards', width: '0%' }} />
+            <div style={{ height: '100%', background: '#D8B16A', animation: 'grow 3s linear forwards', width: '0%' }} />
           </div>
           <style>{`@keyframes grow { to { width: 100% } }`}</style>
         </div>
@@ -81,7 +81,7 @@ function ResetForm() {
               <div style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.7', marginBottom: '20px' }}>
                 This link is invalid or has expired. Please request a new password reset.
               </div>
-              <Link href="/forgot-password" style={{ display: 'inline-block', padding: '10px 24px', background: '#00e5a0', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
+              <Link href="/forgot-password" style={{ display: 'inline-block', padding: '10px 24px', background: '#D8B16A', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
                 Request New Link →
               </Link>
             </div>
@@ -135,7 +135,7 @@ function ResetForm() {
 
               <button onClick={submit} disabled={loading || !token} style={{
                 width: '100%', height: '46px',
-                background: loading ? '#1a2235' : 'linear-gradient(135deg,#00e5a0,#00c98a)',
+                background: loading ? '#1a2235' : 'linear-gradient(135deg,#D8B16A,#00c98a)',
                 color: loading ? '#7a8fa6' : '#07090f',
                 border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '800',
                 cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.3px',
@@ -158,7 +158,7 @@ export default function ResetPassword() {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <a href="/" style={{ textDecoration: 'none' }}>
             <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', marginBottom: '6px' }}>
-              Hayya<span style={{ color: '#00e5a0' }}>med</span>{' '}
+              Hayya<span style={{ color: '#D8B16A' }}>med</span>{' '}
               <span style={{ color: '#64748b', fontWeight: '400', fontSize: '20px' }}>AI</span>
             </div>
           </a>
@@ -170,7 +170,7 @@ export default function ResetPassword() {
         </Suspense>
 
         <div style={{ textAlign: 'center', marginTop: '18px', fontSize: '12px', color: '#3d4f63' }}>
-          <Link href="/login" style={{ color: '#00e5a0', textDecoration: 'none', fontWeight: '700' }}>← Back to Sign In</Link>
+          <Link href="/login" style={{ color: '#D8B16A', textDecoration: 'none', fontWeight: '700' }}>← Back to Sign In</Link>
           {' · '}
           <Link href="/forgot-password" style={{ color: '#64748b', textDecoration: 'none' }}>Request new link</Link>
         </div>

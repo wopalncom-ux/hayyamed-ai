@@ -5,7 +5,7 @@ import NavSidebar from '@/components/NavSidebar'
 
 // ─── Node definitions ───────────────────────────────────────────────────────
 const NODE_TYPES = [
-  { type:'trigger',   icon:'⚡', label:'Trigger',       color:'#00e5a0', desc:'Starts the automation' },
+  { type:'trigger',   icon:'⚡', label:'Trigger',       color:'#D8B16A', desc:'Starts the automation' },
   { type:'message',   icon:'💬', label:'Send Message',  color:'#3b82f6', desc:'WhatsApp/Instagram message' },
   { type:'condition', icon:'🔀', label:'Condition',     color:'#f97316', desc:'Branch based on data' },
   { type:'ai',        icon:'🤖', label:'AI Reply',      color:'#a78bfa', desc:'Generate smart response' },
@@ -25,7 +25,7 @@ const TRIGGER_TYPES = [
 ]
 
 const INITIAL_NODES = [
-  { id:'n1', type:'trigger',   title:'New WhatsApp Message', config:{ trigger:'new_message' }, x:60,  y:80,  color:'#00e5a0' },
+  { id:'n1', type:'trigger',   title:'New WhatsApp Message', config:{ trigger:'new_message' }, x:60,  y:80,  color:'#D8B16A' },
   { id:'n2', type:'condition', title:'Check Intent',         config:{ field:'message', op:'contains', value:'مرحبا,hello,hi' }, x:300, y:80,  color:'#f97316' },
   { id:'n3', type:'ai',        title:'AI Welcome Reply',     config:{ provider:'openai', model:'gpt-4o', tone:'friendly' }, x:540, y:20,  color:'#a78bfa' },
   { id:'n4', type:'message',   title:'Generic Reply',        config:{ message:'شكراً لتواصلك معنا! كيف يمكنني مساعدتك؟' }, x:540, y:160, color:'#3b82f6' },
@@ -61,7 +61,7 @@ function WorkflowLibrary({ workflows, activeId, onSelect, onCreate, onToggle, on
       <div style={{ padding:'14px', borderBottom:'1px solid #1a2235' }}>
         <div style={{ fontSize:'10px', color:'#a78bfa', fontWeight:'700', letterSpacing:'0.05em', marginBottom:'4px' }}>AUTOMATIONS</div>
         <button onClick={onCreate}
-          style={{ width:'100%', padding:'7px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer' }}
+          style={{ width:'100%', padding:'7px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer' }}
         >
           + New Automation
         </button>
@@ -71,13 +71,13 @@ function WorkflowLibrary({ workflows, activeId, onSelect, onCreate, onToggle, on
           <div style={{ color:'#3d4f63', fontSize:'11px', textAlign:'center', padding:'20px 8px' }}>No automations yet</div>
         ) : workflows.map(wf => (
           <div key={wf.id} onClick={() => onSelect(wf)}
-            style={{ padding:'10px 12px', background: activeId===wf.id ? 'rgba(0,229,160,.08)' : '#111622', border:`1px solid ${activeId===wf.id ? 'rgba(0,229,160,.25)' : '#1a2235'}`, borderRadius:'6px', marginBottom:'6px', cursor:'pointer' }}
+            style={{ padding:'10px 12px', background: activeId===wf.id ? 'rgba(216,177,106,.08)' : '#111622', border:`1px solid ${activeId===wf.id ? 'rgba(216,177,106,.25)' : '#1a2235'}`, borderRadius:'6px', marginBottom:'6px', cursor:'pointer' }}
           >
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px' }}>
               <div style={{ fontWeight:'600', fontSize:'12px', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{wf.name}</div>
               <div
                 onClick={e => { e.stopPropagation(); onToggle(wf) }}
-                style={{ width:'28px', height:'16px', borderRadius:'8px', background: wf.isActive ? '#00e5a0' : '#1e2940', cursor:'pointer', position:'relative', flexShrink:0 }}
+                style={{ width:'28px', height:'16px', borderRadius:'8px', background: wf.isActive ? '#D8B16A' : '#1e2940', cursor:'pointer', position:'relative', flexShrink:0 }}
               >
                 <div style={{ width:'12px', height:'12px', borderRadius:'50%', background:'white', position:'absolute', top:'2px', left: wf.isActive ? '14px' : '2px', transition:'left .15s' }}></div>
               </div>
@@ -473,19 +473,19 @@ export default function AutomationBuilder() {
               <div style={{ fontSize:'14px', fontWeight:'800' }}>{activeWF?.name || 'Untitled Automation'}</div>
             </div>
             {activeWF && (
-              <span style={{ fontSize:'10px', padding:'2px 8px', borderRadius:'3px', background: activeWF.isActive ? 'rgba(0,229,160,.1)' : 'rgba(100,116,139,.1)', color: activeWF.isActive ? '#00e5a0' : '#64748b', border:`1px solid ${activeWF.isActive ? 'rgba(0,229,160,.2)' : 'rgba(100,116,139,.2)'}`, fontWeight:'700' }}>
+              <span style={{ fontSize:'10px', padding:'2px 8px', borderRadius:'3px', background: activeWF.isActive ? 'rgba(216,177,106,.1)' : 'rgba(100,116,139,.1)', color: activeWF.isActive ? '#D8B16A' : '#64748b', border:`1px solid ${activeWF.isActive ? 'rgba(216,177,106,.2)' : 'rgba(100,116,139,.2)'}`, fontWeight:'700' }}>
                 {activeWF.isActive ? '● LIVE' : '○ PAUSED'}
               </span>
             )}
           </div>
           <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
-            {status === 'saved' && <span style={{ fontSize:'10px', color:'#00e5a0' }}>✅ Saved</span>}
+            {status === 'saved' && <span style={{ fontSize:'10px', color:'#D8B16A' }}>✅ Saved</span>}
             {status === 'error' && <span style={{ fontSize:'10px', color:'#ef4444' }}>⚠️ Error</span>}
             <div style={{ fontSize:'10px', color:'#3d4f63', padding:'4px 8px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px' }}>
               Shift+drag = draw edge
             </div>
             <button onClick={saveWorkflow} disabled={saving || !activeWF}
-              style={{ padding:'7px 18px', background: activeWF ? '#00e5a0' : '#1a2235', border:'none', borderRadius:'6px', color: activeWF ? '#07090f' : '#3d4f63', fontWeight:'700', fontSize:'12px', cursor: activeWF ? 'pointer' : 'not-allowed' }}
+              style={{ padding:'7px 18px', background: activeWF ? '#D8B16A' : '#1a2235', border:'none', borderRadius:'6px', color: activeWF ? '#07090f' : '#3d4f63', fontWeight:'700', fontSize:'12px', cursor: activeWF ? 'pointer' : 'not-allowed' }}
             >
               {saving ? 'Saving...' : '💾 Save Flow'}
             </button>
@@ -562,7 +562,7 @@ export default function AutomationBuilder() {
                 const fc = nodeCenter(fromNode)
                 const tx = drawingEdge.mx - rect.left
                 const ty = drawingEdge.my - rect.top
-                return <line x1={fc.x} y1={fc.y} x2={tx} y2={ty} stroke="#00e5a0" strokeWidth="1.5" strokeDasharray="4 3" markerEnd="url(#arr)"/>
+                return <line x1={fc.x} y1={fc.y} x2={tx} y2={ty} stroke="#D8B16A" strokeWidth="1.5" strokeDasharray="4 3" markerEnd="url(#arr)"/>
               })()}
             </svg>
 

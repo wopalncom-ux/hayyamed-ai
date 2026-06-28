@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
-const PLAN_COLORS = { STARTER: '#3b82f6', GROWTH: '#00e5a0', ENTERPRISE: '#a78bfa' }
+const PLAN_COLORS = { STARTER: '#3b82f6', GROWTH: '#D8B16A', ENTERPRISE: '#a78bfa' }
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0))
 
 function Stat({ label, value, sub, color }) {
@@ -49,7 +49,7 @@ export default function BillingDashboard() {
           <>
             {/* KPI row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '28px' }}>
-              <Stat label="MRR" value={`${fmt(data.mrr)} ${data.currency}`} sub="Monthly recurring revenue" color="#00e5a0" />
+              <Stat label="MRR" value={`${fmt(data.mrr)} ${data.currency}`} sub="Monthly recurring revenue" color="#D8B16A" />
               <Stat label="ARR" value={`${fmt(data.arr)} ${data.currency}`} sub="Annual run rate" color="#a78bfa" />
               <Stat label="Active Subscriptions" value={fmt(data.activeSubscriptions)} sub={`${data.totalInvoices} invoices total`} color="#3b82f6" />
               <Stat label="Lifetime Revenue" value={`${fmt(data.lifetimeRevenueQar)} ${data.currency}`} sub="All paid invoices" />
@@ -98,7 +98,7 @@ export default function BillingDashboard() {
                         <td style={{ padding: '11px 14px', fontWeight: 600 }}>{inv.org}</td>
                         <td style={{ padding: '11px 14px', fontWeight: 700 }}>{fmt(inv.amount)} {inv.currency}</td>
                         <td style={{ padding: '11px 14px' }}>
-                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, background: inv.status === 'paid' ? 'rgba(0,229,160,.12)' : 'rgba(245,158,11,.12)', color: inv.status === 'paid' ? '#00e5a0' : '#f59e0b' }}>{inv.status}</span>
+                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, background: inv.status === 'paid' ? 'rgba(216,177,106,.12)' : 'rgba(245,158,11,.12)', color: inv.status === 'paid' ? '#D8B16A' : '#f59e0b' }}>{inv.status}</span>
                         </td>
                         <td style={{ padding: '11px 14px', color: '#64748b' }}>{inv.description || '—'}</td>
                         <td style={{ padding: '11px 14px', color: '#64748b', fontSize: '11px' }}>{new Date(inv.createdAt).toLocaleDateString()}</td>

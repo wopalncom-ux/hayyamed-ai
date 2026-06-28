@@ -18,7 +18,7 @@ const profitOf   = (rev, plan, customMargin) => Math.round(rev * getMargin(plan,
 const costOf     = (rev, plan, customMargin) => rev - profitOf(rev, plan, customMargin)
 
 const initialClients = [
-  { id:1, name:'Elite Medical Center',  type:'Healthcare', logo:'🏥', color:'#00e5a0', status:'good',  contacts:1247, messages:3420, balance:1850, monthlyRev:8000,  plan:'Enterprise', wa:'Connected',    lastActive:'2 min ago',  ai:94, notes:'', customMargin:null },
+  { id:1, name:'Elite Medical Center',  type:'Healthcare', logo:'🏥', color:'#D8B16A', status:'good',  contacts:1247, messages:3420, balance:1850, monthlyRev:8000,  plan:'Enterprise', wa:'Connected',    lastActive:'2 min ago',  ai:94, notes:'', customMargin:null },
   { id:2, name:'Mazaj Lounge Cafe',     type:'F&B',        logo:'☕', color:'#3b82f6', status:'good',  contacts:892,  messages:2100, balance:620,  monthlyRev:2500,  plan:'Growth',     wa:'Connected',    lastActive:'15 min ago', ai:87, notes:'', customMargin:null },
   { id:3, name:'Doctors In Qatar',      type:'Healthcare', logo:'👨‍⚕️', color:'#a78bfa', status:'warn',  contacts:534,  messages:890,  balance:180,  monthlyRev:2500,  plan:'Growth',     wa:'Warning',      lastActive:'1 hour ago', ai:76, notes:'WhatsApp token expiring', customMargin:null },
   { id:4, name:'LGS Group',             type:'Retail',     logo:'🛍️', color:'#f97316', status:'good',  contacts:2341, messages:5670, balance:3200, monthlyRev:8000,  plan:'Enterprise', wa:'Connected',    lastActive:'5 min ago',  ai:91, notes:'', customMargin:null },
@@ -30,7 +30,7 @@ const initialPackages = [
   { id:1, name:'Starter', price:299, margin:30, color:'#3b82f6', desc:'Perfect for small businesses getting started', active:true,
     features:['3,000 messages/month','1,000 AI responses','Up to 2,000 contacts','5 team members','Analytics & reports'],
     conditions:['Valid for 1 month','Single WhatsApp number','Max 2 chatbot flows','Email support only'] },
-  { id:2, name:'Growth', price:599, margin:25, color:'#00e5a0', desc:'Most popular — ideal for growing businesses', active:true,
+  { id:2, name:'Growth', price:599, margin:25, color:'#D8B16A', desc:'Most popular — ideal for growing businesses', active:true,
     features:['10,000 messages/month','5,000 AI responses','Unlimited contacts','15 team members','Advanced AI chatbot','Priority support'],
     conditions:['Valid for 1 month','Up to 3 WhatsApp numbers','Unlimited chatbot flows','Phone & email support'] },
   { id:3, name:'Enterprise', price:1299, margin:20, color:'#a78bfa', desc:'Full power for large operations', active:true,
@@ -38,7 +38,7 @@ const initialPackages = [
     conditions:['Annual contract available','Unlimited channels','Custom integrations','24/7 dedicated support'] },
 ]
 
-const statusColors  = { good:'#00e5a0', warn:'#fbbf24', alert:'#ef4444' }
+const statusColors  = { good:'#D8B16A', warn:'#fbbf24', alert:'#ef4444' }
 const statusLabels  = { good:'Active', warn:'Warning', alert:'Needs Attention' }
 const logos         = ['🏢','🏥','☕','🛍️','👗','🎨','🏪','🏬','🍕','💊','🏦','🏨','🚗','🎓','⚽']
 
@@ -73,7 +73,7 @@ export default function Agency() {
   const [showPkgBuilder,setShowPkgBuilder]= useState(false)
   const [editPkg,       setEditPkg]       = useState(null)
   const [pkgForm, setPkgForm] = useState({
-    name:'', price:'', margin:'25', color:'#00e5a0', desc:'', active:true,
+    name:'', price:'', margin:'25', color:'#D8B16A', desc:'', active:true,
     features:[''], conditions:[''],
   })
   const [showClientSettings, setShowClientSettings] = useState(false)
@@ -96,7 +96,7 @@ export default function Agency() {
       <div style={{fontSize:'48px'}}>🔒</div>
       <div style={{fontSize:'20px', fontWeight:'800'}}>Owner Access Only</div>
       <div style={{fontSize:'13px', color:'#7a8fa6', textAlign:'center', maxWidth:'320px', lineHeight:'1.6'}}>The Master Control Panel is restricted to the account owner. Please log in with owner credentials to access this page.</div>
-      <a href="/login" style={{marginTop:'8px', padding:'10px 24px', background:'#00e5a0', color:'#07090f', borderRadius:'6px', fontWeight:'700', fontSize:'13px', textDecoration:'none'}}>Go to Login</a>
+      <a href="/login" style={{marginTop:'8px', padding:'10px 24px', background:'#D8B16A', color:'#07090f', borderRadius:'6px', fontWeight:'700', fontSize:'13px', textDecoration:'none'}}>Go to Login</a>
       <a href="/dashboard" style={{fontSize:'12px', color:'#3d4f63', textDecoration:'none'}}>Back to Dashboard</a>
     </div>
   )
@@ -167,7 +167,7 @@ export default function Agency() {
 
   // ── Package builder ─────────────────────────────────────────────────────────
   const openNewPkg = () => {
-    setPkgForm({ name:'', price:'', margin:'25', color:'#00e5a0', desc:'', active:true, features:[''], conditions:[''] })
+    setPkgForm({ name:'', price:'', margin:'25', color:'#D8B16A', desc:'', active:true, features:[''], conditions:[''] })
     setEditPkg(null); setShowPkgBuilder(true)
   }
   const openEditPkg = (pkg) => {
@@ -233,19 +233,19 @@ export default function Agency() {
     setPkgForm(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== idx) }))
   }
 
-  const marginColors = ['#ef4444','#f97316','#fbbf24','#00e5a0','#3b82f6','#a78bfa','#06b6d4','#ec4899']
+  const marginColors = ['#ef4444','#f97316','#fbbf24','#D8B16A','#3b82f6','#a78bfa','#06b6d4','#ec4899']
 
   return (
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'Inter, sans-serif'}}>
 
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1e2d42', display:'flex', alignItems:'center', padding:'0 20px', gap:'14px', flexShrink:0}}>
-        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
+        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
         <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Master Control</div>
         <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px'}}>
-          {saved && <span style={{fontSize:'11px', color:'#00e5a0', fontWeight:'600'}}>✓ {saved}</span>}
+          {saved && <span style={{fontSize:'11px', color:'#D8B16A', fontWeight:'600'}}>✓ {saved}</span>}
           <a href="/integrations" style={{padding:'6px 12px', background:'rgba(59,130,246,.12)', border:'1px solid rgba(59,130,246,.3)', borderRadius:'6px', color:'#60a5fa', fontSize:'11px', fontWeight:'700', textDecoration:'none', cursor:'pointer'}}>🔌 Integrations</a>
-          <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.25)', color:'#00e5a0', borderRadius:'4px', fontWeight:'700'}}>● LIVE</div>
+          <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.25)', color:'#D8B16A', borderRadius:'4px', fontWeight:'700'}}>● LIVE</div>
           <div style={{width:'32px', height:'32px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:'800'}}>A</div>
         </div>
       </div>
@@ -261,7 +261,7 @@ export default function Agency() {
           <div style={{padding:'0 20px', background:'#0c0f1a', borderBottom:'1px solid #1e2d42', display:'grid', gridTemplateColumns: isMobile ? 'repeat(3,1fr)' : 'repeat(6,1fr)', flexShrink:0}}>
             {[
               { label:'TOTAL CLIENTS',  value: clients.length,                         color:'#e2e8f0' },
-              { label:'MONTHLY REVENUE',value:`QAR ${totalRev.toLocaleString()}`,       color:'#00e5a0' },
+              { label:'MONTHLY REVENUE',value:`QAR ${totalRev.toLocaleString()}`,       color:'#D8B16A' },
               { label:'YOUR PROFIT',    value:`QAR ${totalProfit.toLocaleString()}`,    color:'#a78bfa', tip:'Variable by plan' },
               { label:'PLATFORM COST',  value:`QAR ${totalCost.toLocaleString()}`,      color:'#f97316' },
               { label:'TOTAL MESSAGES', value: totalMsgs.toLocaleString(),              color:'#3b82f6' },
@@ -284,14 +284,14 @@ export default function Agency() {
               { id:'packages', label:'Package Builder' },
             ].map(t => (
               <button key={t.id} onClick={() => setActiveTab(t.id)}
-                style={{padding:'12px 18px', background:'none', border:'none', borderBottom: activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', fontSize:'12px', fontWeight: activeTab===t.id ? '700' : '400', cursor:'pointer'}}>
+                style={{padding:'12px 18px', background:'none', border:'none', borderBottom: activeTab===t.id ? '2px solid #D8B16A' : '2px solid transparent', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', fontSize:'12px', fontWeight: activeTab===t.id ? '700' : '400', cursor:'pointer'}}>
                 {t.label}
               </button>
             ))}
             <div style={{marginLeft:'auto', display:'flex', gap:'8px', alignItems:'center', paddingRight:'4px'}}>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients…"
                 style={{width:'190px', background:'#111622', border:'1px solid #1e2d42', borderRadius:'6px', padding:'7px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
-              <button onClick={() => setShowAdd(true)} style={btn({background:'#00e5a0', color:'#07090f', padding:'7px 14px'})}>+ Add Client</button>
+              <button onClick={() => setShowAdd(true)} style={btn({background:'#D8B16A', color:'#07090f', padding:'7px 14px'})}>+ Add Client</button>
             </div>
           </div>
 
@@ -304,7 +304,7 @@ export default function Agency() {
                 {filtered.map(c => {
                   const profit = profitOf(c.monthlyRev, c.plan, c.customMargin)
                   const margin = Math.round((profit / c.monthlyRev) * 100)
-                  const marginColor = margin >= 30 ? '#00e5a0' : margin >= 25 ? '#fbbf24' : '#f97316'
+                  const marginColor = margin >= 30 ? '#D8B16A' : margin >= 25 ? '#fbbf24' : '#f97316'
                   return (
                     <div key={c.id} onClick={() => setSelected(c)}
                       style={{...card, borderColor: selected?.id===c.id ? c.color+'80' : '#1e2d42', borderLeft:`3px solid ${statusColors[c.status]}`, cursor:'pointer', transition:'all .2s'}}>
@@ -323,7 +323,7 @@ export default function Agency() {
                         {[
                           { label:'REVENUE',  value:`QAR ${c.monthlyRev.toLocaleString()}`, color:c.color },
                           { label:'PROFIT',   value:`QAR ${profit.toLocaleString()}`,        color:'#a78bfa' },
-                          { label:'BALANCE',  value:`QAR ${c.balance.toLocaleString()}`,     color: c.balance>0 ? '#00e5a0' : '#ef4444' },
+                          { label:'BALANCE',  value:`QAR ${c.balance.toLocaleString()}`,     color: c.balance>0 ? '#D8B16A' : '#ef4444' },
                           { label:'AI SCORE', value:`${c.ai}%`,                              color:'#e2e8f0' },
                         ].map(s => (
                           <div key={s.label} style={{textAlign:'center', background:'#0c0f1a', borderRadius:'5px', padding:'7px 4px'}}>
@@ -334,12 +334,12 @@ export default function Agency() {
                       </div>
                       <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
                         <div style={{fontSize:'10px', color:'#7a8fa6', display:'flex', alignItems:'center', gap:'5px'}}>
-                          <div style={{width:'6px', height:'6px', borderRadius:'50%', background: c.wa==='Connected' ? '#00e5a0' : c.wa==='Warning' ? '#fbbf24' : '#ef4444'}}></div>
+                          <div style={{width:'6px', height:'6px', borderRadius:'50%', background: c.wa==='Connected' ? '#D8B16A' : c.wa==='Warning' ? '#fbbf24' : '#ef4444'}}></div>
                           {c.wa}
                         </div>
                         <div style={{display:'flex', gap:'6px'}}>
                           <button onClick={e => { e.stopPropagation(); setSelected(c); setShowTopUp(true) }}
-                            style={btn({background:'rgba(0,229,160,.1)', color:'#00e5a0', padding:'5px 10px', fontSize:'11px', border:'1px solid rgba(0,229,160,.2)', borderRadius:'5px'})}>
+                            style={btn({background:'rgba(216,177,106,.1)', color:'#D8B16A', padding:'5px 10px', fontSize:'11px', border:'1px solid rgba(216,177,106,.2)', borderRadius:'5px'})}>
                             + Balance
                           </button>
                           <button onClick={e => { e.stopPropagation(); setSelected(c) }}
@@ -364,12 +364,12 @@ export default function Agency() {
                   </div>
 
                   {/* Balance box */}
-                  <div style={{background: selected.balance > 200 ? 'rgba(0,229,160,.06)' : 'rgba(239,68,68,.06)', border:`1px solid ${selected.balance>200 ? 'rgba(0,229,160,.25)' : 'rgba(239,68,68,.25)'}`, borderRadius:'8px', padding:'14px', marginBottom:'14px', textAlign:'center'}}>
+                  <div style={{background: selected.balance > 200 ? 'rgba(216,177,106,.06)' : 'rgba(239,68,68,.06)', border:`1px solid ${selected.balance>200 ? 'rgba(216,177,106,.25)' : 'rgba(239,68,68,.25)'}`, borderRadius:'8px', padding:'14px', marginBottom:'14px', textAlign:'center'}}>
                     <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1.5px', marginBottom:'5px'}}>ACCOUNT BALANCE</div>
-                    <div style={{fontSize:'22px', fontWeight:'900', color: selected.balance>200 ? '#00e5a0' : '#ef4444'}}>QAR {selected.balance.toLocaleString()}</div>
+                    <div style={{fontSize:'22px', fontWeight:'900', color: selected.balance>200 ? '#D8B16A' : '#ef4444'}}>QAR {selected.balance.toLocaleString()}</div>
                     {selected.balance < 200 && <div style={{fontSize:'10px', color:'#ef4444', marginTop:'3px'}}>⚠️ Low balance</div>}
                     <button onClick={() => setShowTopUp(true)}
-                      style={{background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer', width:'100%', marginTop:'8px', padding:'8px'}}
+                      style={{background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer', width:'100%', marginTop:'8px', padding:'8px'}}
                       >+ Add Balance</button>
                   </div>
 
@@ -394,7 +394,7 @@ export default function Agency() {
                           placeholder="e.g. 28" maxLength={2}
                           style={{...inp, padding:'7px 10px', fontSize:'13px', width:'70px', textAlign:'center'}}/>
                         <span style={{fontSize:'12px', color:'#7a8fa6'}}>%</span>
-                        <button onClick={saveMarginOverride} style={btn({background:'#00e5a0', color:'#07090f', padding:'7px 12px', fontSize:'11px', flex:1})}>Save</button>
+                        <button onClick={saveMarginOverride} style={btn({background:'#D8B16A', color:'#07090f', padding:'7px 12px', fontSize:'11px', flex:1})}>Save</button>
                         <button onClick={() => setEditingMargin(false)} style={btn({background:'#111622', color:'#7a8fa6', padding:'7px 10px', fontSize:'11px', border:'1px solid #1e2d42'})}>✕</button>
                       </div>
                     ) : (
@@ -422,7 +422,7 @@ export default function Agency() {
                       const cost   = costOf(rev, selected.plan, selected.customMargin)
                       const margin = Math.round((profit/rev)*100)
                       return [
-                        { label:'Client Revenue',   value:`QAR ${rev.toLocaleString()}`,    color:'#00e5a0' },
+                        { label:'Client Revenue',   value:`QAR ${rev.toLocaleString()}`,    color:'#D8B16A' },
                         { label:'Platform Cost',    value:`QAR ${cost.toLocaleString()}`,   color:'#f97316' },
                         { label:'Your Net Profit',  value:`QAR ${profit.toLocaleString()}`, color:'#a78bfa' },
                         { label:'Margin',           value:`${margin}%`,                     color:'#a78bfa' },
@@ -436,7 +436,7 @@ export default function Agency() {
                   </div>
 
                   <div style={{display:'flex', flexDirection:'column', gap:'7px'}}>
-                    <button onClick={() => window.location.href = '/inbox'} style={btn({background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', width:'100%', padding:'9px'})}>💬 Open Inbox</button>
+                    <button onClick={() => window.location.href = '/inbox'} style={btn({background:'linear-gradient(135deg,#D8B16A,#00c98a)', color:'#07090f', width:'100%', padding:'9px'})}>💬 Open Inbox</button>
                     <button onClick={() => window.location.href = '/reports'} style={btn({background:'#111622', color:'#e2e8f0', width:'100%', padding:'9px', border:'1px solid #1e2d42'})}>📊 View Reports</button>
                     <button onClick={openClientSettings} style={btn({background:'#111622', color:'#e2e8f0', width:'100%', padding:'9px', border:'1px solid #1e2d42'})}>⚙️ Client Settings</button>
                   </div>
@@ -455,7 +455,7 @@ export default function Agency() {
                 {[
                   { plan:'PAYG',       margin:35, color:'#ef4444', desc:'Pay as you go' },
                   { plan:'Starter',    margin:30, color:'#fbbf24', desc:'QAR 299/month' },
-                  { plan:'Growth',     margin:25, color:'#00e5a0', desc:'QAR 599/month' },
+                  { plan:'Growth',     margin:25, color:'#D8B16A', desc:'QAR 599/month' },
                   { plan:'Enterprise', margin:20, color:'#a78bfa', desc:'QAR 1,299/month' },
                 ].map(p => (
                   <div key={p.plan} style={{...card, borderTop:`2px solid ${p.color}`, textAlign:'center', padding:'16px'}}>
@@ -470,7 +470,7 @@ export default function Agency() {
               {/* Summary KPIs */}
               <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:'12px', marginBottom:'20px'}}>
                 {[
-                  { label:'Total Monthly Revenue', value:`QAR ${totalRev.toLocaleString()}`,    sub:'All clients combined',     color:'#00e5a0', icon:'💰' },
+                  { label:'Total Monthly Revenue', value:`QAR ${totalRev.toLocaleString()}`,    sub:'All clients combined',     color:'#D8B16A', icon:'💰' },
                   { label:'Your Net Profit',        value:`QAR ${totalProfit.toLocaleString()}`, sub:`${Math.round(totalProfit/totalRev*100)}% blended margin`, color:'#a78bfa', icon:'📈' },
                   { label:'Platform & API Costs',   value:`QAR ${totalCost.toLocaleString()}`,   sub:'What you pay providers',   color:'#f97316', icon:'⚙️' },
                 ].map(k => (
@@ -495,7 +495,7 @@ export default function Agency() {
                     const profit = profitOf(c.monthlyRev, c.plan, c.customMargin)
                     const cost   = costOf(c.monthlyRev, c.plan, c.customMargin)
                     const margin = Math.round((profit/c.monthlyRev)*100)
-                    const marginColor = margin >= 30 ? '#00e5a0' : margin >= 25 ? '#fbbf24' : '#f97316'
+                    const marginColor = margin >= 30 ? '#D8B16A' : margin >= 25 ? '#fbbf24' : '#f97316'
                     return [
                       <div key={c.id+'n'} style={{background:'#0f1520', padding:'12px', display:'flex', alignItems:'center', gap:'8px'}}>
                         <span style={{fontSize:'16px'}}>{c.logo}</span>
@@ -510,7 +510,7 @@ export default function Agency() {
                       <div key={c.id+'m'} style={{background:'#0f1520', padding:'12px', textAlign:'right', display:'flex', alignItems:'center', justifyContent:'flex-end'}}>
                         <span style={{fontSize:'13px', fontWeight:'900', color:marginColor}}>{margin}%</span>
                       </div>,
-                      <div key={c.id+'r'} style={{background:'#0f1520', padding:'12px', textAlign:'right', fontSize:'12px', color:'#00e5a0', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'flex-end'}}>QAR {c.monthlyRev.toLocaleString()}</div>,
+                      <div key={c.id+'r'} style={{background:'#0f1520', padding:'12px', textAlign:'right', fontSize:'12px', color:'#D8B16A', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'flex-end'}}>QAR {c.monthlyRev.toLocaleString()}</div>,
                       <div key={c.id+'c'} style={{background:'#0f1520', padding:'12px', textAlign:'right', fontSize:'12px', color:'#f97316', fontWeight:'800', display:'flex', alignItems:'center', justifyContent:'flex-end'}}>QAR {cost.toLocaleString()}</div>,
                       <div key={c.id+'p'} style={{background:'#0f1520', padding:'12px', textAlign:'right', display:'flex', alignItems:'center', justifyContent:'flex-end', gap:'6px'}}>
                         <span style={{fontSize:'12px', color:'#a78bfa', fontWeight:'900'}}>QAR {profit.toLocaleString()}</span>
@@ -544,14 +544,14 @@ export default function Agency() {
                     </div>,
                     <div key={c.id+'pl'} style={{background:'#0f1520', padding:'14px', textAlign:'center', fontSize:'11px', color:'#7a8fa6', display:'flex', alignItems:'center', justifyContent:'center'}}>{c.plan}</div>,
                     <div key={c.id+'b'} style={{background:'#0f1520', padding:'14px', textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                      <span style={{fontSize:'13px', fontWeight:'900', color: c.balance>500?'#00e5a0':c.balance>0?'#fbbf24':'#ef4444'}}>QAR {c.balance.toLocaleString()}</span>
+                      <span style={{fontSize:'13px', fontWeight:'900', color: c.balance>500?'#D8B16A':c.balance>0?'#fbbf24':'#ef4444'}}>QAR {c.balance.toLocaleString()}</span>
                     </div>,
                     <div key={c.id+'s'} style={{background:'#0f1520', padding:'14px', textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center'}}>
                       <span style={{fontSize:'10px', padding:'3px 8px', borderRadius:'4px', background:statusColors[c.status]+'18', color:statusColors[c.status], fontWeight:'700'}}>{statusLabels[c.status]}</span>
                     </div>,
                     <div key={c.id+'a'} style={{background:'#0f1520', padding:'14px', display:'flex', alignItems:'center', justifyContent:'center'}}>
                       <button onClick={() => { setSelected(c); setShowTopUp(true) }}
-                        style={btn({background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'6px 14px', fontSize:'11px', borderRadius:'5px'})}>
+                        style={btn({background:'linear-gradient(135deg,#D8B16A,#00c98a)', color:'#07090f', padding:'6px 14px', fontSize:'11px', borderRadius:'5px'})}>
                         + Add Balance
                       </button>
                     </div>,
@@ -588,7 +588,7 @@ export default function Agency() {
                   <div style={{fontWeight:'800', fontSize:'18px', marginBottom:'4px'}}>Package Builder</div>
                   <div style={{fontSize:'12px', color:'#7a8fa6'}}>Create and manage custom subscription packages with built-in profit margins</div>
                 </div>
-                <button onClick={openNewPkg} style={btn({background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'9px 18px'})}>
+                <button onClick={openNewPkg} style={btn({background:'linear-gradient(135deg,#D8B16A,#00c98a)', color:'#07090f', padding:'9px 18px'})}>
                   + Create Package
                 </button>
               </div>
@@ -603,7 +603,7 @@ export default function Agency() {
                       </div>
                       <div style={{display:'flex', gap:'6px', alignItems:'center'}}>
                         <button onClick={() => togglePkg(pkg.id)}
-                          style={{width:'36px', height:'20px', borderRadius:'10px', border:'none', cursor:'pointer', background: pkg.active ? '#00e5a0' : '#1a2235', position:'relative', transition:'background .2s'}}>
+                          style={{width:'36px', height:'20px', borderRadius:'10px', border:'none', cursor:'pointer', background: pkg.active ? '#D8B16A' : '#1a2235', position:'relative', transition:'background .2s'}}>
                           <span style={{position:'absolute', top:'3px', left: pkg.active ? '18px' : '3px', width:'14px', height:'14px', borderRadius:'50%', background:'#fff', transition:'left .2s', display:'block'}}></span>
                         </button>
                       </div>
@@ -612,7 +612,7 @@ export default function Agency() {
                     <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', marginBottom:'14px'}}>
                       <div style={{background:'#0c0f1a', borderRadius:'6px', padding:'10px', textAlign:'center'}}>
                         <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px', marginBottom:'4px'}}>CLIENT PRICE</div>
-                        <div style={{fontSize:'18px', fontWeight:'900', color:'#00e5a0'}}>QAR {pkg.price}</div>
+                        <div style={{fontSize:'18px', fontWeight:'900', color:'#D8B16A'}}>QAR {pkg.price}</div>
                         <div style={{fontSize:'9px', color:'#3d4f63'}}>per month</div>
                       </div>
                       <div style={{background:'#0c0f1a', borderRadius:'6px', padding:'10px', textAlign:'center'}}>
@@ -682,7 +682,7 @@ export default function Agency() {
               <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px', marginBottom:'10px'}}>
                 {['500','1000','2000','5000'].map(a => (
                   <button key={a} onClick={() => setTopUpAmt(a)}
-                    style={btn({background: topUpAmt===a ? '#00e5a0' : '#111622', color: topUpAmt===a ? '#07090f' : '#7a8fa6', border:'1px solid', borderColor: topUpAmt===a ? '#00e5a0' : '#1e2d42', borderRadius:'6px', padding:'8px', fontSize:'12px', width:'100%'})}>
+                    style={btn({background: topUpAmt===a ? '#D8B16A' : '#111622', color: topUpAmt===a ? '#07090f' : '#7a8fa6', border:'1px solid', borderColor: topUpAmt===a ? '#D8B16A' : '#1e2d42', borderRadius:'6px', padding:'8px', fontSize:'12px', width:'100%'})}>
                     QAR {parseInt(a).toLocaleString()}
                   </button>
                 ))}
@@ -693,14 +693,14 @@ export default function Agency() {
               <label style={lbl}>PAYMENT NOTE (OPTIONAL)</label>
               <input value={topUpNote} onChange={e => setTopUpNote(e.target.value)} placeholder="e.g. Cash received — Invoice #1042" style={inp}/>
             </div>
-            <div style={{background:'rgba(0,229,160,.06)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'6px', padding:'12px', marginBottom:'20px', fontSize:'11px', color:'#7a8fa6'}}>
-              New balance: <strong style={{color:'#00e5a0', fontSize:'14px'}}>QAR {(selected.balance + (parseInt(topUpAmt)||0)).toLocaleString()}</strong>
+            <div style={{background:'rgba(216,177,106,.06)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'6px', padding:'12px', marginBottom:'20px', fontSize:'11px', color:'#7a8fa6'}}>
+              New balance: <strong style={{color:'#D8B16A', fontSize:'14px'}}>QAR {(selected.balance + (parseInt(topUpAmt)||0)).toLocaleString()}</strong>
             </div>
             <div style={{display:'flex', gap:'10px'}}>
               <button onClick={() => { setShowTopUp(false); setTopUpAmt('500'); setTopUpNote('') }}
                 style={btn({flex:1, background:'#111622', color:'#7a8fa6', border:'1px solid #1e2d42', padding:'11px'})}>Cancel</button>
               <button onClick={applyTopUp}
-                style={btn({flex:2, background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'11px'})}>
+                style={btn({flex:2, background:'linear-gradient(135deg,#D8B16A,#00c98a)', color:'#07090f', padding:'11px'})}>
                 ✓ Add QAR {parseInt(topUpAmt||0).toLocaleString()}
               </button>
             </div>
@@ -776,13 +776,13 @@ export default function Agency() {
                 <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                   <span style={{fontSize:'12px', color:'#7a8fa6'}}>Active</span>
                   <button onClick={() => setPkgForm(p=>({...p,active:!p.active}))}
-                    style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: pkgForm.active ? '#00e5a0' : '#1a2235', position:'relative', transition:'background .2s'}}>
+                    style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: pkgForm.active ? '#D8B16A' : '#1a2235', position:'relative', transition:'background .2s'}}>
                     <span style={{position:'absolute', top:'4px', left: pkgForm.active ? '22px' : '4px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', transition:'left .2s', display:'block'}}></span>
                   </button>
                 </div>
                 <div style={{display:'flex', gap:'10px'}}>
                   <button onClick={() => setShowPkgBuilder(false)} style={btn({background:'#111622', color:'#7a8fa6', border:'1px solid #1e2d42', padding:'10px 20px'})}>Cancel</button>
-                  <button onClick={savePkg} style={btn({background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'10px 28px'})}>
+                  <button onClick={savePkg} style={btn({background:'linear-gradient(135deg,#D8B16A,#00c98a)', color:'#07090f', padding:'10px 28px'})}>
                     {editPkg ? 'Save Changes' : 'Create Package'}
                   </button>
                 </div>
@@ -853,7 +853,7 @@ export default function Agency() {
 
             <div style={{display:'flex', gap:'10px'}}>
               <button onClick={() => setShowClientSettings(false)} style={btn({flex:1, background:'#111622', color:'#7a8fa6', border:'1px solid #1e2d42', padding:'11px'})}>Cancel</button>
-              <button onClick={saveClientSettings} style={btn({flex:2, background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'11px'})}>✓ Save Changes</button>
+              <button onClick={saveClientSettings} style={btn({flex:2, background:'linear-gradient(135deg,#D8B16A,#00c98a)', color:'#07090f', padding:'11px'})}>✓ Save Changes</button>
             </div>
           </div>
         </div>
@@ -872,7 +872,7 @@ export default function Agency() {
               <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
                 {logos.map(l => (
                   <div key={l} onClick={() => setNewClient({...newClient, logo:l})}
-                    style={{width:'38px', height:'38px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', cursor:'pointer', background: newClient.logo===l ? 'rgba(0,229,160,.18)' : '#111622', border:'1px solid', borderColor: newClient.logo===l ? '#00e5a0' : '#1e2d42'}}>
+                    style={{width:'38px', height:'38px', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', cursor:'pointer', background: newClient.logo===l ? 'rgba(216,177,106,.18)' : '#111622', border:'1px solid', borderColor: newClient.logo===l ? '#D8B16A' : '#1e2d42'}}>
                     {l}
                   </div>
                 ))}
@@ -894,7 +894,7 @@ export default function Agency() {
             </div>
             <div style={{display:'flex', gap:'10px'}}>
               <button onClick={() => setShowAdd(false)} style={btn({flex:1, background:'#111622', color:'#7a8fa6', border:'1px solid #1e2d42', padding:'11px'})}>Cancel</button>
-              <button onClick={addClient} style={btn({flex:2, background:'linear-gradient(135deg,#00e5a0,#00c98a)', color:'#07090f', padding:'11px'})}>✓ Create Client</button>
+              <button onClick={addClient} style={btn({flex:2, background:'linear-gradient(135deg,#D8B16A,#00c98a)', color:'#07090f', padding:'11px'})}>✓ Create Client</button>
             </div>
           </div>
         </div>

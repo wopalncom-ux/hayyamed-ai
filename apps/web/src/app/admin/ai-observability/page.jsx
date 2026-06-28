@@ -26,7 +26,7 @@ function MiniBar({ label, value, max, color }) {
         <span style={{ fontSize: '12px', color: '#e2e8f0', fontWeight: '600' }}>{value}</span>
       </div>
       <div style={{ height: '6px', background: '#1a2235', borderRadius: '3px', overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: color || '#00e5a0', borderRadius: '3px', transition: 'width 0.5s' }} />
+        <div style={{ height: '100%', width: `${pct}%`, background: color || '#D8B16A', borderRadius: '3px', transition: 'width 0.5s' }} />
       </div>
     </div>
   )
@@ -71,7 +71,7 @@ export default function AIObservabilityPage() {
             {[7, 30, 90].map(d => (
               <button key={d} onClick={() => setDays(d)} style={{
                 padding: '6px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-                background: days === d ? '#00e5a0' : '#1a2235', color: days === d ? '#0a0f1a' : '#94a3b8',
+                background: days === d ? '#D8B16A' : '#1a2235', color: days === d ? '#0a0f1a' : '#94a3b8',
               }}>{d}d</button>
             ))}
           </div>
@@ -89,12 +89,12 @@ export default function AIObservabilityPage() {
           <>
             {/* Summary Stats */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-              <StatCard label="Total AI Calls" value={s.totalCalls?.toLocaleString()} color="#00e5a0" />
+              <StatCard label="Total AI Calls" value={s.totalCalls?.toLocaleString()} color="#D8B16A" />
               <StatCard label="Total Cost" value={`$${s.totalCostUsd?.toFixed(4)}`} sub={`≈ $${((s.totalCostUsd || 0) * 12).toFixed(2)}/yr`} color="#fbbf24" />
               <StatCard label="Total Tokens" value={(s.totalTokens / 1000)?.toFixed(1) + 'K'} color="#a78bfa" />
               <StatCard label="Avg Latency" value={`${s.avgLatencyMs}ms`} color={s.avgLatencyMs > 3000 ? '#ef4444' : '#3b82f6'} />
-              <StatCard label="Success Rate" value={`${s.successRate}%`} color={s.successRate >= 99 ? '#00e5a0' : '#f97316'} />
-              <StatCard label="Escalation Rate" value={`${s.escalationRate}%`} color={s.escalationRate < 5 ? '#00e5a0' : '#ef4444'} />
+              <StatCard label="Success Rate" value={`${s.successRate}%`} color={s.successRate >= 99 ? '#D8B16A' : '#f97316'} />
+              <StatCard label="Escalation Rate" value={`${s.escalationRate}%`} color={s.escalationRate < 5 ? '#D8B16A' : '#ef4444'} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
@@ -110,7 +110,7 @@ export default function AIObservabilityPage() {
                       label={`${PROVIDER_ICON[p.provider] || '⚡'} ${p.provider} (${p.calls} calls, ${p.avgLatency}ms avg)`}
                       value={`$${p.cost.toFixed(4)}`}
                       max={maxProviderCost}
-                      color={PROVIDER_COLOR[p.provider] || '#00e5a0'}
+                      color={PROVIDER_COLOR[p.provider] || '#D8B16A'}
                     />
                   </div>
                 ))}
@@ -144,7 +144,7 @@ export default function AIObservabilityPage() {
                     const h = maxCost > 0 ? Math.max(4, (d.cost / maxCost) * 80) : 4
                     return (
                       <div key={i} title={`${d.date}: $${d.cost.toFixed(4)} (${d.calls} calls)`}
-                        style={{ flex: 1, height: `${h}px`, background: '#00e5a0', borderRadius: '2px 2px 0 0', cursor: 'pointer', opacity: 0.8 }}
+                        style={{ flex: 1, height: `${h}px`, background: '#D8B16A', borderRadius: '2px 2px 0 0', cursor: 'pointer', opacity: 0.8 }}
                       />
                     )
                   })}
@@ -186,7 +186,7 @@ export default function AIObservabilityPage() {
                           <td style={{ padding: '10px 14px', color: '#fbbf24' }}>${Number(c.costUsd).toFixed(5)}</td>
                           <td style={{ padding: '10px 14px', color: c.latencyMs > 3000 ? '#ef4444' : '#94a3b8' }}>{c.latencyMs}ms</td>
                           <td style={{ padding: '10px 14px' }}>
-                            <span style={{ color: c.success ? '#00e5a0' : '#ef4444', fontWeight: '700' }}>
+                            <span style={{ color: c.success ? '#D8B16A' : '#ef4444', fontWeight: '700' }}>
                               {c.success ? '✓' : '✗'}
                             </span>
                           </td>

@@ -4,7 +4,7 @@ import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
 const PLAN_ORDER = { STARTER: 0, GROWTH: 1, ENTERPRISE: 2 }
-const PLAN_COLOR = { STARTER: '#3b82f6', GROWTH: '#00e5a0', ENTERPRISE: '#a78bfa' }
+const PLAN_COLOR = { STARTER: '#3b82f6', GROWTH: '#D8B16A', ENTERPRISE: '#a78bfa' }
 const CATEGORY_ICON = {
   ai: '🤖', channels: '📡', marketing: '📣', automation: '⚡', crm: '👥',
   analytics: '📊', billing: '💳', platform: '🏗️', general: '⚙️',
@@ -16,7 +16,7 @@ function Toggle({ checked, onChange, disabled }) {
       onClick={() => !disabled && onChange(!checked)}
       style={{
         width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
-        background: checked ? '#00e5a0' : '#1a2235', transition: 'all 0.2s', position: 'relative', flexShrink: 0,
+        background: checked ? '#D8B16A' : '#1a2235', transition: 'all 0.2s', position: 'relative', flexShrink: 0,
         opacity: disabled ? 0.4 : 1,
       }}
     >
@@ -117,7 +117,7 @@ export default function FeatureFlagsPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
             <span style={{ fontSize: '28px' }}>🚩</span>
             <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0 }}>Feature Flags</h1>
-            <span style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '4px', background: '#00e5a022', color: '#00e5a0', border: '1px solid #00e5a044' }}>
+            <span style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '4px', background: '#D8B16A22', color: '#D8B16A', border: '1px solid #D8B16A44' }}>
               Global Control
             </span>
           </div>
@@ -130,7 +130,7 @@ export default function FeatureFlagsPage() {
         <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
           {[
             { label: 'Total Flags', value: stats.total, color: '#e2e8f0' },
-            { label: 'Enabled', value: stats.enabled, color: '#00e5a0' },
+            { label: 'Enabled', value: stats.enabled, color: '#D8B16A' },
             { label: 'Beta / Upcoming', value: stats.beta, color: '#f59e0b' },
             { label: 'Enterprise Only', value: stats.enterprise, color: '#a78bfa' },
           ].map(s => (
@@ -156,7 +156,7 @@ export default function FeatureFlagsPage() {
                 onClick={() => setFilter(cat)}
                 style={{
                   padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '600',
-                  background: filter === cat ? '#00e5a0' : '#1a2235', color: filter === cat ? '#0a0f1a' : '#94a3b8',
+                  background: filter === cat ? '#D8B16A' : '#1a2235', color: filter === cat ? '#0a0f1a' : '#94a3b8',
                 }}
               >
                 {cat === 'all' ? 'All' : `${CATEGORY_ICON[cat] || '⚙️'} ${cat}`}
@@ -241,7 +241,7 @@ export default function FeatureFlagsPage() {
         {toast && (
           <div style={{
             position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px',
-            background: toast.ok ? '#00e5a0' : '#ef4444', color: '#0a0f1a', fontWeight: '700', fontSize: '14px',
+            background: toast.ok ? '#D8B16A' : '#ef4444', color: '#0a0f1a', fontWeight: '700', fontSize: '14px',
             zIndex: 9999, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           }}>
             {toast.msg}

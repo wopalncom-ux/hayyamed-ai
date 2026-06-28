@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
-const PLAN_COLORS = { starter: '#3b82f6', growth: '#00e5a0', enterprise: '#a78bfa' }
+const PLAN_COLORS = { starter: '#3b82f6', growth: '#D8B16A', enterprise: '#a78bfa' }
 
 export default function PricingControl() {
   const [plans, setPlans] = useState([])
@@ -70,7 +70,7 @@ export default function PricingControl() {
             </div>
 
             <button onClick={save} disabled={saving}
-              style={{ padding: '12px 28px', background: saving ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '10px', color: saving ? '#64748b' : '#07090f', fontWeight: 900, fontSize: '14px', cursor: saving ? 'wait' : 'pointer' }}>
+              style={{ padding: '12px 28px', background: saving ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '10px', color: saving ? '#64748b' : '#07090f', fontWeight: 900, fontSize: '14px', cursor: saving ? 'wait' : 'pointer' }}>
               {saving ? 'Saving…' : '💾 Save prices'}
             </button>
 
@@ -81,7 +81,7 @@ export default function PricingControl() {
         )}
 
         {toast && (
-          <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '10px', background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#07090f' : '#fff', fontWeight: 700, fontSize: '13px', zIndex: 9999 }}>
+          <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '10px', background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#07090f' : '#fff', fontWeight: 700, fontSize: '13px', zIndex: 9999 }}>
             {toast.ok ? '✓ ' : '⚠️ '}{toast.msg}
           </div>
         )}

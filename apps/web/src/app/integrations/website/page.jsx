@@ -47,10 +47,10 @@ export default function WebsiteChatSetup() {
           <input value={bizName} onChange={e => setBizName(e.target.value)}
             style={{ width: '100%', padding: '10px 12px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '8px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }} />
 
-          <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block', marginBottom: '6px' }}>EMBED CODE — paste before <code style={{ color: '#00e5a0' }}>&lt;/body&gt;</code> on your site</label>
-          <pre style={{ background: '#0a121e', border: '1px solid #1a2235', borderRadius: '8px', padding: '14px', color: '#00e5a0', fontSize: '12px', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{snippet}</pre>
+          <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block', marginBottom: '6px' }}>EMBED CODE — paste before <code style={{ color: '#D8B16A' }}>&lt;/body&gt;</code> on your site</label>
+          <pre style={{ background: '#0a121e', border: '1px solid #1a2235', borderRadius: '8px', padding: '14px', color: '#D8B16A', fontSize: '12px', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{snippet}</pre>
           <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-            <button onClick={copy} style={{ padding: '9px 18px', background: copied ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: copied ? '#00e5a0' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>
+            <button onClick={copy} style={{ padding: '9px 18px', background: copied ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: copied ? '#D8B16A' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>
               {copied ? '✓ Copied!' : '📋 Copy code'}
             </button>
             <button onClick={loadPreview} style={{ padding: '9px 18px', background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.3)', borderRadius: '8px', color: '#a78bfa', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
@@ -59,12 +59,12 @@ export default function WebsiteChatSetup() {
           </div>
         </div>
 
-        <div style={{ background: 'rgba(0,229,160,.04)', border: '1px solid rgba(0,229,160,.12)', borderRadius: '10px', padding: '16px 18px', fontSize: '13px', color: '#94a3b8', lineHeight: 1.8 }}>
+        <div style={{ background: 'rgba(216,177,106,.04)', border: '1px solid rgba(216,177,106,.12)', borderRadius: '10px', padding: '16px 18px', fontSize: '13px', color: '#94a3b8', lineHeight: 1.8 }}>
           <strong style={{ color: '#e2e8f0' }}>How it works</strong>
           <ol style={{ margin: '8px 0 0 18px' }}>
             <li>Paste the code on your website (or click Preview to try it here).</li>
             <li>Visitors chat with the AI, grounded in your Knowledge Base.</li>
-            <li>Every conversation appears in your <strong style={{ color: '#00e5a0' }}>Inbox</strong> — your team can take over anytime.</li>
+            <li>Every conversation appears in your <strong style={{ color: '#D8B16A' }}>Inbox</strong> — your team can take over anytime.</li>
           </ol>
           <div style={{ marginTop: '10px', fontSize: '12px', color: '#64748b' }}>💡 Tip: add content in <strong style={{ color: '#a78bfa' }}>Knowledge</strong> so the AI answers accurately about your services, pricing, and hours.</div>
         </div>

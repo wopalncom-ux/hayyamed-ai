@@ -30,9 +30,9 @@ const toRow = (c) => ({
 const channels = ['All Channels', 'WhatsApp', 'Instagram', 'Facebook', 'Telegram', 'Email']
 const statuses = ['All Status', 'Hot Lead', 'Cold Lead', 'Customer', 'Prospect']
 
-const statusColors = { 'Hot Lead':'#ef4444', 'Customer':'#00e5a0', 'Cold Lead':'#3b82f6', 'Prospect':'#f97316' }
+const statusColors = { 'Hot Lead':'#ef4444', 'Customer':'#D8B16A', 'Cold Lead':'#3b82f6', 'Prospect':'#f97316' }
 const channelIcons = { 'WhatsApp':'💬', 'Instagram':'📸', 'Facebook':'👤', 'Telegram':'✈️' }
-const channelColors = { 'WhatsApp':'#00e5a0', 'Instagram':'#a78bfa', 'Facebook':'#3b82f6', 'Telegram':'#f97316' }
+const channelColors = { 'WhatsApp':'#D8B16A', 'Instagram':'#a78bfa', 'Facebook':'#3b82f6', 'Telegram':'#f97316' }
 
 export default function Reports() {
   const isMobile = useIsMobile()
@@ -155,7 +155,7 @@ export default function Reports() {
 
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
         <img src="/logo.svg" alt="Hayyamed" style={{height:'40px', width:'auto'}} />
-        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
+        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.2)', color:'#D8B16A', borderRadius:'2px'}}>● LIVE</div>
         <div style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700'}}>A</div>
       </div>
 
@@ -177,7 +177,7 @@ export default function Reports() {
                 <button onClick={() => setShowAI(!showAI)} style={{padding:'7px 12px', background: showAI ? '#a78bfa' : 'rgba(167,139,250,.1)', border:'1px solid rgba(167,139,250,.3)', borderRadius:'4px', color: showAI ? '#07090f' : '#a78bfa', fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>🤖 AI Assistant</button>
                 <button onClick={exportCSV} style={{padding:'7px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>📥 CSV</button>
                 <button onClick={printReport} style={{padding:'7px 12px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>🖨️ Print</button>
-                <button onClick={sendWhatsApp} style={{padding:'7px 12px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontSize:'11px', cursor:'pointer'}}>💬 WhatsApp</button>
+                <button onClick={sendWhatsApp} style={{padding:'7px 12px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'4px', color:'#D8B16A', fontSize:'11px', cursor:'pointer'}}>💬 WhatsApp</button>
                 <button onClick={shareReport} style={{padding:'7px 12px', background:'rgba(59,130,246,.1)', border:'1px solid rgba(59,130,246,.2)', borderRadius:'4px', color:'#3b82f6', fontSize:'11px', cursor:'pointer'}}>🔗 Share</button>
               </div>
             </div>
@@ -226,7 +226,7 @@ export default function Reports() {
                   </div>
                   <div style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'14px'}}>
                     <div style={{fontSize:'10px', color:'#7a8fa6', marginBottom:'6px'}}>MEDIAN FIRST RESPONSE</div>
-                    <div style={{fontSize:'24px', fontWeight:900, color:'#00e5a0'}}>{csat.medianFirstRespMin || '—'}<span style={{fontSize:'13px', color:'#64748b', fontWeight:600}}> min</span></div>
+                    <div style={{fontSize:'24px', fontWeight:900, color:'#D8B16A'}}>{csat.medianFirstRespMin || '—'}<span style={{fontSize:'13px', color:'#64748b', fontWeight:600}}> min</span></div>
                     <div style={{fontSize:'10px', color:'#64748b', marginTop:'4px'}}>{csat.respSample} conversation{csat.respSample === 1 ? '' : 's'}</div>
                   </div>
                   <div style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'14px'}}>
@@ -250,7 +250,7 @@ export default function Reports() {
             {/* Summary KPIs */}
             <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'10px'}}>
               {[
-                {label:'TOTAL LEADS', value:totalLeads, color:'#00e5a0'},
+                {label:'TOTAL LEADS', value:totalLeads, color:'#D8B16A'},
                 {label:'BOOKED', value:booked, color:'#3b82f6'},
                 {label:'BOOKING RATE', value:`${bookingRate}%`, color:'#a78bfa'},
                 {label:'NOT BOOKED', value:totalLeads-booked, color:'#f97316'},
@@ -269,7 +269,7 @@ export default function Reports() {
                 {id:'charts', label:'📊 Charts'},
                 {id:'summary', label:'📄 Summary'},
               ].map(v => (
-                <button key={v.id} onClick={() => setView(v.id)} style={{padding:'6px 14px', background: view===v.id ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: view===v.id ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: view===v.id ? '700' : '400'}}>
+                <button key={v.id} onClick={() => setView(v.id)} style={{padding:'6px 14px', background: view===v.id ? '#D8B16A' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: view===v.id ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: view===v.id ? '700' : '400'}}>
                   {v.label}
                 </button>
               ))}
@@ -294,7 +294,7 @@ export default function Reports() {
                     <div><span style={{fontSize:'10px', padding:'2px 7px', borderRadius:'2px', background:`${(statusColors[d.status]||'#7a8fa6')}20`, color:statusColors[d.status]||'#7a8fa6'}}>{d.status}</span></div>
                     <div style={{fontSize:'12px'}}>{channelIcons[d.channel] || '💬'} <span style={{fontSize:'10px', color:'#7a8fa6'}}>{d.channel}</span></div>
                     <div style={{fontSize:'11px', color:'#7a8fa6'}}>{d.date}</div>
-                    <div style={{fontSize:'11px', fontWeight:'700', color: d.booked==='Yes' ? '#00e5a0' : '#ef4444'}}>{d.booked==='Yes' ? '✅' : '❌'}</div>
+                    <div style={{fontSize:'11px', fontWeight:'700', color: d.booked==='Yes' ? '#D8B16A' : '#ef4444'}}>{d.booked==='Yes' ? '✅' : '❌'}</div>
                   </div>
                 ))}
               </div>
@@ -341,12 +341,12 @@ export default function Reports() {
                   <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>Booking Performance</div>
                   <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'24px', height:'120px'}}>
                     <div style={{textAlign:'center'}}>
-                      <div style={{fontSize:'40px', fontWeight:'800', color:'#00e5a0'}}>{bookingRate}%</div>
+                      <div style={{fontSize:'40px', fontWeight:'800', color:'#D8B16A'}}>{bookingRate}%</div>
                       <div style={{fontSize:'11px', color:'#7a8fa6'}}>Booking Rate</div>
                     </div>
                     <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
                       <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                        <div style={{width:'12px', height:'12px', borderRadius:'2px', background:'#00e5a0'}}></div>
+                        <div style={{width:'12px', height:'12px', borderRadius:'2px', background:'#D8B16A'}}></div>
                         <div style={{fontSize:'11px', color:'#7a8fa6'}}>Booked: {booked}</div>
                       </div>
                       <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
@@ -397,7 +397,7 @@ export default function Reports() {
                     {label:'Booking Rate', value:`${bookingRate}%`},
                   ].map(s => (
                     <div key={s.label} style={{padding:'14px', background:'#111622', borderRadius:'4px', textAlign:'center'}}>
-                      <div style={{fontSize:'24px', fontWeight:'800', color:'#00e5a0'}}>{s.value}</div>
+                      <div style={{fontSize:'24px', fontWeight:'800', color:'#D8B16A'}}>{s.value}</div>
                       <div style={{fontSize:'11px', color:'#3d4f63', marginTop:'4px'}}>{s.label}</div>
                     </div>
                   ))}
@@ -424,9 +424,9 @@ export default function Reports() {
                 </div>
 
                 <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
-                  <button onClick={exportCSV} style={{padding:'8px 16px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
+                  <button onClick={exportCSV} style={{padding:'8px 16px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
                   <button onClick={printReport} style={{padding:'8px 16px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer'}}>🖨️ Print PDF</button>
-                  <button onClick={sendWhatsApp} style={{padding:'8px 16px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontSize:'11px', cursor:'pointer'}}>💬 Send WhatsApp</button>
+                  <button onClick={sendWhatsApp} style={{padding:'8px 16px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'4px', color:'#D8B16A', fontSize:'11px', cursor:'pointer'}}>💬 Send WhatsApp</button>
                   <button onClick={shareReport} style={{padding:'8px 16px', background:'rgba(59,130,246,.1)', border:'1px solid rgba(59,130,246,.2)', borderRadius:'4px', color:'#3b82f6', fontSize:'11px', cursor:'pointer'}}>🔗 Share Link</button>
                 </div>
               </div>

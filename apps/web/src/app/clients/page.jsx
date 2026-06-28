@@ -239,13 +239,13 @@ export default function ClientsConsole() {
         <div style={{ width: '280px', borderRight: '1px solid #1a2235', padding: '20px 16px', overflow: 'auto', flexShrink: 0 }}>
           <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 800, letterSpacing: '1px', marginBottom: '2px' }}>CLIENT AI OPERATING CENTER</div>
           <div style={{ fontWeight: 900, fontSize: '17px', marginBottom: '14px' }}>Clients</div>
-          <button onClick={newClient} style={{ width: '100%', padding: '9px', background: '#00e5a0', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer', marginBottom: '8px' }}>+ New Client</button>
+          <button onClick={newClient} style={{ width: '100%', padding: '9px', background: '#D8B16A', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer', marginBottom: '8px' }}>+ New Client</button>
           <button onClick={() => { setSelected(null); setEditing(null); loadOverview() }} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontWeight: 700, fontSize: '12px', cursor: 'pointer', marginBottom: '14px' }}>📊 Owner Overview</button>
           {loading ? <div style={{ color: '#64748b', fontSize: '12px' }}>Loading…</div>
             : clients.length === 0 ? <div style={{ color: '#64748b', fontSize: '12px', lineHeight: 1.6 }}>No clients yet. Create your first client to set up their AI brain, agents, automations and billing.</div>
             : clients.map(c => (
               <div key={c.id} onClick={() => openClient(c.id)}
-                style={{ padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '6px', background: selected?.id === c.id ? 'rgba(0,229,160,.08)' : '#0f1520', border: `1px solid ${selected?.id === c.id ? 'rgba(0,229,160,.3)' : '#1a2235'}`, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                style={{ padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '6px', background: selected?.id === c.id ? 'rgba(216,177,106,.08)' : '#0f1520', border: `1px solid ${selected?.id === c.id ? 'rgba(216,177,106,.3)' : '#1a2235'}`, display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '20px' }}>{c.logo || '🏢'}</span>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
@@ -264,7 +264,7 @@ export default function ClientsConsole() {
               {/* Totals */}
               {overview && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px,1fr))', gap: '10px', marginBottom: '18px' }}>
-                  {[['Clients', overview.totals.clients, '#3b82f6'], ['Active', overview.totals.active, '#00e5a0'], ['Wallet (QAR)', overview.totals.wallet, '#fbbf24'], ['Agents', overview.totals.agents, '#a78bfa'], ['Automations', overview.totals.automations, '#06b6d4'], ['Low balance', overview.totals.lowBalance, '#ef4444']].map(([label, val, color]) => (
+                  {[['Clients', overview.totals.clients, '#3b82f6'], ['Active', overview.totals.active, '#D8B16A'], ['Wallet (QAR)', overview.totals.wallet, '#fbbf24'], ['Agents', overview.totals.agents, '#a78bfa'], ['Automations', overview.totals.automations, '#06b6d4'], ['Low balance', overview.totals.lowBalance, '#ef4444']].map(([label, val, color]) => (
                     <div key={label} style={{ ...card, padding: '12px', textAlign: 'center' }}>
                       <div style={{ fontSize: '22px', fontWeight: 900, color }}>{val}</div>
                       <div style={{ fontSize: '10px', color: '#64748b' }}>{label}</div>
@@ -283,7 +283,7 @@ export default function ClientsConsole() {
                       <span onClick={() => openClient(c.id)} style={{ cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '7px' }}>{c.logo || '🏢'} {c.name}</span>
                       <span>{c.knowledgeBases}</span><span>{c.agents}</span><span>{c.automations}</span><span>{c.channels}</span><span>{c.contacts}</span>
                       <span style={{ color: c.lowBalance ? '#ef4444' : '#fbbf24', fontWeight: 700 }}>{Number(c.balance || 0).toLocaleString()}</span>
-                      <button onClick={() => setClientActive(c.id, !c.isActive)} style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '10px', cursor: 'pointer', border: '1px solid', borderColor: c.isActive ? 'rgba(0,229,160,.3)' : 'rgba(239,68,68,.3)', background: 'transparent', color: c.isActive ? '#00e5a0' : '#ef4444', fontWeight: 700 }}>{c.isActive ? 'Active' : 'Disabled'}</button>
+                      <button onClick={() => setClientActive(c.id, !c.isActive)} style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '10px', cursor: 'pointer', border: '1px solid', borderColor: c.isActive ? 'rgba(216,177,106,.3)' : 'rgba(239,68,68,.3)', background: 'transparent', color: c.isActive ? '#D8B16A' : '#ef4444', fontWeight: 700 }}>{c.isActive ? 'Active' : 'Disabled'}</button>
                     </div>
                   ))}
               </div>
@@ -347,8 +347,8 @@ export default function ClientsConsole() {
                       <div style={{ gridColumn: '1 / -1' }}><Field label="Internal admin notes"><textarea style={{ ...input, minHeight: '60px', resize: 'vertical' }} value={editing.adminNotes} onChange={e => set('adminNotes', e.target.value)} placeholder="Only you see this." /></Field></div>
                     </div>
                   </div>
-                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
-                  <div><button onClick={save} disabled={busy} style={{ padding: '11px 26px', background: busy ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: busy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '14px', cursor: busy ? 'wait' : 'pointer' }}>{busy ? 'Saving…' : (selected ? 'Save changes' : 'Create client')}</button></div>
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#D8B16A' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                  <div><button onClick={save} disabled={busy} style={{ padding: '11px 26px', background: busy ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: busy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '14px', cursor: busy ? 'wait' : 'pointer' }}>{busy ? 'Saving…' : (selected ? 'Save changes' : 'Create client')}</button></div>
                 </div>
               )}
 
@@ -359,7 +359,7 @@ export default function ClientsConsole() {
                     {[['🧠', 'AI Brains', selected.counts?.knowledgeBases], ['🤖', 'AI Agents', selected.counts?.agents], ['⚡', 'Automations', selected.counts?.automations], ['📡', 'Channels', selected.counts?.channels], ['👥', 'Contacts', selected.counts?.contacts]].map(([icon, label, n]) => (
                       <div key={label} style={{ ...card, textAlign: 'center', padding: '14px' }}>
                         <div style={{ fontSize: '20px' }}>{icon}</div>
-                        <div style={{ fontSize: '22px', fontWeight: 900, color: '#00e5a0' }}>{n ?? 0}</div>
+                        <div style={{ fontSize: '22px', fontWeight: 900, color: '#D8B16A' }}>{n ?? 0}</div>
                         <div style={{ fontSize: '10px', color: '#64748b' }}>{label}</div>
                       </div>
                     ))}
@@ -370,7 +370,7 @@ export default function ClientsConsole() {
                       : selected.channels.map(ch => (
                         <div key={ch.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1a2235', fontSize: '12px' }}>
                           <span>{ch.type} — {ch.name}</span>
-                          <span style={{ color: ch.isActive ? '#00e5a0' : '#64748b' }}>{ch.isActive ? (ch.isVerified ? '🟢 Active' : '🟡 Pending') : '⚪ Off'}</span>
+                          <span style={{ color: ch.isActive ? '#D8B16A' : '#64748b' }}>{ch.isActive ? (ch.isVerified ? '🟢 Active' : '🟡 Pending') : '⚪ Off'}</span>
                         </div>
                       ))}
                   </div>
@@ -386,14 +386,14 @@ export default function ClientsConsole() {
                           <span>Storage</span><span>{storage.usedMb} / {storage.limitMb} MB · {storage.sources} source{storage.sources === 1 ? '' : 's'}</span>
                         </div>
                         <div style={{ height: '7px', background: '#1a2235', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: `${storage.pct}%`, height: '100%', background: storage.pct > 90 ? '#ef4444' : '#00e5a0' }} />
+                          <div style={{ width: `${storage.pct}%`, height: '100%', background: storage.pct > 90 ? '#ef4444' : '#D8B16A' }} />
                         </div>
                       </div>
                     )}
                     {/* Create KB */}
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                       <input style={{ ...input, flex: 1 }} value={newBrain} onChange={e => setNewBrain(e.target.value)} placeholder="New knowledge base name…" onKeyDown={e => e.key === 'Enter' && createBrain()} />
-                      <button onClick={createBrain} disabled={!newBrain.trim()} style={{ padding: '0 16px', background: newBrain.trim() ? '#00e5a0' : '#1a2235', border: 'none', borderRadius: '6px', color: newBrain.trim() ? '#07090f' : '#64748b', fontWeight: 800, cursor: 'pointer' }}>+ Brain</button>
+                      <button onClick={createBrain} disabled={!newBrain.trim()} style={{ padding: '0 16px', background: newBrain.trim() ? '#D8B16A' : '#1a2235', border: 'none', borderRadius: '6px', color: newBrain.trim() ? '#07090f' : '#64748b', fontWeight: 800, cursor: 'pointer' }}>+ Brain</button>
                     </div>
                     {brains.length === 0 ? <div style={{ fontSize: '12px', color: '#64748b' }}>No knowledge bases yet. Create one, then add sources (text, FAQ, website, catalog) to train this client's AI.</div>
                       : brains.map(kb => (
@@ -401,13 +401,13 @@ export default function ClientsConsole() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                             <div style={{ fontWeight: 700, fontSize: '13px' }}>{kb.name} <span style={{ fontSize: '10px', color: '#64748b' }}>· {kb.sources?.length || 0} sources</span></div>
                             <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={() => setSrcModal({ kbId: kb.id })} style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '6px', color: '#00e5a0', cursor: 'pointer' }}>+ Source</button>
+                              <button onClick={() => setSrcModal({ kbId: kb.id })} style={{ fontSize: '11px', padding: '4px 10px', background: 'rgba(216,177,106,.1)', border: '1px solid rgba(216,177,106,.3)', borderRadius: '6px', color: '#D8B16A', cursor: 'pointer' }}>+ Source</button>
                               <button onClick={() => { setUploadKb(kb.id); fileRef.current?.click() }} disabled={uploading} title="Upload PDF/TXT/CSV" style={{ fontSize: '11px', padding: '4px 10px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '6px', color: '#7a8fa6', cursor: uploading ? 'wait' : 'pointer' }}>{uploading && uploadKb === kb.id ? '⏳' : '📎 Upload'}</button>
                               <button onClick={() => retrain(kb.id)} title="Re-train / sync" style={{ fontSize: '11px', padding: '4px 10px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '6px', color: '#7a8fa6', cursor: 'pointer' }}>↻ Sync</button>
                             </div>
                           </div>
                           {(kb.sources || []).map(s => {
-                            const sc = { ready: '#00e5a0', pending: '#fbbf24', processing: '#3b82f6', failed: '#ef4444' }[s.status] || '#64748b'
+                            const sc = { ready: '#D8B16A', pending: '#fbbf24', processing: '#3b82f6', failed: '#ef4444' }[s.status] || '#64748b'
                             return (
                               <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: '12px', borderTop: '1px solid #131a28' }}>
                                 <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{({ text: '📝', faq: '❓', url: '🌐', pdf: '📄', docx: '📄', product_list: '🏷️', pricing: '💲' }[s.type] || '📎')} {s.name}</span>
@@ -433,7 +433,7 @@ export default function ClientsConsole() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {!agentForm ? (
                     <>
-                      <button onClick={() => { setAgentForm({ ...EMPTY_AGENT }); setTestReply(null) }} style={{ alignSelf: 'flex-start', padding: '9px 18px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>+ New AI Agent</button>
+                      <button onClick={() => { setAgentForm({ ...EMPTY_AGENT }); setTestReply(null) }} style={{ alignSelf: 'flex-start', padding: '9px 18px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>+ New AI Agent</button>
                       {agents.length === 0 ? <div style={{ ...card, fontSize: '12px', color: '#64748b' }}>No agents yet. Create an AI agent, give it a role and a knowledge base, assign channels, then test and publish.</div>
                         : agents.map(a => (
                           <div key={a.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -442,7 +442,7 @@ export default function ClientsConsole() {
                               <div style={{ fontWeight: 700, fontSize: '14px' }}>{a.name}</div>
                               <div style={{ fontSize: '11px', color: '#64748b' }}>{(ROLES.find(r => r[0] === a.role) || [, a.role])[1]} · {a.aiProvider}/{a.aiModel} · {(a.channels || []).length} channel{(a.channels || []).length === 1 ? '' : 's'}</div>
                             </div>
-                            <button onClick={() => toggleAgent(a)} style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', border: '1px solid', borderColor: a.isActive ? 'rgba(0,229,160,.4)' : '#1a2235', background: a.isActive ? 'rgba(0,229,160,.12)' : 'transparent', color: a.isActive ? '#00e5a0' : '#64748b', fontWeight: 700 }}>{a.isActive ? '● Published' : '○ Draft'}</button>
+                            <button onClick={() => toggleAgent(a)} style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', border: '1px solid', borderColor: a.isActive ? 'rgba(216,177,106,.4)' : '#1a2235', background: a.isActive ? 'rgba(216,177,106,.12)' : 'transparent', color: a.isActive ? '#D8B16A' : '#64748b', fontWeight: 700 }}>{a.isActive ? '● Published' : '○ Draft'}</button>
                             <button onClick={() => { setAgentForm({ ...EMPTY_AGENT, ...a, escalationRules: a.escalationRules || { humanTakeover: true } }); setTestReply(null) }} style={{ fontSize: '11px', padding: '4px 10px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '6px', color: '#7a8fa6', cursor: 'pointer' }}>Edit</button>
                             <button onClick={() => delAgent(a.id)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>✕</button>
                           </div>
@@ -463,7 +463,7 @@ export default function ClientsConsole() {
                           <label style={lbl}>Channels</label>
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             {AGENT_CHANNELS.map(([v, l]) => (
-                              <button key={v} onClick={() => toggleChannel(v)} style={{ fontSize: '11px', padding: '6px 11px', borderRadius: '7px', cursor: 'pointer', border: '1px solid', borderColor: agentForm.channels.includes(v) ? 'rgba(0,229,160,.4)' : '#1a2235', background: agentForm.channels.includes(v) ? 'rgba(0,229,160,.1)' : 'transparent', color: agentForm.channels.includes(v) ? '#00e5a0' : '#7a8fa6' }}>{agentForm.channels.includes(v) ? '✓ ' : ''}{l}</button>
+                              <button key={v} onClick={() => toggleChannel(v)} style={{ fontSize: '11px', padding: '6px 11px', borderRadius: '7px', cursor: 'pointer', border: '1px solid', borderColor: agentForm.channels.includes(v) ? 'rgba(216,177,106,.4)' : '#1a2235', background: agentForm.channels.includes(v) ? 'rgba(216,177,106,.1)' : 'transparent', color: agentForm.channels.includes(v) ? '#D8B16A' : '#7a8fa6' }}>{agentForm.channels.includes(v) ? '✓ ' : ''}{l}</button>
                             ))}
                           </div>
                         </div>
@@ -472,7 +472,7 @@ export default function ClientsConsole() {
                           Allow human takeover (pause AI when a customer asks for a human)
                         </label>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                          <button onClick={saveAgent} disabled={agentBusy} style={{ padding: '9px 20px', background: agentBusy ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '7px', color: agentBusy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{agentBusy ? 'Saving…' : (agentForm.id ? 'Save agent' : 'Create agent')}</button>
+                          <button onClick={saveAgent} disabled={agentBusy} style={{ padding: '9px 20px', background: agentBusy ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '7px', color: agentBusy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{agentBusy ? 'Saving…' : (agentForm.id ? 'Save agent' : 'Create agent')}</button>
                           <button onClick={() => { setAgentForm(null); setTestReply(null) }} style={{ padding: '9px 18px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '13px', cursor: 'pointer' }}>Back</button>
                         </div>
                       </div>
@@ -489,7 +489,7 @@ export default function ClientsConsole() {
                       )}
                     </>
                   )}
-                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#D8B16A' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>
               )}
 
@@ -504,7 +504,7 @@ export default function ClientsConsole() {
                         <div key={ch.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #1a2235', fontSize: '12px' }}>
                           <span>📡 {ch.name} <span style={{ color: '#64748b' }}>· {ch.provider}</span></span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ color: ch.isActive ? (ch.isVerified ? '#00e5a0' : '#fbbf24') : '#64748b' }}>{ch.isActive ? (ch.isVerified ? '🟢 Active' : '🟡 Pending') : '⚪ Off'}</span>
+                            <span style={{ color: ch.isActive ? (ch.isVerified ? '#D8B16A' : '#fbbf24') : '#64748b' }}>{ch.isActive ? (ch.isVerified ? '🟢 Active' : '🟡 Pending') : '⚪ Off'}</span>
                             {ch.isActive && <button onClick={() => disconnectChannel(ch.id)} style={{ fontSize: '11px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>Disconnect</button>}
                           </span>
                         </div>
@@ -513,7 +513,7 @@ export default function ClientsConsole() {
 
                   {/* Option A: Unipile */}
                   <div style={card}>
-                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>💚 WhatsApp via Unipile (QR / code) <span style={{ fontSize: '10px', color: '#00e5a0' }}>· no Meta approval</span></div>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>💚 WhatsApp via Unipile (QR / code) <span style={{ fontSize: '10px', color: '#D8B16A' }}>· no Meta approval</span></div>
                     <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>Fast 2-way support inbox. Enter the client's WhatsApp number to get a pairing code.</div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input style={{ ...input, flex: 1 }} value={waPhone} onChange={e => setWaPhone(e.target.value)} placeholder="+974 5XXX XXXX" />
@@ -563,7 +563,7 @@ export default function ClientsConsole() {
                     </div>
                     <button onClick={connectManual} disabled={busy || !manual.name} style={{ marginTop: '12px', padding: '9px 18px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '13px', cursor: 'pointer' }}>Add channel</button>
                   </div>
-                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#D8B16A' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>
               )}
 
@@ -581,7 +581,7 @@ export default function ClientsConsole() {
                           <div style={{ fontSize: '11px', color: '#64748b', flex: 1 }}>{t.desc}</div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '9px', color: '#a78bfa', background: 'rgba(167,139,250,.1)', padding: '2px 7px', borderRadius: '10px' }}>{t.trigger}</span>
-                            <button onClick={() => installTemplate(t.id)} style={{ fontSize: '11px', padding: '4px 12px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '6px', color: '#00e5a0', fontWeight: 700, cursor: 'pointer' }}>+ Install</button>
+                            <button onClick={() => installTemplate(t.id)} style={{ fontSize: '11px', padding: '4px 12px', background: 'rgba(216,177,106,.1)', border: '1px solid rgba(216,177,106,.3)', borderRadius: '6px', color: '#D8B16A', fontWeight: 700, cursor: 'pointer' }}>+ Install</button>
                           </div>
                         </div>
                       ))}
@@ -599,7 +599,7 @@ export default function ClientsConsole() {
                             <div style={{ fontSize: '13px', fontWeight: 700 }}>{w.name}</div>
                             <div style={{ fontSize: '10px', color: '#64748b' }}>trigger: {w.trigger} · {(Array.isArray(w.actions) ? w.actions.length : 0)} action(s) · {w.runCount || 0} runs</div>
                           </div>
-                          <button onClick={() => toggleAuto(w)} style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', border: '1px solid', borderColor: w.isActive ? 'rgba(0,229,160,.4)' : '#1a2235', background: w.isActive ? 'rgba(0,229,160,.12)' : 'transparent', color: w.isActive ? '#00e5a0' : '#64748b', fontWeight: 700 }}>{w.isActive ? '● On' : '○ Off'}</button>
+                          <button onClick={() => toggleAuto(w)} style={{ fontSize: '11px', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', border: '1px solid', borderColor: w.isActive ? 'rgba(216,177,106,.4)' : '#1a2235', background: w.isActive ? 'rgba(216,177,106,.12)' : 'transparent', color: w.isActive ? '#D8B16A' : '#64748b', fontWeight: 700 }}>{w.isActive ? '● On' : '○ Off'}</button>
                           <button onClick={() => delAuto(w.id)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>✕</button>
                         </div>
                       ))}
@@ -612,11 +612,11 @@ export default function ClientsConsole() {
                       : autoRuns.map(r => (
                         <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '5px 0', borderBottom: '1px solid #131a28' }}>
                           <span>{r.workflow?.name || r.workflowId} {r.error && <span style={{ color: '#ef4444' }}>· {r.error}</span>}</span>
-                          <span style={{ color: r.status === 'failed' ? '#ef4444' : r.status === 'completed' ? '#00e5a0' : '#fbbf24' }}>{r.status} · {new Date(r.createdAt).toLocaleString()}</span>
+                          <span style={{ color: r.status === 'failed' ? '#ef4444' : r.status === 'completed' ? '#D8B16A' : '#fbbf24' }}>{r.status} · {new Date(r.createdAt).toLocaleString()}</span>
                         </div>
                       ))}
                   </div>
-                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#D8B16A' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>
               )}
 
@@ -629,7 +629,7 @@ export default function ClientsConsole() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px' }}>
                     {modules.map(m => (
-                      <div key={m.key} style={{ ...card, border: `1px solid ${m.enabled ? 'rgba(0,229,160,.3)' : '#1a2235'}`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div key={m.key} style={{ ...card, border: `1px solid ${m.enabled ? 'rgba(216,177,106,.3)' : '#1a2235'}`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ fontSize: '22px' }}>{m.icon}</span>
                           <div style={{ flex: 1 }}>
@@ -637,12 +637,12 @@ export default function ClientsConsole() {
                             <div style={{ fontSize: '10px', color: m.price > 0 ? '#fbbf24' : '#64748b' }}>{m.price > 0 ? `QAR ${m.price}/mo add-on` : 'Included'}</div>
                           </div>
                           <button onClick={() => toggleModule(m.key, !m.enabled)} title={m.enabled ? 'Disable' : 'Enable'}
-                            style={{ width: '42px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: m.enabled ? '#00e5a0' : '#1a2235', position: 'relative', transition: 'background .2s', flexShrink: 0 }}>
+                            style={{ width: '42px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: m.enabled ? '#D8B16A' : '#1a2235', position: 'relative', transition: 'background .2s', flexShrink: 0 }}>
                             <span style={{ position: 'absolute', top: '3px', left: m.enabled ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
                           </button>
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{m.desc}</div>
-                        <div style={{ fontSize: '10px', color: m.enabled ? '#00e5a0' : '#64748b', fontWeight: 700 }}>{m.enabled ? '● Enabled for this client' : '○ Disabled'}</div>
+                        <div style={{ fontSize: '10px', color: m.enabled ? '#D8B16A' : '#64748b', fontWeight: 700 }}>{m.enabled ? '● Enabled for this client' : '○ Disabled'}</div>
                       </div>
                     ))}
                   </div>
@@ -663,7 +663,7 @@ export default function ClientsConsole() {
                       <Field label="My profit % on top of third-party charges"><input type="number" style={input} value={editing.profitPercent} onChange={e => set('profitPercent', e.target.value)} /></Field>
                       <div style={{ gridColumn: '1 / -1' }}><Field label="Campaign billing settings"><textarea style={{ ...input, minHeight: '50px', resize: 'vertical' }} value={editing.campaignBilling} onChange={e => set('campaignBilling', e.target.value)} placeholder="e.g. WhatsApp campaign template cost passed through + profit %." /></Field></div>
                     </div>
-                    <div style={{ marginTop: '12px' }}><button onClick={save} disabled={busy} style={{ padding: '9px 20px', background: busy ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '7px', color: busy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{busy ? 'Saving…' : 'Save billing'}</button></div>
+                    <div style={{ marginTop: '12px' }}><button onClick={save} disabled={busy} style={{ padding: '9px 20px', background: busy ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '7px', color: busy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{busy ? 'Saving…' : 'Save billing'}</button></div>
                   </div>
                   <div style={card}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
@@ -689,10 +689,10 @@ export default function ClientsConsole() {
                     </div>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
                       <span style={{ color: '#64748b' }}>Cost: <strong style={{ color: '#e2e8f0' }}>QAR {Number(campCost) || 0}</strong></span>
-                      <span style={{ color: '#64748b' }}>+ Profit ({profitPct}%): <strong style={{ color: '#00e5a0' }}>QAR {campProfit}</strong></span>
+                      <span style={{ color: '#64748b' }}>+ Profit ({profitPct}%): <strong style={{ color: '#D8B16A' }}>QAR {campProfit}</strong></span>
                       <span style={{ color: '#64748b' }}>Client charge: <strong style={{ color: '#fbbf24' }}>QAR {campCharge}</strong></span>
                     </div>
-                    <button onClick={chargeClient} disabled={!(Number(campCost) > 0)} style={{ padding: '9px 18px', background: Number(campCost) > 0 ? '#00e5a0' : '#1a2235', border: 'none', borderRadius: '7px', color: Number(campCost) > 0 ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Charge wallet QAR {campCharge}</button>
+                    <button onClick={chargeClient} disabled={!(Number(campCost) > 0)} style={{ padding: '9px 18px', background: Number(campCost) > 0 ? '#D8B16A' : '#1a2235', border: 'none', borderRadius: '7px', color: Number(campCost) > 0 ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Charge wallet QAR {campCharge}</button>
                   </div>
 
                   {/* Ledger */}
@@ -702,11 +702,11 @@ export default function ClientsConsole() {
                       : billing.transactions.map(t => (
                         <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #131a28', fontSize: '12px' }}>
                           <span>{t.type === 'credit' ? '⬆️' : '⬇️'} {t.description} <span style={{ color: '#64748b', fontSize: '10px' }}>· {new Date(t.createdAt).toLocaleString()}</span></span>
-                          <span style={{ color: t.type === 'credit' ? '#00e5a0' : '#ef4444', fontWeight: 700 }}>{t.type === 'credit' ? '+' : '−'}QAR {t.amount} <span style={{ color: '#64748b', fontWeight: 400 }}>→ {t.balanceAfter}</span></span>
+                          <span style={{ color: t.type === 'credit' ? '#D8B16A' : '#ef4444', fontWeight: 700 }}>{t.type === 'credit' ? '+' : '−'}QAR {t.amount} <span style={{ color: '#64748b', fontWeight: 400 }}>→ {t.balanceAfter}</span></span>
                         </div>
                       ))}
                   </div>
-                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                  {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#D8B16A' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                 </div>
               )}
             </div>
@@ -737,7 +737,7 @@ export default function ClientsConsole() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
               <button onClick={() => setSrcModal(null)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={addSource} disabled={!srcBody.trim()} style={{ padding: '8px 18px', background: srcBody.trim() ? '#00e5a0' : '#1a2235', border: 'none', borderRadius: '7px', color: srcBody.trim() ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Add source</button>
+              <button onClick={addSource} disabled={!srcBody.trim()} style={{ padding: '8px 18px', background: srcBody.trim() ? '#D8B16A' : '#1a2235', border: 'none', borderRadius: '7px', color: srcBody.trim() ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>Add source</button>
             </div>
           </div>
         </div>

@@ -25,7 +25,7 @@ function Step({ n, label, active, done }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: active || done ? 1 : 0.4 }}>
       <div style={{
         width: '26px', height: '26px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800',
-        background: done ? '#00e5a0' : active ? '#3b82f6' : '#1a2235',
+        background: done ? '#D8B16A' : active ? '#3b82f6' : '#1a2235',
         color: done ? '#0a0f1a' : active ? '#fff' : '#64748b',
         flexShrink: 0,
       }}>{done ? '✓' : n}</div>
@@ -150,9 +150,9 @@ export default function ContactImportPage() {
               onDrop={onDrop}
               onClick={() => fileRef.current?.click()}
               style={{
-                border: `2px dashed ${dragOver ? '#00e5a0' : '#1a2235'}`,
+                border: `2px dashed ${dragOver ? '#D8B16A' : '#1a2235'}`,
                 borderRadius: '12px', padding: '60px 40px', textAlign: 'center', cursor: 'pointer',
-                background: dragOver ? '#00e5a010' : '#111622', transition: 'all 0.2s',
+                background: dragOver ? '#D8B16A10' : '#111622', transition: 'all 0.2s',
               }}>
               <div style={{ fontSize: '42px', marginBottom: '12px' }}>📁</div>
               <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '6px' }}>
@@ -270,7 +270,7 @@ export default function ContactImportPage() {
 
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
                 <div onClick={() => setOverwrite(v => !v)} style={{
-                  width: '40px', height: '22px', borderRadius: '11px', background: overwrite ? '#00e5a0' : '#1a2235',
+                  width: '40px', height: '22px', borderRadius: '11px', background: overwrite ? '#D8B16A' : '#1a2235',
                   position: 'relative', cursor: 'pointer', transition: 'background 0.2s',
                 }}>
                   <div style={{
@@ -287,7 +287,7 @@ export default function ContactImportPage() {
               <div style={{ fontWeight: '700', fontSize: '13px', color: '#3b82f6', marginBottom: '10px' }}>Import Summary</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px', color: '#94a3b8' }}>
                 <div>📄 File: <span style={{ color: '#e2e8f0' }}>{file?.name}</span></div>
-                <div>🔗 Column mapping: <span style={{ color: '#00e5a0' }}>{Object.keys(mapping).filter(k => mapping[k]).length} fields mapped</span></div>
+                <div>🔗 Column mapping: <span style={{ color: '#D8B16A' }}>{Object.keys(mapping).filter(k => mapping[k]).length} fields mapped</span></div>
                 <div>📊 Preview rows: <span style={{ color: '#e2e8f0' }}>{previewRows.length} (of full file)</span></div>
                 <div>🔄 Duplicates: <span style={{ color: '#e2e8f0' }}>{overwrite ? 'Update existing' : 'Skip'}</span></div>
                 <div>📌 Default source: <span style={{ color: '#e2e8f0' }}>{defaultSource}</span></div>
@@ -301,7 +301,7 @@ export default function ContactImportPage() {
                 ← Back
               </button>
               <button onClick={doImport} disabled={loading}
-                style={{ padding: '10px 24px', background: loading ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: loading ? '#64748b' : '#0a0f1a', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: '800', fontSize: '14px' }}>
+                style={{ padding: '10px 24px', background: loading ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: loading ? '#64748b' : '#0a0f1a', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: '800', fontSize: '14px' }}>
                 {loading ? '⏳ Importing...' : '⬆ Import Now'}
               </button>
             </div>
@@ -312,12 +312,12 @@ export default function ContactImportPage() {
         {step === 4 && result && (
           <div>
             <div style={{
-              background: result.imported > 0 ? '#00e5a011' : '#ef444411',
-              border: `1px solid ${result.imported > 0 ? '#00e5a033' : '#ef444433'}`,
+              background: result.imported > 0 ? '#D8B16A11' : '#ef444411',
+              border: `1px solid ${result.imported > 0 ? '#D8B16A33' : '#ef444433'}`,
               borderRadius: '12px', padding: '28px', textAlign: 'center', marginBottom: '24px',
             }}>
               <div style={{ fontSize: '42px', marginBottom: '10px' }}>{result.imported > 0 ? '✅' : '❌'}</div>
-              <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '6px', color: result.imported > 0 ? '#00e5a0' : '#ef4444' }}>
+              <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '6px', color: result.imported > 0 ? '#D8B16A' : '#ef4444' }}>
                 {result.imported > 0 ? `${result.imported.toLocaleString()} contacts imported` : 'Import failed'}
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function ContactImportPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
               {[
                 { label: 'Total Rows', value: result.total, color: '#64748b' },
-                { label: 'Imported', value: result.imported, color: '#00e5a0' },
+                { label: 'Imported', value: result.imported, color: '#D8B16A' },
                 { label: 'Skipped (Duplicate)', value: result.duplicates, color: '#fbbf24' },
                 { label: 'Failed', value: result.failed, color: '#ef4444' },
               ].map(s => (
@@ -353,7 +353,7 @@ export default function ContactImportPage() {
             )}
 
             <div style={{ display: 'flex', gap: '10px' }}>
-              <a href="/contacts" style={{ padding: '10px 20px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', fontSize: '14px', textDecoration: 'none', display: 'inline-block' }}>
+              <a href="/contacts" style={{ padding: '10px 20px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', fontSize: '14px', textDecoration: 'none', display: 'inline-block' }}>
                 View Contacts →
               </a>
               <button onClick={() => { setStep(1); setFile(null); setResult(null); setMapping({}) }}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/useIsMobile'
 
-const COLORS = ['#00e5a0','#3b82f6','#a78bfa','#f97316','#ef4444','#fbbf24','#06b6d4']
+const COLORS = ['#D8B16A','#3b82f6','#a78bfa','#f97316','#ef4444','#fbbf24','#06b6d4']
 const toUi = (c) => ({
   ...c,
   avatar: c.name ? c.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : '??',
@@ -15,7 +15,7 @@ const toUi = (c) => ({
   followUp: c.metadata?.followUp || '',
 })
 
-const statusColors = { 'NEW':'#3b82f6','CONTACTED':'#06b6d4','QUALIFYING':'#f97316','QUALIFIED':'#00e5a0','PROPOSAL':'#a78bfa','WON':'#16a34a','LOST':'#ef4444','Hot Lead':'#ef4444','Customer':'#00e5a0','Cold Lead':'#3b82f6','Prospect':'#f97316','New Lead':'#64748b' }
+const statusColors = { 'NEW':'#3b82f6','CONTACTED':'#06b6d4','QUALIFYING':'#f97316','QUALIFIED':'#D8B16A','PROPOSAL':'#a78bfa','WON':'#16a34a','LOST':'#ef4444','Hot Lead':'#ef4444','Customer':'#D8B16A','Cold Lead':'#3b82f6','Prospect':'#f97316','New Lead':'#64748b' }
 // Real contact status enum (what the API returns), with display labels.
 const STATUS_OPTIONS = [['NEW','New'],['CONTACTED','Contacted'],['QUALIFYING','Qualifying'],['QUALIFIED','Qualified'],['PROPOSAL','Proposal'],['WON','Won'],['LOST','Lost']]
 // Contact "source" is stored lowercase (website/whatsapp/instagram/import…); map it
@@ -200,8 +200,8 @@ export default function Contacts() {
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
-        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
+        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
+        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.2)', color:'#D8B16A', borderRadius:'2px'}}>● LIVE</div>
         <div style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700'}}>A</div>
       </div>
 
@@ -246,14 +246,14 @@ export default function Contacts() {
                   style={{padding:'6px 12px', background: scoringAll ? '#1a2235' : 'rgba(139,92,246,.12)', border:'1px solid rgba(139,92,246,.3)', borderRadius:'4px', color:'#8b5cf6', fontWeight:'700', fontSize:'11px', cursor: scoringAll ? 'default' : 'pointer'}}>
                   {scoringAll ? '⏳ Queuing...' : '🤖 Score All'}
                 </button>
-                <button onClick={() => setShowAdd(true)} style={{padding:'6px 12px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>+ Add Contact</button>
+                <button onClick={() => setShowAdd(true)} style={{padding:'6px 12px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>+ Add Contact</button>
               </div>
             </div>
 
             {/* Bulk action toolbar */}
             {selectedIds.length > 0 && (
-              <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', padding:'8px 18px', background:'rgba(0,229,160,.06)', borderBottom:'1px solid rgba(0,229,160,.2)'}}>
-                <span style={{fontSize:'12px', fontWeight:'700', color:'#00e5a0'}}>{selectedIds.length} selected</span>
+              <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', padding:'8px 18px', background:'rgba(216,177,106,.06)', borderBottom:'1px solid rgba(216,177,106,.2)'}}>
+                <span style={{fontSize:'12px', fontWeight:'700', color:'#D8B16A'}}>{selectedIds.length} selected</span>
                 <select defaultValue="" onChange={e => { bulkStatus(e.target.value); e.target.value = '' }} disabled={bulkBusy}
                   style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'5px 9px', color:'#e2e8f0', fontSize:'11px', cursor:'pointer'}}>
                   <option value="" disabled>Set status…</option>
@@ -283,13 +283,13 @@ export default function Contacts() {
             {/* Table Rows */}
             <div style={{flex:1, overflowY:'auto', minWidth: isMobile ? '680px' : 'auto'}}>
               {filtered.map(c => (
-                <div key={c.id} onClick={() => c.id && !c.id.startsWith('local-') ? window.location.href = `/contacts/${c.id}` : setSelected(selected?.id===c.id ? null : c)} style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1.5fr 0.8fr', padding:'10px 18px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', alignItems:'center', borderLeft: selected?.id===c.id ? '2px solid #00e5a0' : '2px solid transparent'}}
+                <div key={c.id} onClick={() => c.id && !c.id.startsWith('local-') ? window.location.href = `/contacts/${c.id}` : setSelected(selected?.id===c.id ? null : c)} style={{display:'grid', gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1.5fr 0.8fr', padding:'10px 18px', borderBottom:'1px solid #1a2235', cursor:'pointer', background: selected?.id===c.id ? '#0f1520' : 'none', alignItems:'center', borderLeft: selected?.id===c.id ? '2px solid #D8B16A' : '2px solid transparent'}}
                   onMouseEnter={e => { if (!selected || selected.id !== c.id) e.currentTarget.style.background = '#0f1624' }}
                   onMouseLeave={e => { if (!selected || selected.id !== c.id) e.currentTarget.style.background = 'none' }}>
                   <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                     <input type="checkbox" checked={selectedIds.includes(c.id)}
                       onClick={e => e.stopPropagation()} onChange={() => toggleSelect(c.id)}
-                      style={{ accentColor:'#00e5a0', width:'15px', height:'15px', cursor:'pointer', flexShrink:0 }} />
+                      style={{ accentColor:'#D8B16A', width:'15px', height:'15px', cursor:'pointer', flexShrink:0 }} />
                     <div style={{width:'32px', height:'32px', borderRadius:'50%', background:c.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'700', color:'#07090f', flexShrink:0}}>{c.avatar}</div>
                     <div>
                       <div style={{fontSize:'12px', fontWeight:'600'}}>{c.name || <span style={{color:'#3d4f63'}}>No name</span>}</div>
@@ -300,7 +300,7 @@ export default function Contacts() {
                   <div style={{fontSize:'13px'}}>{sourceMeta(c.channel).icon} <span style={{fontSize:'11px', color:'#7a8fa6'}}>{sourceMeta(c.channel).label}</span></div>
                   <div>
                     <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
-                      <div style={{fontSize:'13px', fontWeight:'800', color: !c.score ? '#3d4f63' : c.score >= 80 ? '#22c55e' : c.score >= 60 ? '#00e5a0' : c.score >= 40 ? '#fbbf24' : c.score >= 20 ? '#f97316' : '#ef4444'}}>{c.score || '—'}</div>
+                      <div style={{fontSize:'13px', fontWeight:'800', color: !c.score ? '#3d4f63' : c.score >= 80 ? '#22c55e' : c.score >= 60 ? '#D8B16A' : c.score >= 40 ? '#fbbf24' : c.score >= 20 ? '#f97316' : '#ef4444'}}>{c.score || '—'}</div>
                       {c.score > 0 && <div style={{fontSize:'9px', color:'#3d4f63'}}>/100</div>}
                     </div>
                   </div>
@@ -325,7 +325,7 @@ export default function Contacts() {
                 <div style={{fontWeight:'700', fontSize:'14px'}}>{selected.name || 'No name'}</div>
                 <div style={{fontSize:'11px', color:'#7a8fa6', marginTop:'3px'}}>{selected.status}</div>
                 <div style={{display:'flex', justifyContent:'center', gap:'6px', marginTop:'8px'}}>
-                  <div style={{width:'8px', height:'8px', borderRadius:'50%', background: !selected.score ? '#3d4f63' : selected.score >= 80 ? '#22c55e' : selected.score >= 60 ? '#00e5a0' : selected.score >= 40 ? '#fbbf24' : '#f97316'}}></div>
+                  <div style={{width:'8px', height:'8px', borderRadius:'50%', background: !selected.score ? '#3d4f63' : selected.score >= 80 ? '#22c55e' : selected.score >= 60 ? '#D8B16A' : selected.score >= 40 ? '#fbbf24' : '#f97316'}}></div>
                   <span style={{fontSize:'10px', color:'#7a8fa6'}}>AI Score: {selected.score || '—'}{selected.score > 0 ? '/100' : ''}</span>
                 </div>
               </div>
@@ -374,7 +374,7 @@ export default function Contacts() {
               )}
 
               <div style={{display:'flex', flexDirection:'column', gap:'6px', marginTop:'12px'}}>
-                <button style={{width:'100%', padding:'8px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>💬 Send Message</button>
+                <button style={{width:'100%', padding:'8px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>💬 Send Message</button>
                 <button style={{width:'100%', padding:'8px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'12px', cursor:'pointer'}}>📣 Add to Campaign</button>
                 <button style={{width:'100%', padding:'8px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'12px', cursor:'pointer'}}>📝 Edit Contact</button>
               </div>
@@ -436,7 +436,7 @@ export default function Contacts() {
 
             <div style={{display:'flex', gap:'10px', marginTop:'8px'}}>
               <button onClick={() => setShowAdd(false)} style={{flex:1, padding:'10px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'12px', cursor:'pointer'}}>Cancel</button>
-              <button onClick={addContact} style={{flex:1, padding:'10px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>✅ Add Contact</button>
+              <button onClick={addContact} style={{flex:1, padding:'10px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>✅ Add Contact</button>
             </div>
           </div>
         </div>
@@ -454,15 +454,15 @@ export default function Contacts() {
               <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'4px'}}>Upload Excel or CSV</div>
               <div style={{fontSize:'11px', color:'#7a8fa6'}}>.xlsx, .xls, .csv supported</div>
               <input id="contactsFile" type="file" accept=".csv,.xlsx,.xls" style={{display:'none'}} onChange={handleFileUpload}/>
-              {uploadedFile && <div style={{marginTop:'10px', fontSize:'12px', color:'#00e5a0'}}>✅ {uploadedFile.name}</div>}
+              {uploadedFile && <div style={{marginTop:'10px', fontSize:'12px', color:'#D8B16A'}}>✅ {uploadedFile.name}</div>}
             </div>
 
             <div style={{padding:'14px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', marginBottom:'16px'}}>
               <div style={{fontSize:'11px', fontWeight:'600', marginBottom:'8px'}}>Required Format:</div>
               <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'6px'}}>
                 {[{col:'phone', req:true},{col:'name', req:false},{col:'email', req:false}].map(f => (
-                  <div key={f.col} style={{padding:'8px', background:'#0f1520', border:`1px solid ${f.req ? '#00e5a0' : '#1a2235'}`, borderRadius:'3px', textAlign:'center'}}>
-                    <div style={{fontSize:'11px', color: f.req ? '#00e5a0' : '#7a8fa6', fontWeight:'600'}}>{f.col}</div>
+                  <div key={f.col} style={{padding:'8px', background:'#0f1520', border:`1px solid ${f.req ? '#D8B16A' : '#1a2235'}`, borderRadius:'3px', textAlign:'center'}}>
+                    <div style={{fontSize:'11px', color: f.req ? '#D8B16A' : '#7a8fa6', fontWeight:'600'}}>{f.col}</div>
                     <div style={{fontSize:'9px', color:'#3d4f63', marginTop:'2px'}}>{f.req ? 'REQUIRED' : 'optional'}</div>
                   </div>
                 ))}
@@ -479,7 +479,7 @@ export default function Contacts() {
                   const isDup = contacts.find(ex => ex.phone === c.phone)
                   return (
                     <div key={i} style={{display:'grid', gridTemplateColumns:'1fr 1fr', padding:'8px 14px', borderBottom:'1px solid #1a2235', background: isDup ? 'rgba(249,115,22,.05)' : 'none', alignItems:'center'}}>
-                      <div style={{fontSize:'11px', color: isDup ? '#f97316' : '#00e5a0', fontWeight:'600'}}>{c.phone} {isDup && '(duplicate)'}</div>
+                      <div style={{fontSize:'11px', color: isDup ? '#f97316' : '#D8B16A', fontWeight:'600'}}>{c.phone} {isDup && '(duplicate)'}</div>
                       <div style={{fontSize:'11px', color:'#7a8fa6'}}>{c.name || '—'}</div>
                     </div>
                   )
@@ -490,7 +490,7 @@ export default function Contacts() {
             <div style={{display:'flex', gap:'10px'}}>
               <button onClick={() => { setShowImport(false); setShowImportPreview(false) }} style={{flex:1, padding:'10px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'12px', cursor:'pointer'}}>Cancel</button>
               {showImportPreview && (
-                <button onClick={importContacts} style={{flex:1, padding:'10px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
+                <button onClick={importContacts} style={{flex:1, padding:'10px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
                   ✅ Import {previewContacts.filter(nc => !contacts.find(c => c.phone === nc.phone)).length} New Contacts
                 </button>
               )}

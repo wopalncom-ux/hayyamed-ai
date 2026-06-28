@@ -43,7 +43,7 @@ export default function Login() {
         {/* Logo */}
         <div style={{textAlign:'center', marginBottom:'36px'}}>
           <div style={{fontSize:'32px', fontWeight:'900', letterSpacing:'-1px', marginBottom:'8px'}}>
-            Hayya<span style={{color:'#00e5a0'}}> AI</span>
+            Hayya<span style={{color:'#D8B16A'}}> AI</span>
           </div>
           <div style={{fontSize:'13px', color:'#7a8fa6'}}>Sign in to your account</div>
         </div>
@@ -68,7 +68,7 @@ export default function Login() {
           <div style={{marginBottom:'26px'}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'6px'}}>
               <div style={{fontSize:'10px', color:'#7a8fa6', letterSpacing:'1px'}}>PASSWORD</div>
-              <a href="/forgot-password" style={{fontSize:'11px', color:'#00e5a0', textDecoration:'none'}}>Forgot password?</a>
+              <a href="/forgot-password" style={{fontSize:'11px', color:'#D8B16A', textDecoration:'none'}}>Forgot password?</a>
             </div>
             <div style={{position:'relative'}}>
               <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
@@ -83,14 +83,14 @@ export default function Login() {
           </div>
 
           <button onClick={() => doLogin()} disabled={loading}
-            style={{width:'100%', height:'46px', background: loading ? '#1a2235' : 'linear-gradient(135deg,#00e5a0,#00c98a)', color: loading ? '#7a8fa6' : '#07090f', border:'none', borderRadius:'8px', fontSize:'14px', fontWeight:'800', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing:'.3px', transition:'opacity .15s'}}>
+            style={{width:'100%', height:'46px', background: loading ? '#1a2235' : 'linear-gradient(135deg,#D8B16A,#00c98a)', color: loading ? '#7a8fa6' : '#07090f', border:'none', borderRadius:'8px', fontSize:'14px', fontWeight:'800', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing:'.3px', transition:'opacity .15s'}}>
             {loading ? 'Signing in…' : 'Sign In →'}
           </button>
         </div>
 
         <div style={{textAlign:'center', marginTop:'16px', fontSize:'12px', color:'#3d4f63'}}>
           New here?{' '}
-          <a href="/register" style={{color:'#00e5a0', textDecoration:'none', fontWeight:'700'}}>Create a free account →</a>
+          <a href="/register" style={{color:'#D8B16A', textDecoration:'none', fontWeight:'700'}}>Create a free account →</a>
         </div>
         <div style={{textAlign:'center', marginTop:'8px', fontSize:'11px', color:'#3d4f63', lineHeight:'1.7'}}>
           Owned and managed by Hayya Med AI · Doha, Qatar 🇶🇦

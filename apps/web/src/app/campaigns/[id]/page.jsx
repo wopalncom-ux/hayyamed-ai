@@ -5,7 +5,7 @@ import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
 const STATUS_COLOR = {
-  DRAFT: '#64748b', SCHEDULED: '#3b82f6', RUNNING: '#00e5a0',
+  DRAFT: '#64748b', SCHEDULED: '#3b82f6', RUNNING: '#D8B16A',
   PAUSED: '#fbbf24', COMPLETED: '#8b5cf6', FAILED: '#ef4444',
 }
 const STATUS_ICON = { DRAFT: '✏️', SCHEDULED: '🕐', RUNNING: '▶', PAUSED: '⏸', COMPLETED: '✓', FAILED: '✗' }
@@ -150,7 +150,7 @@ export default function CampaignDetailPage() {
                 fontSize: '11px', padding: '3px 9px', borderRadius: '5px', fontWeight: '800',
                 background: STATUS_COLOR[status] + '22', color: STATUS_COLOR[status],
               }}>{STATUS_ICON[status]} {status}</span>
-              {isRunning && <span style={{ fontSize: '11px', color: '#00e5a0', animation: 'pulse 1.5s infinite' }}>● LIVE</span>}
+              {isRunning && <span style={{ fontSize: '11px', color: '#D8B16A', animation: 'pulse 1.5s infinite' }}>● LIVE</span>}
             </div>
             <div style={{ fontSize: '13px', color: '#64748b' }}>
               {campaign.scheduledAt && <span>Scheduled: {new Date(campaign.scheduledAt).toLocaleString()} · </span>}
@@ -164,7 +164,7 @@ export default function CampaignDetailPage() {
             {isDraft && (
               <button onClick={() => doAction('launch', () => api.launchCampaign(id))}
                 disabled={actionLoading === 'launch'}
-                style={{ padding: '10px 20px', background: '#00e5a0', color: '#0a0f1a', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
+                style={{ padding: '10px 20px', background: '#D8B16A', color: '#0a0f1a', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
                 {actionLoading === 'launch' ? 'Launching...' : '▶ Launch Now'}
               </button>
             )}
@@ -176,7 +176,7 @@ export default function CampaignDetailPage() {
             )}
             {isPaused && (
               <button onClick={() => doAction('resume', () => api.resumeCampaign(id))}
-                style={{ padding: '10px 20px', background: '#00e5a0', color: '#0a0f1a', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
+                style={{ padding: '10px 20px', background: '#D8B16A', color: '#0a0f1a', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
                 {actionLoading === 'resume' ? '...' : '▶ Resume'}
               </button>
             )}
@@ -188,7 +188,7 @@ export default function CampaignDetailPage() {
           {[{ id: 'overview', label: '📊 Overview' }, { id: 'contacts', label: `👥 Recipients (${stats.total || 0})` }, { id: 'message', label: '💬 Message' }, { id: 'schedule', label: '🕐 Schedule' }].map(t => (
             <button key={t.id} onClick={() => setView(t.id)} style={{
               padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-              background: view === t.id ? '#00e5a0' : '#1a2235', color: view === t.id ? '#0a0f1a' : '#94a3b8',
+              background: view === t.id ? '#D8B16A' : '#1a2235', color: view === t.id ? '#0a0f1a' : '#94a3b8',
             }}>{t.label}</button>
           ))}
         </div>
@@ -201,7 +201,7 @@ export default function CampaignDetailPage() {
               <div style={{ fontWeight: '700', marginBottom: '16px', fontSize: '14px' }}>Delivery Funnel</div>
               <StatBar label="Total Recipients" value={stats.total || 0} max={stats.total || 1} color="#64748b" />
               <StatBar label="Sent" value={stats.sent || 0} max={stats.total || 1} color="#3b82f6" />
-              <StatBar label="Delivered" value={stats.delivered || 0} max={stats.total || 1} color="#00e5a0" />
+              <StatBar label="Delivered" value={stats.delivered || 0} max={stats.total || 1} color="#D8B16A" />
               <StatBar label="Read" value={stats.read || 0} max={stats.total || 1} color="#8b5cf6" />
               {stats.failedCount > 0 && <StatBar label="Failed" value={stats.failedCount} max={stats.total || 1} color="#ef4444" />}
             </div>
@@ -211,7 +211,7 @@ export default function CampaignDetailPage() {
               <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '10px', padding: '20px' }}>
                 <div style={{ fontWeight: '700', marginBottom: '14px', fontSize: '14px' }}>Performance</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <RateCard label="Delivery Rate" rate={stats.deliveryRate || 0} color="#00e5a0" />
+                  <RateCard label="Delivery Rate" rate={stats.deliveryRate || 0} color="#D8B16A" />
                   <RateCard label="Read Rate" rate={stats.readRate || 0} color="#8b5cf6" />
                 </div>
               </div>
@@ -222,7 +222,7 @@ export default function CampaignDetailPage() {
                   <div style={{ marginBottom: '10px' }}>
                     <div style={{ height: '8px', background: '#1a2235', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{
-                        height: '100%', borderRadius: '4px', background: 'linear-gradient(90deg, #00e5a0, #3b82f6)',
+                        height: '100%', borderRadius: '4px', background: 'linear-gradient(90deg, #D8B16A, #3b82f6)',
                         width: `${stats.total > 0 ? Math.round(((stats.sentCount || 0) / stats.total) * 100) : 0}%`,
                         transition: 'width 1s',
                       }} />
@@ -266,7 +266,7 @@ export default function CampaignDetailPage() {
                     </select>
                   </div>
                   <button onClick={handleAddByFilter} disabled={addingFilter}
-                    style={{ padding: '9px 18px', background: addingFilter ? '#1a2235' : '#00e5a0', color: addingFilter ? '#64748b' : '#0a0f1a', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '700', fontSize: '13px' }}>
+                    style={{ padding: '9px 18px', background: addingFilter ? '#1a2235' : '#D8B16A', color: addingFilter ? '#64748b' : '#0a0f1a', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '700', fontSize: '13px' }}>
                     {addingFilter ? 'Adding...' : '+ Add Matching Contacts'}
                   </button>
                 </div>
@@ -367,7 +367,7 @@ export default function CampaignDetailPage() {
         {toast && (
           <div style={{
             position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px',
-            background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff',
+            background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff',
             fontWeight: '700', fontSize: '14px', zIndex: 9999, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           }}>{toast.msg}</div>
         )}

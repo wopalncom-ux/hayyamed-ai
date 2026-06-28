@@ -17,7 +17,7 @@ const INTEGRATIONS = [
     docs:'https://developers.facebook.com',
   },
   {
-    id:'whatsapp', category:'Social & Messaging', color:'#00e5a0',
+    id:'whatsapp', category:'Social & Messaging', color:'#D8B16A',
     name:'WhatsApp Business API', icon:'💬',
     desc:'Official WhatsApp Cloud API. Send and receive messages, templates, and media at scale.',
     badge:'Cloud API', fields:[
@@ -35,7 +35,7 @@ const INTEGRATIONS = [
     docs:'https://www.unipile.com/whatsapp-api-documentation/',
   },
   {
-    id:'website', category:'Social & Messaging', color:'#00e5a0', setupUrl:'/integrations/website',
+    id:'website', category:'Social & Messaging', color:'#D8B16A', setupUrl:'/integrations/website',
     name:'Website Chat Widget', icon:'🌐',
     desc:'Add an AI chat bubble to any website. Visitor messages land in your inbox; AI replies from your knowledge base. Live now — no credentials needed.',
     badge:'Live', fields:[],
@@ -56,7 +56,7 @@ const INTEGRATIONS = [
     docs:'',
   },
   {
-    id:'apikeys', category:'Developer', color:'#00e5a0', setupUrl:'/integrations/api',
+    id:'apikeys', category:'Developer', color:'#D8B16A', setupUrl:'/integrations/api',
     name:'API & Keys', icon:'🔑',
     desc:'Push leads into your CRM from website forms, landing pages, or ad platforms using the public API. Generate a key and go. Live now.',
     badge:'Live', fields:[],
@@ -136,7 +136,7 @@ const INTEGRATIONS = [
     docs:'https://developer.salesforce.com',
   },
   {
-    id:'freshdesk', category:'Ticketing', color:'#00e5a0',
+    id:'freshdesk', category:'Ticketing', color:'#D8B16A',
     name:'Freshdesk', icon:'🎫',
     desc:'Convert WhatsApp and inbox conversations into Freshdesk tickets. Agents can reply from either platform.',
     badge:'Freshdesk API v2', fields:[
@@ -230,7 +230,7 @@ export default function Integrations() {
       <div style={{fontSize:'48px'}}>🔒</div>
       <div style={{fontSize:'20px', fontWeight:'800'}}>Owner Access Only</div>
       <div style={{fontSize:'13px', color:'#7a8fa6', textAlign:'center', maxWidth:'320px', lineHeight:'1.6'}}>The Integrations page is restricted to the account owner.</div>
-      <a href="/login" style={{marginTop:'8px', padding:'10px 24px', background:'#00e5a0', color:'#07090f', borderRadius:'6px', fontWeight:'700', fontSize:'13px', textDecoration:'none'}}>Go to Login</a>
+      <a href="/login" style={{marginTop:'8px', padding:'10px 24px', background:'#D8B16A', color:'#07090f', borderRadius:'6px', fontWeight:'700', fontSize:'13px', textDecoration:'none'}}>Go to Login</a>
     </div>
   )
 
@@ -282,12 +282,12 @@ export default function Integrations() {
 
       {/* Top bar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1e2d42', display:'flex', alignItems:'center', padding:'0 20px', gap:'14px', flexShrink:0}}>
-        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
+        <div style={{fontWeight:'900', fontSize:'16px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
         <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Integrations</div>
         <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'10px'}}>
-          {saved && <span style={{fontSize:'11px', color:'#00e5a0', fontWeight:'600'}}>✓ {saved}</span>}
-          <span style={{fontSize:'10px', padding:'4px 10px', background:'rgba(0,229,160,.08)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontWeight:'700'}}>{connectedCount} Connected</span>
-          <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.25)', color:'#00e5a0', borderRadius:'4px', fontWeight:'700'}}>● LIVE</div>
+          {saved && <span style={{fontSize:'11px', color:'#D8B16A', fontWeight:'600'}}>✓ {saved}</span>}
+          <span style={{fontSize:'10px', padding:'4px 10px', background:'rgba(216,177,106,.08)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'4px', color:'#D8B16A', fontWeight:'700'}}>{connectedCount} Connected</span>
+          <div style={{fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.25)', color:'#D8B16A', borderRadius:'4px', fontWeight:'700'}}>● LIVE</div>
         </div>
       </div>
 
@@ -307,7 +307,7 @@ export default function Integrations() {
               <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
                 {['All', ...CATEGORIES].map(c => (
                   <button key={c} onClick={() => setFilterCat(c)}
-                    style={btn({background: filterCat===c ? '#00e5a0' : '#111622', color: filterCat===c ? '#07090f' : '#7a8fa6', border:'1px solid', borderColor: filterCat===c ? '#00e5a0' : '#1e2d42', padding:'6px 12px', fontSize:'11px', borderRadius:'5px'})}>
+                    style={btn({background: filterCat===c ? '#D8B16A' : '#111622', color: filterCat===c ? '#07090f' : '#7a8fa6', border:'1px solid', borderColor: filterCat===c ? '#D8B16A' : '#1e2d42', padding:'6px 12px', fontSize:'11px', borderRadius:'5px'})}>
                     {c}
                   </button>
                 ))}
@@ -347,8 +347,8 @@ export default function Integrations() {
                           {/* Status + action bar */}
                           <div style={{padding:'12px 18px', borderTop:'1px solid #1e2d42', display:'flex', alignItems:'center', justifyContent:'space-between', background:'#0c0f1a'}}>
                             <div style={{display:'flex', alignItems:'center', gap:'7px'}}>
-                              <div style={{width:'7px', height:'7px', borderRadius:'50%', background: isConn ? '#00e5a0' : (isConfigured ? '#fbbf24' : '#3d4f63')}}></div>
-                              <span style={{fontSize:'11px', color: isConn ? '#00e5a0' : (isConfigured ? '#fbbf24' : '#7a8fa6'), fontWeight: isConn || isConfigured ? '700' : '400'}}>{isConn ? 'Connected ✓' : (isConfigured ? 'Saved (not verified)' : 'Not connected')}</span>
+                              <div style={{width:'7px', height:'7px', borderRadius:'50%', background: isConn ? '#D8B16A' : (isConfigured ? '#fbbf24' : '#3d4f63')}}></div>
+                              <span style={{fontSize:'11px', color: isConn ? '#D8B16A' : (isConfigured ? '#fbbf24' : '#7a8fa6'), fontWeight: isConn || isConfigured ? '700' : '400'}}>{isConn ? 'Connected ✓' : (isConfigured ? 'Saved (not verified)' : 'Not connected')}</span>
                             </div>
                             <div style={{display:'flex', gap:'8px'}}>
                               {(intg.setupUrl || intg.id === 'whatsapp') ? (
@@ -408,7 +408,7 @@ export default function Integrations() {
                                     {state?.showKeys ? '🙈 Hide' : '👁 Show'}
                                   </button>
                                   <button onClick={() => saveKeys(intg.id)} disabled={isSaving}
-                                    style={btn({background: isSaving ? '#1e2d42' : 'linear-gradient(135deg,#00e5a0,#00c98a)', color: isSaving ? '#7a8fa6' : '#07090f', padding:'6px 16px', fontSize:'11px'})}>
+                                    style={btn({background: isSaving ? '#1e2d42' : 'linear-gradient(135deg,#D8B16A,#00c98a)', color: isSaving ? '#7a8fa6' : '#07090f', padding:'6px 16px', fontSize:'11px'})}>
                                     {isSaving ? 'Saving…' : 'Save Keys'}
                                   </button>
                                 </div>

@@ -7,7 +7,7 @@ const INDUSTRIES = ['Healthcare & Medical', 'Dental Clinic', 'Beauty & Spa', 'Re
 const COUNTRIES = ['QA', 'SA', 'AE', 'KW', 'BH', 'OM', 'EG', 'JO']
 const PLANS = [
   { id: 'STARTER', name: 'Starter', color: '#3b82f6' },
-  { id: 'GROWTH', name: 'Growth', color: '#00e5a0' },
+  { id: 'GROWTH', name: 'Growth', color: '#D8B16A' },
   { id: 'ENTERPRISE', name: 'Enterprise', color: '#a78bfa' },
 ]
 
@@ -45,18 +45,18 @@ export default function NewClient() {
         <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>Provision a new company workspace in seconds — isolated data, admin account, plan, and welcome email.</p>
 
         {result ? (
-          <div style={{ background: 'rgba(0,229,160,.05)', border: '1px solid rgba(0,229,160,.25)', borderRadius: '12px', padding: '24px' }}>
-            <div style={{ fontSize: '17px', fontWeight: 800, color: '#00e5a0', marginBottom: '14px' }}>✅ Client created — {result.org?.name}</div>
+          <div style={{ background: 'rgba(216,177,106,.05)', border: '1px solid rgba(216,177,106,.25)', borderRadius: '12px', padding: '24px' }}>
+            <div style={{ fontSize: '17px', fontWeight: 800, color: '#D8B16A', marginBottom: '14px' }}>✅ Client created — {result.org?.name}</div>
             <div style={{ background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '8px', padding: '16px', fontSize: '13px', lineHeight: 1.9 }}>
               <div><span style={{ color: '#64748b' }}>Admin email:</span> <strong>{result.org?.users?.[0]?.email}</strong></div>
-              <div><span style={{ color: '#64748b' }}>Temp password:</span> <code style={{ background: '#1a2235', padding: '2px 8px', borderRadius: '4px', color: '#00e5a0' }}>{result.tempPassword}</code></div>
+              <div><span style={{ color: '#64748b' }}>Temp password:</span> <code style={{ background: '#1a2235', padding: '2px 8px', borderRadius: '4px', color: '#D8B16A' }}>{result.tempPassword}</code></div>
               <div><span style={{ color: '#64748b' }}>Plan:</span> {result.plan}</div>
               <div><span style={{ color: '#64748b' }}>Login:</span> {result.loginUrl}</div>
             </div>
             <p style={{ fontSize: '12px', color: '#64748b', marginTop: '12px' }}>A welcome email was sent (if email is configured). Share these credentials with the client — they should change the password on first login.</p>
             <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
               <button onClick={() => { setResult(null); setF({ name: '', industry: 'Healthcare & Medical', country: 'QA', plan: 'STARTER', adminName: '', adminEmail: '' }) }}
-                style={{ padding: '10px 20px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>+ Add another</button>
+                style={{ padding: '10px 20px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>+ Add another</button>
               <a href="/admin" style={{ padding: '10px 20px', background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', color: '#e2e8f0', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>Back to clients</a>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function NewClient() {
               </div>
             </div>
             <button onClick={submit} disabled={creating}
-              style={{ padding: '12px 28px', background: creating ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '10px', color: creating ? '#64748b' : '#07090f', fontWeight: 900, fontSize: '14px', cursor: creating ? 'wait' : 'pointer', alignSelf: 'flex-start' }}>
+              style={{ padding: '12px 28px', background: creating ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '10px', color: creating ? '#64748b' : '#07090f', fontWeight: 900, fontSize: '14px', cursor: creating ? 'wait' : 'pointer', alignSelf: 'flex-start' }}>
               {creating ? 'Provisioning…' : '🚀 Create Client Workspace'}
             </button>
           </div>

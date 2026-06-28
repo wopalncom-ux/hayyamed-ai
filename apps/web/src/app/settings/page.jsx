@@ -60,7 +60,7 @@ const ROLE_LABELS = {
   receptionist: { label:'Receptionist', color:'#3b82f6', desc:'Front desk — inbox & booking confirmations' },
   marketing:    { label:'Marketing Manager', color:'#a78bfa', desc:'Campaigns, contacts, analytics & reports' },
   manager:      { label:'Client Manager', color:'#f97316', desc:'Full CRM access — no billing/team' },
-  owner:        { label:'Owner / Admin', color:'#00e5a0', desc:'Full access including billing & team' },
+  owner:        { label:'Owner / Admin', color:'#D8B16A', desc:'Full access including billing & team' },
 }
 
 const PLANS = [
@@ -77,7 +77,7 @@ const PLANS = [
   },
   {
     id:'growth', name:'Growth', price:'QAR 599', period:'/month',
-    color:'#00e5a0', popular:true,
+    color:'#D8B16A', popular:true,
     features:['10,000 messages/mo','5,000 AI responses','Unlimited contacts','15 team members','Advanced AI chatbot','Priority support'],
   },
   {
@@ -87,7 +87,7 @@ const PLANS = [
   },
 ]
 
-const PLAN_COLORS = { starter:'#3b82f6', growth:'#00e5a0', enterprise:'#a78bfa', payg:'#fbbf24' }
+const PLAN_COLORS = { starter:'#3b82f6', growth:'#D8B16A', enterprise:'#a78bfa', payg:'#fbbf24' }
 
 const inp = {width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'10px 14px', color:'#e2e8f0', fontSize:'13px', outline:'none', boxSizing:'border-box'}
 const lbl = {fontSize:'10px', color:'#7a8fa6', marginBottom:'6px', display:'block'}
@@ -304,10 +304,10 @@ export default function Settings() {
 
       {/* Top bar */}
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
+        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
         <div style={{fontSize:'12px', color:'#7a8fa6'}}>/  Settings</div>
-        {saved && <span style={{fontSize:'11px', color:'#00e5a0', marginLeft:'8px'}}>✅ {saved}</span>}
-        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
+        {saved && <span style={{fontSize:'11px', color:'#D8B16A', marginLeft:'8px'}}>✅ {saved}</span>}
+        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.2)', color:'#D8B16A', borderRadius:'2px'}}>● LIVE</div>
       </div>
 
       <div style={{display:'flex', flexDirection: isMobile ? 'column' : 'row', flex:1, overflow:'hidden'}}>
@@ -320,7 +320,7 @@ export default function Settings() {
           {!isMobile && <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'2px', padding:'0 16px', marginBottom:'10px'}}>SETTINGS</div>}
           {tabs.map(t => (
             <div key={t.id} onClick={() => setActiveTab(t.id)}
-              style={{padding: isMobile ? '8px 12px' : '10px 16px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', gap:'8px', whiteSpace:'nowrap', flexShrink:0, borderRadius: isMobile ? '6px' : 0, color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', background: activeTab===t.id ? 'rgba(0,229,160,.07)' : 'none', borderLeft: isMobile ? 'none' : (activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent'), border: isMobile && activeTab===t.id ? '1px solid rgba(0,229,160,.25)' : (isMobile ? '1px solid transparent' : undefined)}}>
+              style={{padding: isMobile ? '8px 12px' : '10px 16px', cursor:'pointer', fontSize:'12px', display:'flex', alignItems:'center', gap:'8px', whiteSpace:'nowrap', flexShrink:0, borderRadius: isMobile ? '6px' : 0, color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', background: activeTab===t.id ? 'rgba(216,177,106,.07)' : 'none', borderLeft: isMobile ? 'none' : (activeTab===t.id ? '2px solid #D8B16A' : '2px solid transparent'), border: isMobile && activeTab===t.id ? '1px solid rgba(216,177,106,.25)' : (isMobile ? '1px solid transparent' : undefined)}}>
               <span>{t.icon}</span>
               <span>{t.label}</span>
             </div>
@@ -374,7 +374,7 @@ export default function Settings() {
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'20px', borderRadius:'4px'}}>
                 <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'16px'}}>This Month's Usage</div>
                 {[
-                  { label:'Conversations', ...(liveUsage?.messages || {used:0,limit:10000}), color:'#00e5a0', unit:'convos' },
+                  { label:'Conversations', ...(liveUsage?.messages || {used:0,limit:10000}), color:'#D8B16A', unit:'convos' },
                   { label:'AI Workflow Runs', ...(liveUsage?.ai || {used:0,limit:5000}), color:'#a78bfa', unit:'runs' },
                   { label:'Active Contacts', ...(liveUsage?.contacts || {used:0,limit:99999}), color:'#3b82f6', unit:'contacts', unlimitedLabel: liveUsage?.contacts?.limit >= 99999 ? 'Unlimited' : undefined },
                   { label:'Team Members', used: team.length, limit: liveUsage?.team?.limit || 15, color:'#f97316', unit:'members' },
@@ -419,7 +419,7 @@ export default function Settings() {
                   <div style={{fontWeight:'800', fontSize:'18px', marginBottom:'4px'}}>Team & Roles</div>
                   <div style={{fontSize:'12px', color:'#7a8fa6'}}>Invite staff and control what each role can access</div>
                 </div>
-                <button onClick={() => setShowInvite(!showInvite)} style={{padding:'8px 16px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
+                <button onClick={() => setShowInvite(!showInvite)} style={{padding:'8px 16px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
                   + Invite Member
                 </button>
               </div>
@@ -439,7 +439,7 @@ export default function Settings() {
                         {Object.entries(ROLE_LABELS).map(([k,v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
                     </div>
-                    <button onClick={inviteMember} style={{padding:'10px 18px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer', height:'40px'}}>
+                    <button onClick={inviteMember} style={{padding:'10px 18px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer', height:'40px'}}>
                       Send Invite
                     </button>
                   </div>
@@ -474,7 +474,7 @@ export default function Settings() {
                       </select>
                     </div>
                     <div>
-                      <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'2px', background: m.status==='active' ? 'rgba(0,229,160,.1)' : 'rgba(251,191,36,.1)', color: m.status==='active' ? '#00e5a0' : '#fbbf24', fontWeight:'600'}}>
+                      <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'2px', background: m.status==='active' ? 'rgba(216,177,106,.1)' : 'rgba(251,191,36,.1)', color: m.status==='active' ? '#D8B16A' : '#fbbf24', fontWeight:'600'}}>
                         {m.status}
                       </span>
                     </div>
@@ -496,7 +496,7 @@ export default function Settings() {
                     <div style={{fontWeight:'700', fontSize:'13px'}}>Permission Matrix</div>
                     <div style={{fontSize:'11px', color:'#3d4f63', marginTop:'2px'}}>Toggle to customize each role's access. Owner always has full access.</div>
                   </div>
-                  <button onClick={() => saveMsg('Permissions saved!')} style={{padding:'6px 14px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>Save Permissions</button>
+                  <button onClick={() => saveMsg('Permissions saved!')} style={{padding:'6px 14px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>Save Permissions</button>
                 </div>
 
                 <div style={{overflowX: isMobile ? 'auto' : 'visible'}}>
@@ -544,7 +544,7 @@ export default function Settings() {
               </div>
 
               {(() => {
-                const COLORS = { starter:'#3b82f6', growth:'#00e5a0', enterprise:'#a78bfa' }
+                const COLORS = { starter:'#3b82f6', growth:'#D8B16A', enterprise:'#a78bfa' }
                 const cards = livePlans || []
                 return (
                   <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : `repeat(${Math.min(cards.length || 1, 3)},1fr)`, gap:'14px'}}>
@@ -622,7 +622,7 @@ export default function Settings() {
                           </div>
                           <div style={{display:'flex', gap:'16px', fontSize:'11px', flexWrap:'wrap'}}>
                             <span style={{color:'#7a8fa6'}}>Est. cost: <strong style={{color:'#fbbf24'}}>QAR {est.estCost}</strong></span>
-                            <span style={{color:'#7a8fa6'}}>Your margin: <strong style={{color: est.margin >= 0 ? '#00e5a0' : '#ef4444'}}>QAR {est.margin} ({est.marginPct}%)</strong></span>
+                            <span style={{color:'#7a8fa6'}}>Your margin: <strong style={{color: est.margin >= 0 ? '#D8B16A' : '#ef4444'}}>QAR {est.margin} ({est.marginPct}%)</strong></span>
                           </div>
                         </div>
                       )
@@ -631,16 +631,16 @@ export default function Settings() {
 
                   <div style={{display:'flex', alignItems:'center', gap:'12px', marginTop:'14px'}}>
                     <button onClick={savePlans} disabled={planSaving}
-                      style={{padding:'9px 20px', background: planSaving ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'4px', color: planSaving ? '#64748b' : '#07090f', fontWeight:'800', fontSize:'12px', cursor: planSaving ? 'wait' : 'pointer'}}>
+                      style={{padding:'9px 20px', background: planSaving ? '#1a2235' : '#D8B16A', border:'none', borderRadius:'4px', color: planSaving ? '#64748b' : '#07090f', fontWeight:'800', fontSize:'12px', cursor: planSaving ? 'wait' : 'pointer'}}>
                       {planSaving ? 'Saving…' : 'Save plans & costs'}
                     </button>
-                    {planMsg && <span style={{fontSize:'12px', color: planMsg.ok ? '#00e5a0' : '#ef4444'}}>{planMsg.ok ? '✓ ' : '⚠️ '}{planMsg.text}</span>}
+                    {planMsg && <span style={{fontSize:'12px', color: planMsg.ok ? '#D8B16A' : '#ef4444'}}>{planMsg.ok ? '✓ ' : '⚠️ '}{planMsg.text}</span>}
                   </div>
                 </div>
               )}
 
-              <div style={{background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.15)', padding:'14px', borderRadius:'4px', fontSize:'11px', color:'#7a8fa6', lineHeight:'1.8'}}>
-                <strong style={{color:'#00e5a0'}}>All plans include:</strong> WhatsApp integration, AI chatbot, contact management, multi-channel inbox, analytics dashboard, 99.9% uptime SLA, data hosted in Qatar region.
+              <div style={{background:'rgba(216,177,106,.05)', border:'1px solid rgba(216,177,106,.15)', padding:'14px', borderRadius:'4px', fontSize:'11px', color:'#7a8fa6', lineHeight:'1.8'}}>
+                <strong style={{color:'#D8B16A'}}>All plans include:</strong> WhatsApp integration, AI chatbot, contact management, multi-channel inbox, analytics dashboard, 99.9% uptime SLA, data hosted in Qatar region.
               </div>
             </div>
           )}
@@ -669,7 +669,7 @@ export default function Settings() {
                     await api.saveSettings({ businessName: orgName, phone: orgPhone, email: orgEmail, city: orgCity })
                     saveMsg('Profile saved!')
                   } catch { saveMsg('Save failed — try again') }
-                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save Profile</button>
+                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save Profile</button>
               </div>
             </div>
           )}
@@ -684,17 +684,17 @@ export default function Settings() {
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px', display:'flex', flexDirection:'column', gap:'14px'}}>
                 <div><label style={lbl}>ACCESS TOKEN</label><input value={waToken} onChange={e=>setWaToken(e.target.value)} type="password" placeholder="EAABwzLixnjYBO..." style={inp}/></div>
                 <div><label style={lbl}>PHONE NUMBER ID</label><input value={waPhone} onChange={e=>setWaPhone(e.target.value)} placeholder="1234567890" style={inp}/></div>
-                <div style={{padding:'12px', background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.15)', borderRadius:'4px', fontSize:'11px', color:'#7a8fa6', lineHeight:'1.7'}}>
-                  <strong style={{color:'#00e5a0'}}>Webhook URL:</strong><br/>
+                <div style={{padding:'12px', background:'rgba(216,177,106,.05)', border:'1px solid rgba(216,177,106,.15)', borderRadius:'4px', fontSize:'11px', color:'#7a8fa6', lineHeight:'1.7'}}>
+                  <strong style={{color:'#D8B16A'}}>Webhook URL:</strong><br/>
                   <code style={{color:'#e2e8f0', fontSize:'12px'}}>https://api.hayyaai.com/api/v1/whatsapp/webhook</code><br/>
-                  <strong style={{color:'#00e5a0'}}>Verify Token:</strong> the value you set in <code style={{color:'#e2e8f0'}}>WHATSAPP_WEBHOOK_TOKEN</code> (Secret Manager)
+                  <strong style={{color:'#D8B16A'}}>Verify Token:</strong> the value you set in <code style={{color:'#e2e8f0'}}>WHATSAPP_WEBHOOK_TOKEN</code> (Secret Manager)
                 </div>
                 <button onClick={async () => {
                   try {
                     await api.saveSettings({ waToken, waPhone })
                     saveMsg('WhatsApp settings saved!')
                   } catch { saveMsg('Save failed — try again') }
-                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save & Test Connection</button>
+                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save & Test Connection</button>
               </div>
             </div>
           )}
@@ -712,7 +712,7 @@ export default function Settings() {
                     <div style={{fontSize:'13px', fontWeight:'600'}}>AI Auto-Reply</div>
                     <div style={{fontSize:'11px', color:'#7a8fa6', marginTop:'2px'}}>AI responds to messages automatically</div>
                   </div>
-                  <button onClick={() => setAiEnabled(!aiEnabled)} style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: aiEnabled ? '#00e5a0' : '#1a2235', position:'relative', transition:'background .2s'}}>
+                  <button onClick={() => setAiEnabled(!aiEnabled)} style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: aiEnabled ? '#D8B16A' : '#1a2235', position:'relative', transition:'background .2s'}}>
                     <span style={{position:'absolute', top:'4px', left: aiEnabled ? '22px' : '4px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', transition:'left .2s', display:'block'}}></span>
                   </button>
                 </div>
@@ -721,7 +721,7 @@ export default function Settings() {
                     <div style={{fontSize:'13px', fontWeight:'600'}}>Auto-Reply When Away</div>
                     <div style={{fontSize:'11px', color:'#7a8fa6', marginTop:'2px'}}>Send automatic message outside working hours</div>
                   </div>
-                  <button onClick={() => setAutoReply(!autoReply)} style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: autoReply ? '#00e5a0' : '#1a2235', position:'relative', transition:'background .2s'}}>
+                  <button onClick={() => setAutoReply(!autoReply)} style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: autoReply ? '#D8B16A' : '#1a2235', position:'relative', transition:'background .2s'}}>
                     <span style={{position:'absolute', top:'4px', left: autoReply ? '22px' : '4px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', transition:'left .2s', display:'block'}}></span>
                   </button>
                 </div>
@@ -742,7 +742,7 @@ export default function Settings() {
                 <div style={{borderTop:'1px solid #1a2235', paddingTop:'16px'}}>
                   <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'4px'}}>
                     <label style={lbl}>🕐 BUSINESS HOURS</label>
-                    <button onClick={() => setWhEnabled(!whEnabled)} style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: whEnabled ? '#00e5a0' : '#1a2235', position:'relative'}}>
+                    <button onClick={() => setWhEnabled(!whEnabled)} style={{width:'44px', height:'24px', borderRadius:'12px', border:'none', cursor:'pointer', background: whEnabled ? '#D8B16A' : '#1a2235', position:'relative'}}>
                       <span style={{position:'absolute', top:'4px', left: whEnabled ? '22px' : '4px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', display:'block', transition:'left .2s'}}></span>
                     </button>
                   </div>
@@ -758,7 +758,7 @@ export default function Settings() {
                         <div key={dn} style={{display:'flex', alignItems:'center', gap:'8px'}}>
                           <span style={{width:'78px', fontSize:'12px', color:'#94a3b8'}}>{dn}</span>
                           <label style={{display:'flex', alignItems:'center', gap:'5px', fontSize:'11px', color:'#64748b', cursor:'pointer'}}>
-                            <input type="checkbox" checked={!whDays[i].off} onChange={e=>setDay(i, { off: !e.target.checked })} style={{accentColor:'#00e5a0'}} /> Open
+                            <input type="checkbox" checked={!whDays[i].off} onChange={e=>setDay(i, { off: !e.target.checked })} style={{accentColor:'#D8B16A'}} /> Open
                           </label>
                           {!whDays[i].off && <>
                             <input type="time" value={whDays[i].open} onChange={e=>setDay(i, { open: e.target.value })} style={{...inp, width:'110px', padding:'5px 8px'}} />
@@ -777,7 +777,7 @@ export default function Settings() {
                     await api.saveSettings({ aiEnabled, autoReply, autoReplyMsg: autoMsg, language: aiLang === 'both' ? 'ar+en' : aiLang, workingHours })
                     saveMsg('AI settings saved!')
                   } catch { saveMsg('Save failed') }
-                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save AI Settings</button>
+                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save AI Settings</button>
               </div>
             </div>
           )}
@@ -793,7 +793,7 @@ export default function Settings() {
                 <div><label style={lbl}>CURRENT PASSWORD</label><input type="password" value={curPwd} onChange={e => setCurPwd(e.target.value)} placeholder="••••••••" style={inp}/></div>
                 <div><label style={lbl}>NEW PASSWORD</label><input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} placeholder="At least 8 characters" style={inp}/></div>
                 <div><label style={lbl}>CONFIRM NEW PASSWORD</label><input type="password" value={confPwd} onChange={e => setConfPwd(e.target.value)} placeholder="••••••••" style={inp} onKeyDown={e => e.key==='Enter' && changePassword()}/></div>
-                <button onClick={changePassword} disabled={pwdSaving} style={{alignSelf:'flex-start', padding:'9px 20px', background: pwdSaving ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'4px', color: pwdSaving ? '#7a8fa6' : '#07090f', fontWeight:'700', fontSize:'12px', cursor: pwdSaving ? 'not-allowed' : 'pointer'}}>{pwdSaving ? 'Updating…' : 'Update Password'}</button>
+                <button onClick={changePassword} disabled={pwdSaving} style={{alignSelf:'flex-start', padding:'9px 20px', background: pwdSaving ? '#1a2235' : '#D8B16A', border:'none', borderRadius:'4px', color: pwdSaving ? '#7a8fa6' : '#07090f', fontWeight:'700', fontSize:'12px', cursor: pwdSaving ? 'not-allowed' : 'pointer'}}>{pwdSaving ? 'Updating…' : 'Update Password'}</button>
               </div>
               <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px'}}>
                 <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'4px'}}>Two-Factor Authentication</div>

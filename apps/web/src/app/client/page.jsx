@@ -7,7 +7,7 @@ import { useIsMobile } from '@/lib/useIsMobile'
 const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'10px', padding:'20px' }
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const STATUS_TAG = { NEW:'New Lead', ACTIVE:'Active', QUALIFIED:'Qualified', PROPOSAL:'Proposal', WON:'Won', LOST:'Lost', INACTIVE:'Inactive' }
-const STATUS_COLOR = { NEW:'#3b82f6', ACTIVE:'#00e5a0', QUALIFIED:'#a78bfa', PROPOSAL:'#f97316', WON:'#00e5a0', LOST:'#ef4444', INACTIVE:'#64748b' }
+const STATUS_COLOR = { NEW:'#3b82f6', ACTIVE:'#D8B16A', QUALIFIED:'#a78bfa', PROPOSAL:'#f97316', WON:'#D8B16A', LOST:'#ef4444', INACTIVE:'#64748b' }
 
 function timeAgo(dateStr) {
   if (!dateStr) return ''
@@ -83,7 +83,7 @@ export default function ClientPortal() {
 
       {/* ── Top bar ──────────────────────────────────────────────────────────── */}
       <div style={{background:'#0c0f1a', borderBottom:'1px solid #1e2d42', padding:'0 24px', height:'56px', display:'flex', alignItems:'center', gap:'14px', position:'sticky', top:0, zIndex:50}}>
-        <div style={{fontWeight:'900', fontSize:'17px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
+        <div style={{fontWeight:'900', fontSize:'17px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
         <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Client Portal</div>
         <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'12px'}}>
           <div style={{fontSize:'12px', color:'#7a8fa6'}}>
@@ -106,12 +106,12 @@ export default function ClientPortal() {
               🏥 {orgName}
             </div>
             <div style={{fontSize:'13px', color:'#7a8fa6', display:'flex', alignItems:'center', gap:'8px'}}>
-              <span style={{width:'8px', height:'8px', borderRadius:'50%', background:'#00e5a0', display:'inline-block'}}></span>
+              <span style={{width:'8px', height:'8px', borderRadius:'50%', background:'#D8B16A', display:'inline-block'}}></span>
               WhatsApp Connected · Enterprise Plan · AI Score: 94%
             </div>
           </div>
           <button onClick={() => setShowAiPanel(true)}
-            style={{background:'linear-gradient(135deg,#00e5a0,#00c98a)', border:'none', borderRadius:'10px', color:'#07090f', fontWeight:'800', fontSize:'13px', padding:'12px 20px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px'}}>
+            style={{background:'linear-gradient(135deg,#D8B16A,#00c98a)', border:'none', borderRadius:'10px', color:'#07090f', fontWeight:'800', fontSize:'13px', padding:'12px 20px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px'}}>
             🤖 Ask AI Assistant
           </button>
         </div>
@@ -119,7 +119,7 @@ export default function ClientPortal() {
         {/* ── KPI cards ──────────────────────────────────────────────────── */}
         <div style={{display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap:'14px', marginBottom:'24px'}}>
           {[
-            { label:'TOTAL CONTACTS',   value: stats ? stats.totalContacts?.toLocaleString() : '—', sub:'In your database', color:'#00e5a0', icon:'👥' },
+            { label:'TOTAL CONTACTS',   value: stats ? stats.totalContacts?.toLocaleString() : '—', sub:'In your database', color:'#D8B16A', icon:'👥' },
             { label:'MESSAGES SENT',    value: stats ? stats.totalMessages?.toLocaleString() : '—', sub:'All time',         color:'#3b82f6', icon:'💬' },
             { label:'ACTIVE CAMPAIGNS', value: stats ? stats.activeCampaigns ?? '—' : '—',          sub:'Currently running',color:'#a78bfa', icon:'📣' },
             { label:'WORKFLOWS',        value: stats ? stats.activeWorkflows ?? '—' : '—',           sub:'Automated flows',  color:'#f97316', icon:'⚡' },
@@ -144,7 +144,7 @@ export default function ClientPortal() {
             { id:'inbox',      label:'Recent Messages' },
           ].map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
-              style={{padding:'12px 18px', background:'none', border:'none', borderBottom: activeTab===t.id ? '2px solid #00e5a0' : '2px solid transparent', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', fontSize:'13px', fontWeight: activeTab===t.id ? '700' : '400', cursor:'pointer', transition:'all .15s'}}>
+              style={{padding:'12px 18px', background:'none', border:'none', borderBottom: activeTab===t.id ? '2px solid #D8B16A' : '2px solid transparent', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', fontSize:'13px', fontWeight: activeTab===t.id ? '700' : '400', cursor:'pointer', transition:'all .15s'}}>
               {t.label}
             </button>
           ))}
@@ -171,8 +171,8 @@ export default function ClientPortal() {
                   <div style={{display:'flex', alignItems:'flex-end', gap:'10px', height:'130px'}}>
                     {vals.map((v, i) => (
                       <div key={i} style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'6px', height:'100%', justifyContent:'flex-end'}}>
-                        {v > 0 && <div style={{fontSize:'10px', color:'#00e5a0', fontWeight:'700'}}>{v}</div>}
-                        <div style={{width:'100%', background:'#00e5a0', borderRadius:'4px 4px 0 0', height:`${(v/mx)*100}%`, minHeight:'4px', opacity: i === vals.length-1 ? 1 : 0.55}}></div>
+                        {v > 0 && <div style={{fontSize:'10px', color:'#D8B16A', fontWeight:'700'}}>{v}</div>}
+                        <div style={{width:'100%', background:'#D8B16A', borderRadius:'4px 4px 0 0', height:`${(v/mx)*100}%`, minHeight:'4px', opacity: i === vals.length-1 ? 1 : 0.55}}></div>
                         <div style={{fontSize:'10px', color:'#3d4f63'}}>{dayLabels[i]}</div>
                       </div>
                     ))}
@@ -202,7 +202,7 @@ export default function ClientPortal() {
               <div style={card}>
                 <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1.5px', marginBottom:'12px'}}>TODAY AT A GLANCE</div>
                 {[
-                  { label:'Messages sent',   value:'47',  color:'#00e5a0' },
+                  { label:'Messages sent',   value:'47',  color:'#D8B16A' },
                   { label:'AI handled',      value:'44',  color:'#a78bfa' },
                   { label:'New leads',       value:'8',   color:'#3b82f6' },
                   { label:'Appointments',    value:'3',   color:'#f97316' },
@@ -228,7 +228,7 @@ export default function ClientPortal() {
               <div style={{...card, textAlign:'center', color:'#3d4f63', fontSize:'13px'}}>No campaigns yet</div>
             ) : campaigns.map((c) => {
               const st = (c.status || 'DRAFT').toUpperCase()
-              const stColor = st === 'RUNNING' ? '#00e5a0' : st === 'COMPLETED' ? '#3b82f6' : st === 'PAUSED' ? '#fbbf24' : '#64748b'
+              const stColor = st === 'RUNNING' ? '#D8B16A' : st === 'COMPLETED' ? '#3b82f6' : st === 'PAUSED' ? '#fbbf24' : '#64748b'
               return (
                 <div key={c.id} style={{...card, display:'flex', alignItems:'center', gap:'20px'}}>
                   <div style={{width:'44px', height:'44px', borderRadius:'10px', background:stColor+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0}}>📣</div>
@@ -240,7 +240,7 @@ export default function ClientPortal() {
                     {[
                       { label:'SENT',      value:(c.sentCount ?? c.sent ?? 0).toLocaleString(), color:'#e2e8f0' },
                       { label:'READ',      value:(c.readCount ?? 0).toLocaleString(),            color:'#3b82f6' },
-                      { label:'RECIPIENTS',value:(c.totalRecipients ?? 0).toLocaleString(),      color:'#00e5a0' },
+                      { label:'RECIPIENTS',value:(c.totalRecipients ?? 0).toLocaleString(),      color:'#D8B16A' },
                     ].map(s => (
                       <div key={s.label}>
                         <div style={{fontSize:'17px', fontWeight:'900', color:s.color}}>{s.value}</div>
@@ -280,7 +280,7 @@ export default function ClientPortal() {
                     <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px'}}>
                       <div style={{fontWeight:'700', fontSize:'13px'}}>{contactName}</div>
                       <span style={{fontSize:'10px', padding:'2px 8px', borderRadius:'10px', background:tagColor+'18', color:tagColor, fontWeight:'700'}}>{tag}</span>
-                      {!c.isRead && <span style={{width:'6px', height:'6px', background:'#00e5a0', borderRadius:'50%', display:'inline-block'}} />}
+                      {!c.isRead && <span style={{width:'6px', height:'6px', background:'#D8B16A', borderRadius:'50%', display:'inline-block'}} />}
                     </div>
                     <div style={{fontSize:'12px', color:'#7a8fa6', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{c.lastMessage || 'No messages yet'}</div>
                   </div>
@@ -310,7 +310,7 @@ export default function ClientPortal() {
             <div style={{flex:1, overflowY:'auto', padding:'20px', display:'flex', flexDirection:'column', gap:'12px'}}>
               {aiChat.map((m, i) => (
                 <div key={i} style={{display:'flex', justifyContent: m.from==='user' ? 'flex-end' : 'flex-start'}}>
-                  <div style={{maxWidth:'80%', padding:'10px 14px', borderRadius: m.from==='user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px', background: m.from==='user' ? 'linear-gradient(135deg,#00e5a0,#00c98a)' : '#111622', color: m.from==='user' ? '#07090f' : '#e2e8f0', fontSize:'12px', lineHeight:'1.5', border: m.from==='ai' ? '1px solid #1e2d42' : 'none'}}>
+                  <div style={{maxWidth:'80%', padding:'10px 14px', borderRadius: m.from==='user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px', background: m.from==='user' ? 'linear-gradient(135deg,#D8B16A,#00c98a)' : '#111622', color: m.from==='user' ? '#07090f' : '#e2e8f0', fontSize:'12px', lineHeight:'1.5', border: m.from==='ai' ? '1px solid #1e2d42' : 'none'}}>
                     {m.text}
                   </div>
                 </div>
@@ -326,7 +326,7 @@ export default function ClientPortal() {
                 placeholder="Ask about your performance, campaigns, leads…"
                 style={{flex:1, background:'#111622', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
               <button onClick={sendAiMsg} disabled={aiLoading}
-                style={{background: aiLoading ? '#1a2235' : 'linear-gradient(135deg,#00e5a0,#00c98a)', border:'none', borderRadius:'8px', color: aiLoading ? '#7a8fa6' : '#07090f', fontWeight:'800', fontSize:'12px', padding:'10px 18px', cursor: aiLoading ? 'not-allowed' : 'pointer'}}>
+                style={{background: aiLoading ? '#1a2235' : 'linear-gradient(135deg,#D8B16A,#00c98a)', border:'none', borderRadius:'8px', color: aiLoading ? '#7a8fa6' : '#07090f', fontWeight:'800', fontSize:'12px', padding:'10px 18px', cursor: aiLoading ? 'not-allowed' : 'pointer'}}>
                 Send
               </button>
             </div>

@@ -29,7 +29,7 @@ export default function ForgotPassword() {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <a href="/" style={{ textDecoration: 'none' }}>
             <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', marginBottom: '6px' }}>
-              Hayya<span style={{ color: '#00e5a0' }}>med</span>{' '}
+              Hayya<span style={{ color: '#D8B16A' }}>med</span>{' '}
               <span style={{ color: '#64748b', fontWeight: '400', fontSize: '20px' }}>AI</span>
             </div>
           </a>
@@ -48,7 +48,7 @@ export default function ForgotPassword() {
                 <br /><br />
                 Check your spam folder if you don't see it.
               </div>
-              <Link href="/login" style={{ display: 'inline-block', padding: '10px 24px', background: 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.25)', borderRadius: '8px', color: '#00e5a0', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
+              <Link href="/login" style={{ display: 'inline-block', padding: '10px 24px', background: 'rgba(216,177,106,.08)', border: '1px solid rgba(216,177,106,.25)', borderRadius: '8px', color: '#D8B16A', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
                 ← Back to Sign In
               </Link>
             </div>
@@ -77,7 +77,7 @@ export default function ForgotPassword() {
 
               <button onClick={submit} disabled={loading} style={{
                 width: '100%', height: '46px',
-                background: loading ? '#1a2235' : 'linear-gradient(135deg,#00e5a0,#00c98a)',
+                background: loading ? '#1a2235' : 'linear-gradient(135deg,#D8B16A,#00c98a)',
                 color: loading ? '#7a8fa6' : '#07090f',
                 border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '800',
                 cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.3px',
@@ -89,7 +89,7 @@ export default function ForgotPassword() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '18px', fontSize: '12px', color: '#3d4f63' }}>
-          <Link href="/login" style={{ color: '#00e5a0', textDecoration: 'none', fontWeight: '700' }}>← Back to Sign In</Link>
+          <Link href="/login" style={{ color: '#D8B16A', textDecoration: 'none', fontWeight: '700' }}>← Back to Sign In</Link>
           {' · '}
           <Link href="/register" style={{ color: '#64748b', textDecoration: 'none' }}>Create account</Link>
         </div>

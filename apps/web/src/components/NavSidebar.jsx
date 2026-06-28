@@ -32,12 +32,12 @@ function LiveToast({ msg, visible }) {
   return (
     <div style={{
       position: 'fixed', left: '68px', top: '50%', transform: 'translateY(-50%)',
-      background: '#111622', border: '1px solid rgba(0,229,160,.35)', borderRadius: '8px',
+      background: '#111622', border: '1px solid rgba(216,177,106,.35)', borderRadius: '8px',
       padding: '10px 14px', zIndex: 9999, maxWidth: '240px', pointerEvents: 'none',
       boxShadow: '0 4px 20px rgba(0,0,0,.5)',
       animation: 'slideInLeft .2s ease',
     }}>
-      <div style={{ fontSize: '11px', color: '#00e5a0', fontWeight: '700', marginBottom: '3px' }}>● LIVE</div>
+      <div style={{ fontSize: '11px', color: '#D8B16A', fontWeight: '700', marginBottom: '3px' }}>● LIVE</div>
       <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: '1.4' }}>{msg}</div>
     </div>
   )
@@ -198,8 +198,8 @@ export default function NavSidebar({ current }) {
                 width: '40px', height: '40px', borderRadius: '8px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '18px', textDecoration: 'none', position: 'relative',
-                background: isActive ? 'rgba(0,229,160,.12)' : 'transparent',
-                border: isActive ? '1px solid rgba(0,229,160,.2)' : '1px solid transparent',
+                background: isActive ? 'rgba(216,177,106,.12)' : 'transparent',
+                border: isActive ? '1px solid rgba(216,177,106,.2)' : '1px solid transparent',
                 transition: 'background .15s, border-color .15s',
               }}
               onMouseEnter={e => {
@@ -244,7 +244,7 @@ export default function NavSidebar({ current }) {
                   position: 'absolute', left: '-1px', top: '50%',
                   transform: 'translateY(-50%)',
                   width: '3px', height: '20px',
-                  background: '#00e5a0', borderRadius: '0 2px 2px 0',
+                  background: '#D8B16A', borderRadius: '0 2px 2px 0',
                 }} />
               )}
             </a>

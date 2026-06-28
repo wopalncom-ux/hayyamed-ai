@@ -6,8 +6,8 @@ import NavSidebar from '@/components/NavSidebar'
 
 const STATUS_COLOR = {
   NEW: '#64748b', CONTACTED: '#3b82f6', QUALIFYING: '#f97316',
-  QUALIFIED: '#00e5a0', PROPOSAL: '#8b5cf6', NEGOTIATION: '#fbbf24',
-  WON: '#22c55e', LOST: '#ef4444', UNQUALIFIED: '#94a3b8', ACTIVE: '#00e5a0',
+  QUALIFIED: '#D8B16A', PROPOSAL: '#8b5cf6', NEGOTIATION: '#fbbf24',
+  WON: '#22c55e', LOST: '#ef4444', UNQUALIFIED: '#94a3b8', ACTIVE: '#D8B16A',
   INACTIVE: '#64748b',
 }
 const CHANNEL_ICON = { WHATSAPP: '💬', INSTAGRAM: '📸', EMAIL: '📧', TELEGRAM: '✈️', FACEBOOK: '👤' }
@@ -47,7 +47,7 @@ function Field({ label, value, onSave, type = 'text', options }) {
               style={{ flex: 1, background: '#0a0f1a', border: '1px solid #3b82f6', borderRadius: '5px', padding: '5px 8px', color: '#e2e8f0', fontSize: '13px' }}
               onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }} />
           )}
-          <button onClick={save} style={{ padding: '5px 10px', background: '#00e5a0', border: 'none', borderRadius: '5px', color: '#0a0f1a', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}>✓</button>
+          <button onClick={save} style={{ padding: '5px 10px', background: '#D8B16A', border: 'none', borderRadius: '5px', color: '#0a0f1a', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}>✓</button>
           <button onClick={() => { setVal(value || ''); setEditing(false) }} style={{ padding: '5px 8px', background: '#1a2235', border: 'none', borderRadius: '5px', color: '#64748b', cursor: 'pointer', fontSize: '12px' }}>✕</button>
         </div>
       ) : (
@@ -222,7 +222,7 @@ export default function ContactDetailPage() {
               {/* Score badge */}
               {contact.score != null && contact.score > 0 && (() => {
                 const sc = contact.score
-                const scoreColor = sc >= 80 ? '#22c55e' : sc >= 60 ? '#00e5a0' : sc >= 40 ? '#fbbf24' : sc >= 20 ? '#f97316' : '#ef4444'
+                const scoreColor = sc >= 80 ? '#22c55e' : sc >= 60 ? '#D8B16A' : sc >= 40 ? '#fbbf24' : sc >= 20 ? '#f97316' : '#ef4444'
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: scoreColor + '15', border: `1px solid ${scoreColor}40`, borderRadius: '20px' }}>
                     <span style={{ fontSize: '10px', color: '#64748b' }}>AI Score</span>
@@ -253,7 +253,7 @@ export default function ContactDetailPage() {
             <div style={{ marginTop: '14px', padding: '14px 16px', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.25)', borderRadius: '8px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
               {(() => {
                 const sc = scoreResult.score
-                const scoreColor = sc >= 80 ? '#22c55e' : sc >= 60 ? '#00e5a0' : sc >= 40 ? '#fbbf24' : sc >= 20 ? '#f97316' : '#ef4444'
+                const scoreColor = sc >= 80 ? '#22c55e' : sc >= 60 ? '#D8B16A' : sc >= 40 ? '#fbbf24' : sc >= 20 ? '#f97316' : '#ef4444'
                 return (
                   <>
                     <div style={{ textAlign: 'center', flexShrink: 0 }}>
@@ -297,8 +297,8 @@ export default function ContactDetailPage() {
             { id: 'notes', label: `Notes (${notes.length})` },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
-              padding: '12px 18px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === t.id ? '#00e5a0' : 'transparent'}`,
-              color: tab === t.id ? '#00e5a0' : '#64748b', cursor: 'pointer', fontWeight: tab === t.id ? '700' : '500', fontSize: '13px',
+              padding: '12px 18px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === t.id ? '#D8B16A' : 'transparent'}`,
+              color: tab === t.id ? '#D8B16A' : '#64748b', cursor: 'pointer', fontWeight: tab === t.id ? '700' : '500', fontSize: '13px',
             }}>{t.label}</button>
           ))}
         </div>
@@ -336,7 +336,7 @@ export default function ContactDetailPage() {
                   {[
                     { label: 'Conversations', value: conversations.length, color: '#3b82f6' },
                     { label: 'Activities', value: activities.length, color: '#8b5cf6' },
-                    { label: 'Notes', value: notes.length, color: '#00e5a0' },
+                    { label: 'Notes', value: notes.length, color: '#D8B16A' },
                     { label: 'Campaigns', value: campaignCount, color: '#fbbf24' },
                   ].map(s => (
                     <div key={s.label} style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '12px 14px', textAlign: 'center' }}>
@@ -369,7 +369,7 @@ export default function ContactDetailPage() {
                           <div style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0' }}>{c.channel?.name || 'Channel'}</div>
                           <div style={{ fontSize: '12px', color: '#64748b' }}>{c.lastMsgAt ? new Date(c.lastMsgAt).toLocaleString() : 'No messages yet'}</div>
                         </div>
-                        <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '4px', background: c.status === 'OPEN' ? '#00e5a022' : '#1a2235', color: c.status === 'OPEN' ? '#00e5a0' : '#64748b', fontWeight: '700' }}>{c.status}</span>
+                        <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '4px', background: c.status === 'OPEN' ? '#D8B16A22' : '#1a2235', color: c.status === 'OPEN' ? '#D8B16A' : '#64748b', fontWeight: '700' }}>{c.status}</span>
                         <span style={{ color: '#64748b', fontSize: '16px' }}>›</span>
                       </div>
                     </a>
@@ -409,7 +409,7 @@ export default function ContactDetailPage() {
                   style={{ width: '100%', background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '7px', padding: '10px 12px', color: '#e2e8f0', fontSize: '13px', resize: 'vertical', boxSizing: 'border-box', marginBottom: '10px' }}
                 />
                 <button onClick={addNote} disabled={addingNote || !noteText.trim()}
-                  style={{ padding: '8px 18px', background: noteText.trim() ? '#00e5a0' : '#1a2235', border: 'none', borderRadius: '6px', color: noteText.trim() ? '#0a0f1a' : '#64748b', cursor: noteText.trim() ? 'pointer' : 'not-allowed', fontWeight: '700', fontSize: '13px' }}>
+                  style={{ padding: '8px 18px', background: noteText.trim() ? '#D8B16A' : '#1a2235', border: 'none', borderRadius: '6px', color: noteText.trim() ? '#0a0f1a' : '#64748b', cursor: noteText.trim() ? 'pointer' : 'not-allowed', fontWeight: '700', fontSize: '13px' }}>
                   {addingNote ? 'Saving...' : '+ Add Note'}
                 </button>
               </div>
@@ -434,7 +434,7 @@ export default function ContactDetailPage() {
       </main>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px', background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff', fontWeight: '700', fontSize: '14px', zIndex: 9999 }}>
+        <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px', background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff', fontWeight: '700', fontSize: '14px', zIndex: 9999 }}>
           {toast.msg}
         </div>
       )}

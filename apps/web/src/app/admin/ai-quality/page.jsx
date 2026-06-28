@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
-const GRADE_COLOR = { A: '#00e5a0', B: '#3b82f6', C: '#f59e0b', D: '#f97316', F: '#ef4444' }
+const GRADE_COLOR = { A: '#D8B16A', B: '#3b82f6', C: '#f59e0b', D: '#f97316', F: '#ef4444' }
 const MODULE_ICON = { chatbot: '💬', campaign: '📣', 'ai-agent': '🤖', knowledge: '🧠', reply: '↩️', score: '⭐', classify: '🏷️', translate: '🌐', insights: '💡', ai: '⚙️' }
 
 function GradeBadge({ grade }) {
@@ -69,7 +69,7 @@ export default function AIQualityPage() {
             {[7, 30, 90].map(d => (
               <button key={d} onClick={() => setDays(d)} style={{
                 padding: '6px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-                background: days === d ? '#00e5a0' : '#1a2235', color: days === d ? '#0a0f1a' : '#94a3b8',
+                background: days === d ? '#D8B16A' : '#1a2235', color: days === d ? '#0a0f1a' : '#94a3b8',
               }}>{d}d</button>
             ))}
           </div>
@@ -82,9 +82,9 @@ export default function AIQualityPage() {
             {/* Platform summary */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
               <MetricCard label="Quality Score" value={p.qualityScore} color={GRADE_COLOR[p.grade || 'F']} />
-              <MetricCard label="Success Rate" value={`${p.successRate}%`} color={p.successRate >= 99 ? '#00e5a0' : '#f59e0b'} />
-              <MetricCard label="Escalation Rate" value={`${p.escalationRate}%`} color={p.escalationRate < 5 ? '#00e5a0' : '#ef4444'} />
-              <MetricCard label="👍 Positive" value={`${p.positiveFeedbackRate}%`} color="#00e5a0" sub={`${p.feedbackCoverage}% coverage`} />
+              <MetricCard label="Success Rate" value={`${p.successRate}%`} color={p.successRate >= 99 ? '#D8B16A' : '#f59e0b'} />
+              <MetricCard label="Escalation Rate" value={`${p.escalationRate}%`} color={p.escalationRate < 5 ? '#D8B16A' : '#ef4444'} />
+              <MetricCard label="👍 Positive" value={`${p.positiveFeedbackRate}%`} color="#D8B16A" sub={`${p.feedbackCoverage}% coverage`} />
               <MetricCard label="👎 Negative" value={`${p.negativeFeedbackRate}%`} color="#ef4444" />
               <MetricCard label="Avg Latency" value={`${p.avgLatencyMs}ms`} color={p.avgLatencyMs > 3000 ? '#ef4444' : '#3b82f6'} />
             </div>
@@ -94,7 +94,7 @@ export default function AIQualityPage() {
               {[{ id: 'platform', label: '🌐 Platform View' }, { id: 'orgs', label: '🏢 Per Org' }].map(v => (
                 <button key={v.id} onClick={() => setView(v.id)} style={{
                   padding: '7px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-                  background: view === v.id ? '#00e5a0' : '#1a2235', color: view === v.id ? '#0a0f1a' : '#94a3b8',
+                  background: view === v.id ? '#D8B16A' : '#1a2235', color: view === v.id ? '#0a0f1a' : '#94a3b8',
                 }}>{v.label}</button>
               ))}
             </div>
@@ -113,7 +113,7 @@ export default function AIQualityPage() {
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{m.calls} calls · {m.avgLatency}ms avg</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '13px', fontWeight: '700', color: m.successRate >= 99 ? '#00e5a0' : '#f59e0b' }}>{m.successRate}%</div>
+                        <div style={{ fontSize: '13px', fontWeight: '700', color: m.successRate >= 99 ? '#D8B16A' : '#f59e0b' }}>{m.successRate}%</div>
                         <div style={{ fontSize: '11px', color: m.escalationRate > 10 ? '#ef4444' : '#64748b' }}>↑{m.escalationRate}% escalated</div>
                       </div>
                     </div>
@@ -132,7 +132,7 @@ export default function AIQualityPage() {
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: '13px', fontWeight: '700', color: '#e2e8f0' }}>{m.calls} calls</div>
-                        <div style={{ fontSize: '11px', color: m.successRate >= 99 ? '#00e5a0' : '#f59e0b' }}>{m.successRate}% success · {m.avgLatency}ms</div>
+                        <div style={{ fontSize: '11px', color: m.successRate >= 99 ? '#D8B16A' : '#f59e0b' }}>{m.successRate}% success · {m.avgLatency}ms</div>
                       </div>
                     </div>
                   ))}
@@ -159,7 +159,7 @@ export default function AIQualityPage() {
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '70px' }}>
                       {data.dailyTrend.map((d, i) => {
                         const h = Math.max(4, (d.successRate / 100) * 70)
-                        const color = d.successRate >= 99 ? '#00e5a0' : d.successRate >= 90 ? '#f59e0b' : '#ef4444'
+                        const color = d.successRate >= 99 ? '#D8B16A' : d.successRate >= 90 ? '#f59e0b' : '#ef4444'
                         return (
                           <div key={i} title={`${d.date}: ${d.successRate}% success, ${d.escalations} escalations`}
                             style={{ flex: 1, height: `${h}px`, background: color, borderRadius: '2px 2px 0 0', cursor: 'pointer', opacity: 0.85 }} />
@@ -194,9 +194,9 @@ export default function AIQualityPage() {
                         <td style={{ padding: '12px 16px', fontWeight: '600' }}>{org.orgName}</td>
                         <td style={{ padding: '12px 16px', color: GRADE_COLOR[org.grade], fontWeight: '700' }}>{org.qualityScore}</td>
                         <td style={{ padding: '12px 16px', color: '#94a3b8' }}>{org.totalCalls}</td>
-                        <td style={{ padding: '12px 16px', color: org.successRate >= 99 ? '#00e5a0' : '#f59e0b' }}>{org.successRate}%</td>
+                        <td style={{ padding: '12px 16px', color: org.successRate >= 99 ? '#D8B16A' : '#f59e0b' }}>{org.successRate}%</td>
                         <td style={{ padding: '12px 16px', color: org.escalationRate > 10 ? '#ef4444' : '#94a3b8' }}>{org.escalationRate}%</td>
-                        <td style={{ padding: '12px 16px', color: '#00e5a0' }}>{org.positiveFeedbackRate}%</td>
+                        <td style={{ padding: '12px 16px', color: '#D8B16A' }}>{org.positiveFeedbackRate}%</td>
                         <td style={{ padding: '12px 16px', color: '#64748b' }}>{org.avgLatencyMs}ms</td>
                       </tr>
                     ))}

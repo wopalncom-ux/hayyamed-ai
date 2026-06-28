@@ -4,7 +4,7 @@ import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
 const CATEGORY_COLOR = {
-  auth: '#3b82f6', user: '#a78bfa', contact: '#00e5a0', conversation: '#06b6d4',
+  auth: '#3b82f6', user: '#a78bfa', contact: '#D8B16A', conversation: '#06b6d4',
   campaign: '#f59e0b', workflow: '#f97316', ai: '#8b5cf6', billing: '#fbbf24',
   admin: '#ef4444', security: '#dc2626', api: '#64748b', other: '#374151',
 }
@@ -79,7 +79,7 @@ export default function AuditDashboardPage() {
             {[7, 30, 90].map(d => (
               <button key={d} onClick={() => setDays(d)} style={{
                 padding: '6px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-                background: days === d ? '#00e5a0' : '#1a2235', color: days === d ? '#0a0f1a' : '#94a3b8',
+                background: days === d ? '#D8B16A' : '#1a2235', color: days === d ? '#0a0f1a' : '#94a3b8',
               }}>{d}d</button>
             ))}
           </div>
@@ -90,7 +90,7 @@ export default function AuditDashboardPage() {
           <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
             {[
               { label: 'Total Events', value: stats.total?.toLocaleString(), color: '#e2e8f0' },
-              { label: 'Active Orgs', value: stats.activeOrgs, color: '#00e5a0' },
+              { label: 'Active Orgs', value: stats.activeOrgs, color: '#D8B16A' },
               { label: 'Active Users', value: stats.activeUsers, color: '#3b82f6' },
               { label: '🛡️ Security Events', value: stats.recentSecurityEvents?.length, color: '#ef4444' },
             ].map(s => (
@@ -108,7 +108,7 @@ export default function AuditDashboardPage() {
             {[{ id: 'logs', label: '📋 Log Stream' }, { id: 'stats', label: '📊 Analytics' }].map(v => (
               <button key={v.id} onClick={() => setView(v.id)} style={{
                 padding: '7px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-                background: view === v.id ? '#00e5a0' : '#1a2235', color: view === v.id ? '#0a0f1a' : '#94a3b8',
+                background: view === v.id ? '#D8B16A' : '#1a2235', color: view === v.id ? '#0a0f1a' : '#94a3b8',
               }}>{v.label}</button>
             ))}
           </div>

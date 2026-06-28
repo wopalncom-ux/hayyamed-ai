@@ -44,8 +44,8 @@ export default function TelegramSetup() {
         {loading ? (
           <div style={{ color: '#64748b', padding: '40px', textAlign: 'center' }}>Loading…</div>
         ) : status?.connected ? (
-          <div style={{ background: 'rgba(0,229,160,.05)', border: '1px solid rgba(0,229,160,.25)', borderRadius: '12px', padding: '24px' }}>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#00e5a0', marginBottom: '8px' }}>✅ Connected</div>
+          <div style={{ background: 'rgba(216,177,106,.05)', border: '1px solid rgba(216,177,106,.25)', borderRadius: '12px', padding: '24px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#D8B16A', marginBottom: '8px' }}>✅ Connected</div>
             <div style={{ fontSize: '13px', color: '#cbd5e1' }}>Bot: <strong>@{status.username}</strong> — message it on Telegram and watch the reply land in your Inbox.</div>
             <button onClick={disconnect} disabled={busy} style={{ marginTop: '16px', padding: '9px 18px', background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: '8px', color: '#ef4444', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Disconnect</button>
           </div>
@@ -55,18 +55,18 @@ export default function TelegramSetup() {
             <input value={token} onChange={e => setToken(e.target.value)} placeholder="123456789:ABCdef..."
               style={{ width: '100%', padding: '11px 12px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '8px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
             <button onClick={connect} disabled={busy || !token.trim()}
-              style={{ marginTop: '14px', padding: '11px 24px', background: busy || !token.trim() ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: busy || !token.trim() ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '14px', cursor: busy ? 'wait' : 'pointer' }}>
+              style={{ marginTop: '14px', padding: '11px 24px', background: busy || !token.trim() ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: busy || !token.trim() ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '14px', cursor: busy ? 'wait' : 'pointer' }}>
               {busy ? 'Connecting…' : '✈️ Connect Bot'}
             </button>
-            {msg && <div style={{ marginTop: '14px', fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+            {msg && <div style={{ marginTop: '14px', fontSize: '13px', color: msg.ok ? '#D8B16A' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
           </div>
         )}
 
-        <div style={{ marginTop: '20px', background: 'rgba(0,229,160,.04)', border: '1px solid rgba(0,229,160,.12)', borderRadius: '10px', padding: '16px 18px', fontSize: '13px', color: '#94a3b8', lineHeight: 1.8 }}>
+        <div style={{ marginTop: '20px', background: 'rgba(216,177,106,.04)', border: '1px solid rgba(216,177,106,.12)', borderRadius: '10px', padding: '16px 18px', fontSize: '13px', color: '#94a3b8', lineHeight: 1.8 }}>
           <strong style={{ color: '#e2e8f0' }}>How to get a bot token (2 min)</strong>
           <ol style={{ margin: '8px 0 0 18px' }}>
-            <li>Open Telegram → search <strong style={{ color: '#00e5a0' }}>@BotFather</strong></li>
-            <li>Send <code style={{ background: '#1a2235', padding: '1px 6px', borderRadius: '4px', color: '#00e5a0' }}>/newbot</code> → choose a name + username</li>
+            <li>Open Telegram → search <strong style={{ color: '#D8B16A' }}>@BotFather</strong></li>
+            <li>Send <code style={{ background: '#1a2235', padding: '1px 6px', borderRadius: '4px', color: '#D8B16A' }}>/newbot</code> → choose a name + username</li>
             <li>Copy the token it gives you → paste it above → Connect</li>
           </ol>
         </div>

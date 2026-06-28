@@ -75,7 +75,7 @@ export default function AICommandCenter() {
             const res = results[p.id]
             const liveOk = res?.ok
             return (
-              <div key={p.id} style={{ background: '#111622', border: `1px solid ${liveOk ? 'rgba(0,229,160,.3)' : '#1a2235'}`, borderRadius: '10px', padding: '16px' }}>
+              <div key={p.id} style={{ background: '#111622', border: `1px solid ${liveOk ? 'rgba(216,177,106,.3)' : '#1a2235'}`, borderRadius: '10px', padding: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '20px' }}>{p.icon}</span>
@@ -84,12 +84,12 @@ export default function AICommandCenter() {
                   {!p.wired
                     ? <span style={{ fontSize: '9px', padding: '2px 7px', borderRadius: '10px', background: 'rgba(100,116,139,.15)', color: '#64748b', fontWeight: 700 }}>ROADMAP</span>
                     : keyPresent
-                      ? <span style={{ fontSize: '9px', padding: '2px 7px', borderRadius: '10px', background: 'rgba(0,229,160,.12)', color: '#00e5a0', fontWeight: 700 }}>KEY SET</span>
+                      ? <span style={{ fontSize: '9px', padding: '2px 7px', borderRadius: '10px', background: 'rgba(216,177,106,.12)', color: '#D8B16A', fontWeight: 700 }}>KEY SET</span>
                       : <span style={{ fontSize: '9px', padding: '2px 7px', borderRadius: '10px', background: 'rgba(245,158,11,.12)', color: '#f59e0b', fontWeight: 700 }}>NO KEY</span>}
                 </div>
 
                 {res && (
-                  <div style={{ fontSize: '11px', marginBottom: '8px', padding: '8px 10px', borderRadius: '6px', background: liveOk ? 'rgba(0,229,160,.06)' : 'rgba(239,68,68,.06)', color: liveOk ? '#00e5a0' : '#ef4444', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: '11px', marginBottom: '8px', padding: '8px 10px', borderRadius: '6px', background: liveOk ? 'rgba(216,177,106,.06)' : 'rgba(239,68,68,.06)', color: liveOk ? '#D8B16A' : '#ef4444', lineHeight: 1.5 }}>
                     {liveOk ? `✓ Live · ${res.latencyMs}ms` : `✗ ${res.error || 'failed'}`}
                   </div>
                 )}
@@ -128,14 +128,14 @@ export default function AICommandCenter() {
           <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={2}
             style={{ width: '100%', padding: '9px 12px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '6px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', marginBottom: '12px' }} />
           <button onClick={runConsole} disabled={consoleLoading}
-            style={{ padding: '10px 22px', background: consoleLoading ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: consoleLoading ? '#64748b' : '#07090f', fontWeight: 700, fontSize: '13px', cursor: consoleLoading ? 'wait' : 'pointer' }}>
+            style={{ padding: '10px 22px', background: consoleLoading ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: consoleLoading ? '#64748b' : '#07090f', fontWeight: 700, fontSize: '13px', cursor: consoleLoading ? 'wait' : 'pointer' }}>
             {consoleLoading ? 'Running…' : '▶ Run test'}
           </button>
 
           {consoleRes && (
-            <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', background: consoleRes.ok ? 'rgba(0,229,160,.05)' : 'rgba(239,68,68,.05)', border: `1px solid ${consoleRes.ok ? 'rgba(0,229,160,.2)' : 'rgba(239,68,68,.2)'}` }}>
+            <div style={{ marginTop: '16px', padding: '14px', borderRadius: '8px', background: consoleRes.ok ? 'rgba(216,177,106,.05)' : 'rgba(239,68,68,.05)', border: `1px solid ${consoleRes.ok ? 'rgba(216,177,106,.2)' : 'rgba(239,68,68,.2)'}` }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: consoleRes.ok ? '#00e5a0' : '#ef4444' }}>{consoleRes.ok ? '✓ SUCCESS' : '✗ FAILED'}</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: consoleRes.ok ? '#D8B16A' : '#ef4444' }}>{consoleRes.ok ? '✓ SUCCESS' : '✗ FAILED'}</span>
                 {consoleRes.model && <span style={{ fontSize: '11px', color: '#64748b' }}>{consoleRes.model}</span>}
                 {typeof consoleRes.latencyMs === 'number' && consoleRes.latencyMs > 0 && <span style={{ fontSize: '11px', color: '#64748b' }}>{consoleRes.latencyMs}ms</span>}
               </div>

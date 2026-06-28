@@ -7,7 +7,7 @@ const STAGES = [
   { key: 'NEW',          label: 'New Leads',      color: '#64748b', emoji: '✨' },
   { key: 'CONTACTED',    label: 'Contacted',       color: '#3b82f6', emoji: '📞' },
   { key: 'QUALIFYING',   label: 'Qualifying',      color: '#f97316', emoji: '🔍' },
-  { key: 'QUALIFIED',    label: 'Qualified',       color: '#00e5a0', emoji: '✅' },
+  { key: 'QUALIFIED',    label: 'Qualified',       color: '#D8B16A', emoji: '✅' },
   { key: 'PROPOSAL',     label: 'Proposal Sent',   color: '#8b5cf6', emoji: '📄' },
   { key: 'NEGOTIATION',  label: 'Negotiation',     color: '#fbbf24', emoji: '🤝' },
   { key: 'WON',          label: 'Won',             color: '#22c55e', emoji: '🏆' },
@@ -57,12 +57,12 @@ function ContactCard({ contact, onDragStart, onClick, isDragging }) {
           <span style={{ fontSize: '11px', color: '#94a3b8' }} title={contact.source}>{SOURCE_ICON[contact.source] || '🔗'}</span>
         )}
         {contact.value > 0 && (
-          <span style={{ fontSize: '11px', fontWeight: '700', color: '#00e5a0' }}>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: '#D8B16A' }}>
             {parseFloat(contact.value).toLocaleString('en-QA', { style: 'currency', currency: contact.currency || 'QAR', minimumFractionDigits: 0 })}
           </span>
         )}
         {contact.score > 0 && (
-          <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '3px', background: contact.score > 70 ? '#00e5a022' : contact.score > 40 ? '#fbbf2422' : '#1a2235', color: contact.score > 70 ? '#00e5a0' : contact.score > 40 ? '#fbbf24' : '#64748b', fontWeight: '700' }}>
+          <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '3px', background: contact.score > 70 ? '#D8B16A22' : contact.score > 40 ? '#fbbf2422' : '#1a2235', color: contact.score > 70 ? '#D8B16A' : contact.score > 40 ? '#fbbf24' : '#64748b', fontWeight: '700' }}>
             {contact.score}pts
           </span>
         )}
@@ -225,7 +225,7 @@ export default function PipelinePage() {
             {[
               { label: 'Pipeline Value', value: pipelineValue.toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 }), color: '#3b82f6' },
               { label: 'Won Value', value: wonValue.toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 }), color: '#22c55e' },
-              { label: 'Win Rate', value: `${winRate}%`, color: '#00e5a0' },
+              { label: 'Win Rate', value: `${winRate}%`, color: '#D8B16A' },
               { label: 'Total Contacts', value: contacts.length, color: '#64748b' },
             ].map(k => (
               <div key={k.label} style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '7px', padding: '8px 14px', minWidth: '120px' }}>
@@ -285,7 +285,7 @@ export default function PipelinePage() {
         )}
 
         {toast && (
-          <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px', background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff', fontWeight: '700', fontSize: '14px', zIndex: 9999 }}>
+          <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px', background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff', fontWeight: '700', fontSize: '14px', zIndex: 9999 }}>
             {toast.msg}
           </div>
         )}

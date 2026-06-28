@@ -4,11 +4,11 @@ import NavSidebar from '@/components/NavSidebar'
 import { api } from '@/lib/api'
 
 const TYPE_META = {
-  message:  { color:'#00e5a0', icon:'💬' },
+  message:  { color:'#D8B16A', icon:'💬' },
   lead:     { color:'#3b82f6', icon:'👤' },
   campaign: { color:'#a78bfa', icon:'📣' },
   ai:       { color:'#f97316', icon:'🤖' },
-  payment:  { color:'#00e5a0', icon:'💳' },
+  payment:  { color:'#D8B16A', icon:'💳' },
   alert:    { color:'#ef4444', icon:'⚠️' },
   booking:  { color:'#06b6d4', icon:'📅' },
   system:   { color:'#64748b', icon:'ℹ️' },
@@ -59,10 +59,10 @@ export default function Notifications() {
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
+        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
         <div style={{fontSize:'12px', color:'#7a8fa6'}}>/  Notifications</div>
         {unreadCount > 0 && <div style={{fontSize:'10px', padding:'3px 8px', background:'rgba(239,68,68,.15)', border:'1px solid rgba(239,68,68,.3)', borderRadius:'10px', color:'#ef4444', fontWeight:'700'}}>{unreadCount} unread</div>}
-        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
+        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.2)', color:'#D8B16A', borderRadius:'2px'}}>● LIVE</div>
       </div>
 
       <div style={{display:'flex', flex:1, overflow:'hidden'}}>
@@ -74,13 +74,13 @@ export default function Notifications() {
           <div style={{padding:'12px 20px', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', gap:'8px', background:'#0c0f1a', flexShrink:0, flexWrap:'wrap'}}>
             {['all','unread','message','lead','campaign','ai','alert','payment'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                style={{padding:'5px 12px', background: filter===f ? '#00e5a0' : '#111622', border:'1px solid', borderColor: filter===f ? '#00e5a0' : '#1a2235', borderRadius:'4px', color: filter===f ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: filter===f ? '700' : '400', textTransform:'capitalize'}}>
+                style={{padding:'5px 12px', background: filter===f ? '#D8B16A' : '#111622', border:'1px solid', borderColor: filter===f ? '#D8B16A' : '#1a2235', borderRadius:'4px', color: filter===f ? '#07090f' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: filter===f ? '700' : '400', textTransform:'capitalize'}}>
                 {f}
               </button>
             ))}
             <div style={{marginLeft:'auto'}}>
               <button onClick={markAllRead}
-                style={{padding:'5px 14px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>
+                style={{padding:'5px 14px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'4px', color:'#D8B16A', fontSize:'11px', cursor:'pointer', fontWeight:'600'}}>
                 Mark all read
               </button>
             </div>

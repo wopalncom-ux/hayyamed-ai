@@ -4,7 +4,7 @@ import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
 const STAGE_COLORS = {
-  NEW: '#64748b', CONTACTED: '#3b82f6', QUALIFYING: '#06b6d4', QUALIFIED: '#00e5a0',
+  NEW: '#64748b', CONTACTED: '#3b82f6', QUALIFYING: '#06b6d4', QUALIFIED: '#D8B16A',
   PROPOSAL: '#f59e0b', NEGOTIATION: '#a78bfa',
 }
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0))
@@ -53,8 +53,8 @@ export default function SalesDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '28px' }}>
               <Stat label="Open Pipeline" value={`${fmt(data.openValue)} ${data.currency}`} sub="Total value of open deals" color="#3b82f6" />
               <Stat label="Weighted Forecast" value={`${fmt(data.weightedForecast)} ${data.currency}`} sub="Probability-adjusted" color="#a78bfa" />
-              <Stat label="Won Revenue" value={`${fmt(data.wonValue)} ${data.currency}`} sub={`${data.wonCount} deals won`} color="#00e5a0" />
-              <Stat label="Win Rate" value={`${data.winRate}%`} sub={`${data.wonCount} won · ${data.lostCount} lost`} color={data.winRate >= 30 ? '#00e5a0' : '#f59e0b'} />
+              <Stat label="Won Revenue" value={`${fmt(data.wonValue)} ${data.currency}`} sub={`${data.wonCount} deals won`} color="#D8B16A" />
+              <Stat label="Win Rate" value={`${data.winRate}%`} sub={`${data.wonCount} won · ${data.lostCount} lost`} color={data.winRate >= 30 ? '#D8B16A' : '#f59e0b'} />
               <Stat label="Avg Deal Size" value={`${fmt(data.avgDealSize)} ${data.currency}`} sub="Per won deal" />
             </div>
 
@@ -94,10 +94,10 @@ export default function SalesDashboard() {
                     <div key={s.source} style={{ marginBottom: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                         <span style={{ fontSize: '12px', color: '#cbd5e1' }}>{s.source}</span>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#00e5a0' }}>{fmt(s.value)} {data.currency} · {s.count}</span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#D8B16A' }}>{fmt(s.value)} {data.currency} · {s.count}</span>
                       </div>
                       <div style={{ height: '6px', background: '#0c0f1a', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${(s.value / maxSourceVal) * 100}%`, background: '#00e5a0', borderRadius: '3px' }} />
+                        <div style={{ height: '100%', width: `${(s.value / maxSourceVal) * 100}%`, background: '#D8B16A', borderRadius: '3px' }} />
                       </div>
                     </div>
                   ))}
@@ -116,7 +116,7 @@ export default function SalesDashboard() {
                         <div style={{ fontSize: '13px', fontWeight: 600 }}>{d.name}</div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{d.source || '—'} · {new Date(d.wonAt).toLocaleDateString()}</div>
                       </div>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#00e5a0' }}>{fmt(d.value)} {d.currency}</span>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#D8B16A' }}>{fmt(d.value)} {d.currency}</span>
                     </div>
                   ))}
                 </div>

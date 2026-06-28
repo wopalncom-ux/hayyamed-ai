@@ -4,7 +4,7 @@ import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
 const STATUS = {
-  operational:    { label: 'Operational',    color: '#00e5a0', dot: '#00e5a0' },
+  operational:    { label: 'Operational',    color: '#D8B16A', dot: '#D8B16A' },
   not_configured: { label: 'Not configured', color: '#f59e0b', dot: '#f59e0b' },
   degraded:       { label: 'Degraded',       color: '#f59e0b', dot: '#f59e0b' },
   attention:      { label: 'Needs attention',color: '#f59e0b', dot: '#f59e0b' },

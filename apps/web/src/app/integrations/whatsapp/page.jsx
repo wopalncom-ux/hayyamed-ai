@@ -16,7 +16,7 @@ function Step({ n, title, desc, done }) {
     <div style={{ display: 'flex', gap: '14px', padding: '16px 0', borderBottom: '1px solid #1a2235' }}>
       <div style={{
         width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: done ? '#00e5a0' : '#1a2235', color: done ? '#0a0f1a' : '#94a3b8', fontSize: '13px', fontWeight: '800', flexShrink: 0,
+        background: done ? '#D8B16A' : '#1a2235', color: done ? '#0a0f1a' : '#94a3b8', fontSize: '13px', fontWeight: '800', flexShrink: 0,
       }}>{done ? '✓' : n}</div>
       <div>
         <div style={{ fontSize: '14px', fontWeight: '700', color: '#e2e8f0', marginBottom: '4px' }}>{title}</div>
@@ -35,7 +35,7 @@ function ChannelCard({ channel, onDisconnect }) {
           <div style={{ fontWeight: '700', fontSize: '15px', color: '#e2e8f0' }}>{channel.name}</div>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Phone ID: {channel.identifier}</div>
           <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-            <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '4px', background: channel.isActive ? '#00e5a022' : '#ef444422', color: channel.isActive ? '#00e5a0' : '#ef4444', fontWeight: '700' }}>
+            <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '4px', background: channel.isActive ? '#D8B16A22' : '#ef444422', color: channel.isActive ? '#D8B16A' : '#ef4444', fontWeight: '700' }}>
               {channel.isActive ? '● Active' : '○ Inactive'}
             </span>
             {channel.isVerified && (
@@ -140,7 +140,7 @@ export default function WhatsAppSetupPage() {
           ].map(t => (
             <button key={t.id} onClick={() => setView(t.id)} style={{
               padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-              background: view === t.id ? '#00e5a0' : '#1a2235', color: view === t.id ? '#0a0f1a' : '#94a3b8',
+              background: view === t.id ? '#D8B16A' : '#1a2235', color: view === t.id ? '#0a0f1a' : '#94a3b8',
             }}>{t.label}</button>
           ))}
         </div>
@@ -181,7 +181,7 @@ export default function WhatsAppSetupPage() {
                 ].map(({ label, value }) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0a0f1a', borderRadius: '6px' }}>
                     <span style={{ color: '#64748b' }}>{label}</span>
-                    <span style={{ fontFamily: 'monospace', color: '#00e5a0', fontSize: '11px' }}>{value}</span>
+                    <span style={{ fontFamily: 'monospace', color: '#D8B16A', fontSize: '11px' }}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -242,7 +242,7 @@ export default function WhatsAppSetupPage() {
           <div>
             {channels.filter(c => c.isActive).length === 0 ? (
               <div style={{ background: '#111622', border: '1px solid #ef444433', borderRadius: '10px', padding: '24px', textAlign: 'center', color: '#ef4444' }}>
-                No active WhatsApp channel. <button onClick={() => setView('connect')} style={{ background: 'none', border: 'none', color: '#00e5a0', cursor: 'pointer', fontWeight: '700' }}>Connect one first →</button>
+                No active WhatsApp channel. <button onClick={() => setView('connect')} style={{ background: 'none', border: 'none', color: '#D8B16A', cursor: 'pointer', fontWeight: '700' }}>Connect one first →</button>
               </div>
             ) : (
               <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '10px', padding: '24px' }}>
@@ -271,7 +271,7 @@ export default function WhatsAppSetupPage() {
         {toast && (
           <div style={{
             position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px',
-            background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff',
+            background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff',
             fontWeight: '700', fontSize: '14px', zIndex: 9999, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           }}>{toast.msg}</div>
         )}

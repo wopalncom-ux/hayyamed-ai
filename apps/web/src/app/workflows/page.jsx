@@ -330,7 +330,7 @@ export default function WorkflowsPage() {
               <button onClick={() => setView('templates')} style={{ padding: '10px 18px', background: 'rgba(167,139,250,.1)', border: '1px solid rgba(167,139,250,.3)', borderRadius: '8px', color: '#a78bfa', fontWeight: '800', cursor: 'pointer', fontSize: '14px' }}>
                 📋 Templates
               </button>
-              <button onClick={() => openBuilder()} style={{ padding: '10px 20px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', cursor: 'pointer', fontSize: '14px' }}>
+              <button onClick={() => openBuilder()} style={{ padding: '10px 20px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', cursor: 'pointer', fontSize: '14px' }}>
                 + New Workflow
               </button>
             </div>
@@ -343,7 +343,7 @@ export default function WorkflowsPage() {
             {[
               { label: 'Total Runs', value: runStats.total, color: '#64748b' },
               { label: 'Running', value: runStats.running, color: '#3b82f6' },
-              { label: 'Completed', value: runStats.completed, color: '#00e5a0' },
+              { label: 'Completed', value: runStats.completed, color: '#D8B16A' },
               { label: 'Failed', value: runStats.failed, color: '#ef4444' },
             ].map(s => (
               <div key={s.label} style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '14px 16px' }}>
@@ -360,7 +360,7 @@ export default function WorkflowsPage() {
             {[{ id: 'list', label: `⚡ Workflows (${workflows.length})` }, { id: 'templates', label: `📋 Templates (${TEMPLATES.length})` }, { id: 'runs', label: '📋 Run History' }].map(t => (
               <button key={t.id} onClick={() => setView(t.id)} style={{
                 padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
-                background: view === t.id ? '#00e5a0' : '#1a2235', color: view === t.id ? '#0a0f1a' : '#94a3b8',
+                background: view === t.id ? '#D8B16A' : '#1a2235', color: view === t.id ? '#0a0f1a' : '#94a3b8',
               }}>{t.label}</button>
             ))}
           </div>
@@ -376,7 +376,7 @@ export default function WorkflowsPage() {
                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚡</div>
                 <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '6px' }}>No workflows yet</div>
                 <div style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Create your first automation to start saving time</div>
-                <button onClick={() => openBuilder()} style={{ padding: '10px 20px', background: '#00e5a0', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', cursor: 'pointer' }}>
+                <button onClick={() => openBuilder()} style={{ padding: '10px 20px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#0a0f1a', fontWeight: '800', cursor: 'pointer' }}>
                   + Create First Workflow
                 </button>
               </div>
@@ -391,7 +391,7 @@ export default function WorkflowsPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                           <span style={{ fontSize: '16px' }}>{trigMeta?.icon || '⚡'}</span>
                           <span style={{ fontWeight: '700', fontSize: '14px' }}>{wf.name}</span>
-                          <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: '700', background: wf.isActive ? '#00e5a022' : '#1a2235', color: wf.isActive ? '#00e5a0' : '#64748b' }}>
+                          <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: '700', background: wf.isActive ? '#D8B16A22' : '#1a2235', color: wf.isActive ? '#D8B16A' : '#64748b' }}>
                             {wf.isActive ? 'ACTIVE' : 'PAUSED'}
                           </span>
                         </div>
@@ -409,7 +409,7 @@ export default function WorkflowsPage() {
                           Edit
                         </button>
                         <button onClick={() => toggleWorkflow(wf.id, wf.isActive)}
-                          style={{ padding: '6px 12px', background: '#1a2235', border: '1px solid #253045', borderRadius: '6px', color: wf.isActive ? '#fbbf24' : '#00e5a0', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+                          style={{ padding: '6px 12px', background: '#1a2235', border: '1px solid #253045', borderRadius: '6px', color: wf.isActive ? '#fbbf24' : '#D8B16A', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
                           {wf.isActive ? '⏸ Pause' : '▶ Enable'}
                         </button>
                         <button onClick={() => deleteWorkflow(wf.id)}
@@ -446,7 +446,7 @@ export default function WorkflowsPage() {
                       <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: '#1a2235', color: '#64748b', fontWeight: 700 }}>{tpl.actions.length} action{tpl.actions.length !== 1 ? 's' : ''}</span>
                     </div>
                     <button onClick={() => installTemplate(tpl)} disabled={installing === tpl.id}
-                      style={{ padding: '9px', background: installing === tpl.id ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: installing === tpl.id ? '#64748b' : '#0a0f1a', fontWeight: '800', fontSize: '13px', cursor: installing === tpl.id ? 'wait' : 'pointer' }}>
+                      style={{ padding: '9px', background: installing === tpl.id ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: installing === tpl.id ? '#64748b' : '#0a0f1a', fontWeight: '800', fontSize: '13px', cursor: installing === tpl.id ? 'wait' : 'pointer' }}>
                       {installing === tpl.id ? 'Installing…' : '+ Install'}
                     </button>
                   </div>
@@ -478,8 +478,8 @@ export default function WorkflowsPage() {
                       <td style={{ padding: '10px 14px' }}>
                         <span style={{
                           fontSize: '11px', padding: '2px 7px', borderRadius: '4px', fontWeight: '700',
-                          background: r.status === 'completed' ? '#00e5a022' : r.status === 'failed' ? '#ef444422' : '#3b82f622',
-                          color: r.status === 'completed' ? '#00e5a0' : r.status === 'failed' ? '#ef4444' : '#3b82f6',
+                          background: r.status === 'completed' ? '#D8B16A22' : r.status === 'failed' ? '#ef444422' : '#3b82f622',
+                          color: r.status === 'completed' ? '#D8B16A' : r.status === 'failed' ? '#ef4444' : '#3b82f6',
                         }}>{r.status}</span>
                       </td>
                       <td style={{ padding: '10px 14px', color: '#64748b' }}>{r.currentStep}</td>
@@ -593,7 +593,7 @@ export default function WorkflowsPage() {
                     Cancel
                   </button>
                   <button onClick={save} disabled={!!savingId}
-                    style={{ padding: '10px 24px', background: savingId ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '8px', color: savingId ? '#64748b' : '#0a0f1a', cursor: savingId ? 'not-allowed' : 'pointer', fontWeight: '800', fontSize: '14px' }}>
+                    style={{ padding: '10px 24px', background: savingId ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: savingId ? '#64748b' : '#0a0f1a', cursor: savingId ? 'not-allowed' : 'pointer', fontWeight: '800', fontSize: '14px' }}>
                     {savingId ? 'Saving...' : (editing ? 'Save Changes' : 'Create Workflow')}
                   </button>
                 </div>
@@ -615,7 +615,7 @@ export default function WorkflowsPage() {
                 <div style={{ marginTop: '20px', padding: '12px', background: '#0a0f1a', borderRadius: '6px', fontSize: '11px', color: '#64748b' }}>
                   <div style={{ fontWeight: '700', color: '#94a3b8', marginBottom: '6px' }}>💡 Dynamic variables</div>
                   <div>Use in messages:</div>
-                  <div style={{ fontFamily: 'monospace', marginTop: '4px', color: '#00e5a0' }}>
+                  <div style={{ fontFamily: 'monospace', marginTop: '4px', color: '#D8B16A' }}>
                     {'{{name}}'}<br />{'{{phone}}'}<br />{'{{email}}'}<br />{'{{city}}'}
                   </div>
                 </div>
@@ -625,7 +625,7 @@ export default function WorkflowsPage() {
         )}
 
         {toast && (
-          <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px', background: toast.ok ? '#00e5a0' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff', fontWeight: '700', fontSize: '14px', zIndex: 9999 }}>
+          <div style={{ position: 'fixed', bottom: '24px', right: '24px', padding: '12px 20px', borderRadius: '8px', background: toast.ok ? '#D8B16A' : '#ef4444', color: toast.ok ? '#0a0f1a' : '#fff', fontWeight: '700', fontSize: '14px', zIndex: 9999 }}>
             {toast.msg}
           </div>
         )}

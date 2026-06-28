@@ -7,13 +7,13 @@ import { api } from '@/lib/api'
 import { getAuth } from '@/lib/auth'
 import { useIsMobile } from '@/lib/useIsMobile'
 
-const COLORS = ['#00e5a0', '#3b82f6', '#a78bfa', '#f97316', '#ef4444', '#fbbf24', '#06b6d4']
-const statusColors = { 'Hot Lead': '#ef4444', 'Cold Lead': '#3b82f6', 'New Lead': '#f97316', 'Customer': '#00e5a0' }
+const COLORS = ['#D8B16A', '#3b82f6', '#a78bfa', '#f97316', '#ef4444', '#fbbf24', '#06b6d4']
+const statusColors = { 'Hot Lead': '#ef4444', 'Cold Lead': '#3b82f6', 'New Lead': '#f97316', 'Customer': '#D8B16A' }
 
 // Keyed by the backend ChannelType enum (what conversations actually return),
 // not friendly labels — fixes blank icons + a channel filter that matched nothing.
 const CHANNEL_META = {
-  WHATSAPP:  { label: 'WhatsApp',  icon: '💬', color: '#00e5a0' },
+  WHATSAPP:  { label: 'WhatsApp',  icon: '💬', color: '#D8B16A' },
   LIVE_CHAT: { label: 'Web Chat',  icon: '🌐', color: '#3b82f6' },
   TELEGRAM:  { label: 'Telegram',  icon: '✈️', color: '#06b6d4' },
   INSTAGRAM: { label: 'Instagram', icon: '📸', color: '#a78bfa' },
@@ -53,9 +53,9 @@ function toUiConv(c) {
 function waitingInfo(lastMsgAt) {
   if (!lastMsgAt) return null
   const mins = Math.floor((Date.now() - new Date(lastMsgAt).getTime()) / 60000)
-  if (mins < 1) return { text: 'now', color: '#00e5a0' }
+  if (mins < 1) return { text: 'now', color: '#D8B16A' }
   const text = mins < 60 ? `${mins}m` : mins < 1440 ? `${Math.floor(mins / 60)}h` : `${Math.floor(mins / 1440)}d`
-  const color = mins < 10 ? '#00e5a0' : mins < 30 ? '#fbbf24' : '#ef4444'
+  const color = mins < 10 ? '#D8B16A' : mins < 30 ? '#fbbf24' : '#ef4444'
   return { text, color }
 }
 
@@ -425,9 +425,9 @@ function InboxInner() {
 
   const LiveDot = () => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: '700', padding: '3px 8px', borderRadius: '10px',
-      background: liveStatus === 'live' ? 'rgba(0,229,160,.12)' : liveStatus === 'connecting' ? 'rgba(251,191,36,.12)' : 'rgba(239,68,68,.12)',
-      color: liveStatus === 'live' ? '#00e5a0' : liveStatus === 'connecting' ? '#fbbf24' : '#ef4444',
-      border: `1px solid ${liveStatus === 'live' ? 'rgba(0,229,160,.25)' : liveStatus === 'connecting' ? 'rgba(251,191,36,.25)' : 'rgba(239,68,68,.25)'}`,
+      background: liveStatus === 'live' ? 'rgba(216,177,106,.12)' : liveStatus === 'connecting' ? 'rgba(251,191,36,.12)' : 'rgba(239,68,68,.12)',
+      color: liveStatus === 'live' ? '#D8B16A' : liveStatus === 'connecting' ? '#fbbf24' : '#ef4444',
+      border: `1px solid ${liveStatus === 'live' ? 'rgba(216,177,106,.25)' : liveStatus === 'connecting' ? 'rgba(251,191,36,.25)' : 'rgba(239,68,68,.25)'}`,
     }}>
       <span style={{ animation: liveStatus === 'live' ? 'pulse 2s infinite' : 'none' }}>●</span>
       {liveStatus === 'live' ? 'LIVE' : liveStatus === 'connecting' ? 'CONNECTING' : 'OFFLINE'}
@@ -436,13 +436,13 @@ function InboxInner() {
 
   return (
     <div style={{ background: '#0a0f1a', color: '#e2e8f0', height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui,sans-serif' }}>
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} } @keyframes flashIn { 0%{background:'rgba(0,229,160,.15)'} 100%{background:'transparent'} }`}</style>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} } @keyframes flashIn { 0%{background:'rgba(216,177,106,.15)'} 100%{background:'transparent'} }`}</style>
 
       {/* Topbar */}
       <div style={{ height: '50px', background: '#0c0f1a', borderBottom: '1px solid #1a2235', display: 'flex', alignItems: 'center', padding: '0 16px', gap: '12px', flexShrink: 0 }}>
-        <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#00e5a0' }}> AI</span></div>
+        <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#D8B16A' }}> AI</span></div>
         <div style={{ marginLeft: 'auto' }}><LiveDot /></div>
-        {newMsgFlash && <div style={{ fontSize: '11px', color: '#00e5a0', fontWeight: '700', animation: 'pulse .5s 3' }}>New message!</div>}
+        {newMsgFlash && <div style={{ fontSize: '11px', color: '#D8B16A', fontWeight: '700', animation: 'pulse .5s 3' }}>New message!</div>}
       </div>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -453,7 +453,7 @@ function InboxInner() {
           <div style={{ padding: '12px', borderBottom: '1px solid #1a2235' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ fontWeight: '800', fontSize: '14px' }}>
-                Inbox {unreadTotal > 0 && <span style={{ fontSize: '11px', background: '#00e5a0', color: '#0a0f1a', borderRadius: '10px', padding: '1px 7px', fontWeight: '800', marginLeft: '4px' }}>{unreadTotal}</span>}
+                Inbox {unreadTotal > 0 && <span style={{ fontSize: '11px', background: '#D8B16A', color: '#0a0f1a', borderRadius: '10px', padding: '1px 7px', fontWeight: '800', marginLeft: '4px' }}>{unreadTotal}</span>}
               </div>
               <a href="/contacts" style={{ fontSize: '10px', color: '#475569', textDecoration: 'none', border: '1px solid #1a2235', padding: '3px 7px', borderRadius: '4px' }}>All Contacts →</a>
             </div>
@@ -471,7 +471,7 @@ function InboxInner() {
                 return (
                   <button key={id} onClick={() => setQuickFilter(id)}
                     style={{ flex: 1, padding: '5px 6px', borderRadius: '5px', cursor: 'pointer', fontSize: '10px', fontWeight: 700,
-                      background: active ? 'rgba(0,229,160,.15)' : '#111622', border: `1px solid ${active ? '#00e5a0' : '#1a2235'}`, color: active ? '#00e5a0' : '#64748b' }}>
+                      background: active ? 'rgba(216,177,106,.15)' : '#111622', border: `1px solid ${active ? '#D8B16A' : '#1a2235'}`, color: active ? '#D8B16A' : '#64748b' }}>
                     {label}{id !== 'all' && n > 0 ? ` ${n}` : ''}
                   </button>
                 )
@@ -488,7 +488,7 @@ function InboxInner() {
               {['All', ...Array.from(new Set(contacts.map(c => c.channel)))].map(ch => {
                 const meta = ch === 'All' ? null : channelMeta(ch)
                 const active = filterChannel === ch
-                const col = meta ? meta.color : '#00e5a0'
+                const col = meta ? meta.color : '#D8B16A'
                 return (
                   <button key={ch} onClick={() => setFilterChannel(ch)}
                     style={{ padding: '3px 8px', background: active ? col + '22' : '#111622', border: `1px solid ${active ? col : '#1a2235'}`, borderRadius: '4px', color: active ? col : '#475569', fontSize: '10px', cursor: 'pointer' }}>
@@ -507,7 +507,7 @@ function InboxInner() {
             ) : (
               filtered.map(c => (
                 <div key={c.id} onClick={() => selectConversation(c)}
-                  style={{ padding: '11px 13px', borderBottom: '1px solid #111622', cursor: 'pointer', background: selected?.id === c.id ? '#111622' : 'transparent', borderLeft: `3px solid ${selected?.id === c.id ? '#00e5a0' : 'transparent'}`, transition: 'background .1s' }}
+                  style={{ padding: '11px 13px', borderBottom: '1px solid #111622', cursor: 'pointer', background: selected?.id === c.id ? '#111622' : 'transparent', borderLeft: `3px solid ${selected?.id === c.id ? '#D8B16A' : 'transparent'}`, transition: 'background .1s' }}
                   onMouseEnter={e => { if (selected?.id !== c.id) e.currentTarget.style.background = '#0f1520' }}
                   onMouseLeave={e => { if (selected?.id !== c.id) e.currentTarget.style.background = 'transparent' }}>
                   <div style={{ display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
@@ -519,7 +519,7 @@ function InboxInner() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px', alignItems: 'center' }}>
                         <div style={{ fontSize: '12px', fontWeight: '700', color: c.unread > 0 ? '#e2e8f0' : '#94a3b8' }}>{c.name}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {c.unread > 0 && <span style={{ minWidth: '16px', height: '16px', borderRadius: '8px', background: '#00e5a0', color: '#0a0f1a', fontSize: '9px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{c.unread}</span>}
+                          {c.unread > 0 && <span style={{ minWidth: '16px', height: '16px', borderRadius: '8px', background: '#D8B16A', color: '#0a0f1a', fontSize: '9px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{c.unread}</span>}
                           <div style={{ fontSize: '9px', color: '#475569' }}>{c.time}</div>
                         </div>
                       </div>
@@ -553,7 +553,7 @@ function InboxInner() {
               <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a2235', background: '#0c0f1a', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                 {isMobile && (
                   <button onClick={() => setSelected(null)} title="Back"
-                    style={{ background: 'none', border: 'none', color: '#00e5a0', fontSize: '20px', cursor: 'pointer', padding: '0 4px 0 0', lineHeight: 1 }}>←</button>
+                    style={{ background: 'none', border: 'none', color: '#D8B16A', fontSize: '20px', cursor: 'pointer', padding: '0 4px 0 0', lineHeight: 1 }}>←</button>
                 )}
                 <div style={{ position: 'relative' }}>
                   <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: selected.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800', color: '#0a0f1a' }}>{selected.avatar}</div>
@@ -594,8 +594,8 @@ function InboxInner() {
                   )}
                   <button onClick={toggleAi} title={selected.aiPaused ? 'AI is paused — you are handling this. Click to let AI resume.' : 'AI is auto-replying. Click to take over.'}
                     style={{ padding: '6px 11px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: '700',
-                      background: selected.aiPaused ? 'rgba(251,191,36,.12)' : '#00e5a0',
-                      border: `1px solid ${selected.aiPaused ? 'rgba(251,191,36,.4)' : '#00e5a0'}`,
+                      background: selected.aiPaused ? 'rgba(251,191,36,.12)' : '#D8B16A',
+                      border: `1px solid ${selected.aiPaused ? 'rgba(251,191,36,.4)' : '#D8B16A'}`,
                       color: selected.aiPaused ? '#fbbf24' : '#0a0f1a' }}>
                     {selected.aiPaused ? '🙋 You’re handling' : '🤖 AI active'}
                   </button>
@@ -639,7 +639,7 @@ function InboxInner() {
                     </div>
                     {selected.contactId && (
                       <a href={`/contacts/${selected.contactId}`}
-                        style={{ padding: '6px 11px', background: 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.25)', borderRadius: '6px', color: '#00e5a0', fontSize: '11px', fontWeight: 700, textDecoration: 'none' }}>
+                        style={{ padding: '6px 11px', background: 'rgba(216,177,106,.08)', border: '1px solid rgba(216,177,106,.25)', borderRadius: '6px', color: '#D8B16A', fontSize: '11px', fontWeight: 700, textDecoration: 'none' }}>
                         👤 Open lead in CRM →
                       </a>
                     )}
@@ -691,11 +691,11 @@ function InboxInner() {
               <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#0a0f1a' }}>
                 {messages.map(m => (
                   <div key={m.id} style={{ display: 'flex', flexDirection: m.from === 'agent' ? 'row-reverse' : 'row', gap: '7px', alignItems: 'flex-end' }}>
-                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: m.from === 'ai' ? '#8b5cf6' : m.from === 'agent' ? '#00e5a0' : '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '800', color: '#fff', flexShrink: 0 }}>
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: m.from === 'ai' ? '#8b5cf6' : m.from === 'agent' ? '#D8B16A' : '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: '800', color: '#fff', flexShrink: 0 }}>
                       {m.from === 'ai' ? 'AI' : m.from === 'agent' ? 'A' : 'C'}
                     </div>
                     <div style={{ maxWidth: '65%' }}>
-                      <div style={{ padding: '9px 13px', borderRadius: m.from === 'agent' ? '12px 3px 12px 12px' : '3px 12px 12px 12px', background: m.from === 'agent' ? 'rgba(0,229,160,.1)' : m.from === 'ai' ? 'rgba(139,92,246,.1)' : '#111622', border: `1px solid ${m.from === 'agent' ? 'rgba(0,229,160,.2)' : m.from === 'ai' ? 'rgba(139,92,246,.2)' : '#1a2235'}`, fontSize: '13px', lineHeight: '1.5', color: '#e2e8f0' }}>
+                      <div style={{ padding: '9px 13px', borderRadius: m.from === 'agent' ? '12px 3px 12px 12px' : '3px 12px 12px 12px', background: m.from === 'agent' ? 'rgba(216,177,106,.1)' : m.from === 'ai' ? 'rgba(139,92,246,.1)' : '#111622', border: `1px solid ${m.from === 'agent' ? 'rgba(216,177,106,.2)' : m.from === 'ai' ? 'rgba(139,92,246,.2)' : '#1a2235'}`, fontSize: '13px', lineHeight: '1.5', color: '#e2e8f0' }}>
                         {m.text}
                       </div>
                       <div style={{ fontSize: '9px', color: '#475569', marginTop: '3px', textAlign: m.from === 'agent' ? 'right' : 'left' }}>{m.time}</div>
@@ -733,7 +733,7 @@ function InboxInner() {
                       </div>
                     </div>
                     <button onClick={requestPayment} disabled={payLoading || !(Number(payAmount) > 0)}
-                      style={{ width: '100%', marginTop: '10px', padding: '9px', background: payLoading || !(Number(payAmount) > 0) ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '6px', color: payLoading || !(Number(payAmount) > 0) ? '#475569' : '#07090f', fontWeight: 700, fontSize: '12px', cursor: payLoading ? 'wait' : 'pointer' }}>
+                      style={{ width: '100%', marginTop: '10px', padding: '9px', background: payLoading || !(Number(payAmount) > 0) ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '6px', color: payLoading || !(Number(payAmount) > 0) ? '#475569' : '#07090f', fontWeight: 700, fontSize: '12px', cursor: payLoading ? 'wait' : 'pointer' }}>
                       {payLoading ? 'Creating link…' : 'Create & send payment link'}
                     </button>
                     <div style={{ fontSize: '10px', color: '#475569', marginTop: '6px' }}>A MyFatoorah payment link is created and sent into this conversation.</div>
@@ -768,7 +768,7 @@ function InboxInner() {
                       <textarea value={qrContent} onChange={e => setQrContent(e.target.value)} placeholder="Message — Hi {name}, thanks for reaching out!" rows={2}
                         style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '6px', padding: '7px 9px', color: '#e2e8f0', fontSize: '12px', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
                       <button onClick={saveQuickReply} disabled={!qrTitle.trim() || !qrContent.trim()}
-                        style={{ padding: '7px', background: (!qrTitle.trim() || !qrContent.trim()) ? '#1a2235' : '#00e5a0', border: 'none', borderRadius: '6px', color: (!qrTitle.trim() || !qrContent.trim()) ? '#475569' : '#0a0f1a', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
+                        style={{ padding: '7px', background: (!qrTitle.trim() || !qrContent.trim()) ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '6px', color: (!qrTitle.trim() || !qrContent.trim()) ? '#475569' : '#0a0f1a', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
                         + Save reply
                       </button>
                     </div>
@@ -793,7 +793,7 @@ function InboxInner() {
                     </button>
                   )}
                   <button onClick={() => setShowReplies(v => !v)} title="Saved replies"
-                    style={{ height: '40px', padding: '0 13px', background: showReplies ? 'rgba(0,229,160,.15)' : 'rgba(0,229,160,.08)', border: '1px solid rgba(0,229,160,.3)', borderRadius: '8px', color: '#00e5a0', fontWeight: '700', fontSize: '12px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    style={{ height: '40px', padding: '0 13px', background: showReplies ? 'rgba(216,177,106,.15)' : 'rgba(216,177,106,.08)', border: '1px solid rgba(216,177,106,.3)', borderRadius: '8px', color: '#D8B16A', fontWeight: '700', fontSize: '12px', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                     ⚡
                   </button>
                   <button onClick={suggestReply} disabled={suggesting} title="Let AI draft a reply"
@@ -801,7 +801,7 @@ function InboxInner() {
                     {suggesting ? '⟳' : '✨ Suggest'}
                   </button>
                   <button onClick={sendMessage} disabled={sending || !input.trim()}
-                    style={{ height: '40px', padding: '0 18px', background: sending || !input.trim() ? '#111622' : '#00e5a0', border: '1px solid', borderColor: sending || !input.trim() ? '#1a2235' : '#00e5a0', borderRadius: '8px', color: sending || !input.trim() ? '#475569' : '#0a0f1a', fontWeight: '800', fontSize: '12px', cursor: sending ? 'wait' : 'pointer', flexShrink: 0, transition: 'all .15s' }}>
+                    style={{ height: '40px', padding: '0 18px', background: sending || !input.trim() ? '#111622' : '#D8B16A', border: '1px solid', borderColor: sending || !input.trim() ? '#1a2235' : '#D8B16A', borderRadius: '8px', color: sending || !input.trim() ? '#475569' : '#0a0f1a', fontWeight: '800', fontSize: '12px', cursor: sending ? 'wait' : 'pointer', flexShrink: 0, transition: 'all .15s' }}>
                     {sending ? '⟳' : 'Send'}
                   </button>
                 </div>

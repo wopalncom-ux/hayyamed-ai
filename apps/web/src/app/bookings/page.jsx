@@ -6,7 +6,7 @@ import { useIsMobile } from '@/lib/useIsMobile'
 
 const STATUS_COLORS = {
   PENDING:     '#f97316',
-  CONFIRMED:   '#00e5a0',
+  CONFIRMED:   '#D8B16A',
   CANCELLED:   '#ef4444',
   COMPLETED:   '#3b82f6',
   NO_SHOW:     '#64748b',
@@ -177,7 +177,7 @@ export default function BookingsPage() {
             <button onClick={prevWeek} style={{ padding:'6px 10px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#64748b', fontSize:'11px', cursor:'pointer' }}>‹</button>
             <button onClick={nextWeek} style={{ padding:'6px 10px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#64748b', fontSize:'11px', cursor:'pointer' }}>›</button>
             <button onClick={() => setShowNew(true)}
-              style={{ padding:'7px 16px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}
+              style={{ padding:'7px 16px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}
             >
               + New Booking
             </button>
@@ -189,7 +189,7 @@ export default function BookingsPage() {
           {[
             { label:'This Week', value: totalThisWeek, color:'#3b82f6' },
             { label:'Pending', value: bookings.filter(b=>b.status==='PENDING').length, color:'#f97316' },
-            { label:'Confirmed', value: bookings.filter(b=>b.status==='CONFIRMED').length, color:'#00e5a0' },
+            { label:'Confirmed', value: bookings.filter(b=>b.status==='CONFIRMED').length, color:'#D8B16A' },
             { label:'Completed', value: bookings.filter(b=>b.status==='COMPLETED').length, color:'#a78bfa' },
           ].map(s => (
             <div key={s.label} style={{ flex:1, padding:'10px 16px', borderRight:'1px solid #1a2235', textAlign:'center' }}>
@@ -287,7 +287,7 @@ export default function BookingsPage() {
                       <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
                         {b.status === 'PENDING' && (
                           <button onClick={e => { e.stopPropagation(); updateStatus(b.id, 'CONFIRMED') }}
-                            style={{ padding:'4px 10px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'4px', color:'#00e5a0', fontSize:'10px', cursor:'pointer', fontWeight:'700' }}
+                            style={{ padding:'4px 10px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'4px', color:'#D8B16A', fontSize:'10px', cursor:'pointer', fontWeight:'700' }}
                           >
                             Confirm
                           </button>
@@ -345,7 +345,7 @@ export default function BookingsPage() {
               <div style={{ marginTop:'16px', display:'flex', flexDirection:'column', gap:'6px' }}>
                 {selected.status === 'PENDING' && (
                   <button onClick={() => updateStatus(selected.id, 'CONFIRMED')}
-                    style={{ padding:'9px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'6px', color:'#00e5a0', fontSize:'12px', cursor:'pointer', fontWeight:'700' }}
+                    style={{ padding:'9px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'6px', color:'#D8B16A', fontSize:'12px', cursor:'pointer', fontWeight:'700' }}
                   >
                     ✅ Confirm Booking
                   </button>
@@ -413,7 +413,7 @@ export default function BookingsPage() {
               <button onClick={() => setShowNew(false)} style={{ flex:1, padding:'10px', background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'6px', color:'#64748b', cursor:'pointer', fontSize:'13px' }}>
                 Cancel
               </button>
-              <button onClick={createBooking} disabled={saving} style={{ flex:2, padding:'10px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', cursor:'pointer', fontSize:'13px' }}>
+              <button onClick={createBooking} disabled={saving} style={{ flex:2, padding:'10px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', cursor:'pointer', fontSize:'13px' }}>
                 {saving ? 'Creating...' : '📅 Create Booking'}
               </button>
             </div>

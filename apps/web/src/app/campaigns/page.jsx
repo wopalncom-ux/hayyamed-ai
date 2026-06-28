@@ -14,9 +14,9 @@ const templates = [
 ]
 
 // Keyed by the real campaign status enum (RUNNING/COMPLETED/PAUSED/FAILED/DRAFT/SCHEDULED).
-const statusColors = { DRAFT:'#64748b', SCHEDULED:'#a78bfa', RUNNING:'#00e5a0', COMPLETED:'#3b82f6', PAUSED:'#fbbf24', FAILED:'#ef4444' }
+const statusColors = { DRAFT:'#64748b', SCHEDULED:'#a78bfa', RUNNING:'#D8B16A', COMPLETED:'#3b82f6', PAUSED:'#fbbf24', FAILED:'#ef4444' }
 const channelIcons = { WhatsApp:'💬', Instagram:'📸', Facebook:'👤', Telegram:'✈️', Email:'📧' }
-const channelColors = { WhatsApp:'#00e5a0', Instagram:'#a78bfa', Facebook:'#3b82f6', Telegram:'#f97316', Email:'#fbbf24' }
+const channelColors = { WhatsApp:'#D8B16A', Instagram:'#a78bfa', Facebook:'#3b82f6', Telegram:'#f97316', Email:'#fbbf24' }
 
 export default function Campaigns() {
   const isMobile = useIsMobile()
@@ -180,8 +180,8 @@ export default function Campaigns() {
     <div style={{background:'#07090f', color:'#e2e8f0', height:'100vh', display:'flex', flexDirection:'column', fontFamily:'sans-serif'}}>
 
       <div style={{height:'52px', background:'#0c0f1a', borderBottom:'1px solid #1a2235', display:'flex', alignItems:'center', padding:'0 20px', gap:'16px', flexShrink:0}}>
-        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#00e5a0'}}> AI</span></div>
-        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(0,229,160,.2)', color:'#00e5a0', borderRadius:'2px'}}>● LIVE</div>
+        <div style={{fontWeight:'800', fontSize:'16px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
+        <div style={{marginLeft:'auto', fontSize:'10px', padding:'4px 10px', border:'1px solid rgba(216,177,106,.2)', color:'#D8B16A', borderRadius:'2px'}}>● LIVE</div>
         <div style={{width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#3b82f6,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:'700'}}>A</div>
       </div>
 
@@ -202,7 +202,7 @@ export default function Campaigns() {
               {id:'advisor', label:'🤖 AI Advisor'},
               {id:'comments', label:'💬 Comments'},
             ].map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{padding:'5px 10px', background: tab===t.id ? '#00e5a0' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: tab===t.id ? '#07090f' : '#7a8fa6', fontSize:'10px', cursor:'pointer', fontWeight: tab===t.id ? '700' : '400'}}>
+              <button key={t.id} onClick={() => setTab(t.id)} style={{padding:'5px 10px', background: tab===t.id ? '#D8B16A' : '#111622', border:'1px solid #1a2235', borderRadius:'4px', color: tab===t.id ? '#07090f' : '#7a8fa6', fontSize:'10px', cursor:'pointer', fontWeight: tab===t.id ? '700' : '400'}}>
                 {t.label}
               </button>
             ))}
@@ -215,7 +215,7 @@ export default function Campaigns() {
               <div>
                 <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px', marginBottom:'20px'}}>
                   {[
-                    {label:'TOTAL CAMPAIGNS', value:campaigns.length, color:'#00e5a0'},
+                    {label:'TOTAL CAMPAIGNS', value:campaigns.length, color:'#D8B16A'},
                     {label:'ACTIVE', value:campaigns.filter(c=>c.status==='ACTIVE'||c.status==='Active').length, color:'#3b82f6'},
                     {label:'TOTAL SENT', value:campaigns.reduce((s,c)=>s+(c.sentCount||0),0), color:'#a78bfa'},
                     {label:'DRAFTS', value:campaigns.filter(c=>c.status==='DRAFT'||c.status==='Draft').length, color:'#f97316'},
@@ -238,12 +238,12 @@ export default function Campaigns() {
                   ) : campaigns.length === 0 ? (
                     <div style={{padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'12px'}}>
                       No campaigns yet —{' '}
-                      <button onClick={() => setTab('create')} style={{background:'none', border:'none', color:'#00e5a0', cursor:'pointer', fontSize:'12px', textDecoration:'underline'}}>create your first one</button>
+                      <button onClick={() => setTab('create')} style={{background:'none', border:'none', color:'#D8B16A', cursor:'pointer', fontSize:'12px', textDecoration:'underline'}}>create your first one</button>
                     </div>
                   ) : campaigns.map(c => {
                     const st = (c.status || 'DRAFT').toUpperCase()
                     const ch = c.channel || c.channelType || 'WhatsApp'
-                    const stColor = st === 'RUNNING' ? '#00e5a0' : st === 'COMPLETED' ? '#3b82f6' : st === 'PAUSED' ? '#fbbf24' : st === 'FAILED' ? '#ef4444' : '#64748b'
+                    const stColor = st === 'RUNNING' ? '#D8B16A' : st === 'COMPLETED' ? '#3b82f6' : st === 'PAUSED' ? '#fbbf24' : st === 'FAILED' ? '#ef4444' : '#64748b'
                     const isLoading = actionLoading[c.id]
                     const totalContacts = c._count?.campaignContacts ?? c.totalContacts ?? 0
                     const sentCount = c.sentCount ?? 0
@@ -260,12 +260,12 @@ export default function Campaigns() {
                         </div>
                         <div style={{fontSize:'12px', color:'#7a8fa6'}}>
                           <div>{sentCount.toLocaleString()} sent</div>
-                          {readCount > 0 && <div style={{fontSize:'10px', color:'#00e5a0'}}>{readRate}% read</div>}
+                          {readCount > 0 && <div style={{fontSize:'10px', color:'#D8B16A'}}>{readRate}% read</div>}
                         </div>
                         <div>
                           {sentCount > 0 && (
                             <div style={{width:'100%', height:'4px', background:'#1a2235', borderRadius:'2px', overflow:'hidden'}}>
-                              <div style={{height:'100%', width:`${Math.min(readRate,100)}%`, background:'#00e5a0', borderRadius:'2px'}} />
+                              <div style={{height:'100%', width:`${Math.min(readRate,100)}%`, background:'#D8B16A', borderRadius:'2px'}} />
                             </div>
                           )}
                         </div>
@@ -274,7 +274,7 @@ export default function Campaigns() {
                         <div style={{display:'flex', gap:'5px'}}>
                           {st === 'DRAFT' && (
                             <button disabled={!!isLoading} onClick={() => campaignAction(c.id, 'launch')}
-                              style={{padding:'4px 10px', background:'rgba(0,229,160,.12)', border:'1px solid rgba(0,229,160,.3)', borderRadius:'3px', color:'#00e5a0', fontSize:'10px', cursor: isLoading ? 'wait' : 'pointer', fontWeight:'700'}}>
+                              style={{padding:'4px 10px', background:'rgba(216,177,106,.12)', border:'1px solid rgba(216,177,106,.3)', borderRadius:'3px', color:'#D8B16A', fontSize:'10px', cursor: isLoading ? 'wait' : 'pointer', fontWeight:'700'}}>
                               {isLoading === 'launch' ? '…' : '🚀 Launch'}
                             </button>
                           )}
@@ -286,7 +286,7 @@ export default function Campaigns() {
                           )}
                           {st === 'PAUSED' && (
                             <button disabled={!!isLoading} onClick={() => campaignAction(c.id, 'resume')}
-                              style={{padding:'4px 10px', background:'rgba(0,229,160,.12)', border:'1px solid rgba(0,229,160,.3)', borderRadius:'3px', color:'#00e5a0', fontSize:'10px', cursor: isLoading ? 'wait' : 'pointer', fontWeight:'700'}}>
+                              style={{padding:'4px 10px', background:'rgba(216,177,106,.12)', border:'1px solid rgba(216,177,106,.3)', borderRadius:'3px', color:'#D8B16A', fontSize:'10px', cursor: isLoading ? 'wait' : 'pointer', fontWeight:'700'}}>
                               {isLoading === 'resume' ? '…' : '▶ Resume'}
                             </button>
                           )}
@@ -305,7 +305,7 @@ export default function Campaigns() {
                     <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px'}}>
                       <div style={{fontWeight:'700', fontSize:'14px'}}>{selectedCampaign.name} — Details</div>
                       <div style={{display:'flex', gap:'8px'}}>
-                        <button onClick={() => exportCSV(selectedCampaign)} style={{padding:'6px 12px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
+                        <button onClick={() => exportCSV(selectedCampaign)} style={{padding:'6px 12px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>📥 Export CSV</button>
                         <button onClick={() => { setTab('advisor'); setAdvisorQuery(`Analyze campaign: ${selectedCampaign.name}`); askAdvisor(`Analyze this campaign: ${selectedCampaign.name}, status: ${selectedCampaign.status}, sent: ${selectedCampaign.sentCount||0}`) }} style={{padding:'6px 12px', background:'#a78bfa', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>🤖 AI Analysis</button>
                       </div>
                     </div>
@@ -314,7 +314,7 @@ export default function Campaigns() {
                         {label:'Sent', value:(selectedCampaign.sentCount||0).toLocaleString(), color:'#7a8fa6'},
                         {label:'Leads Generated', value:selectedCampaign.leadsCount||0, color:'#3b82f6'},
                         {label:'Bookings', value:selectedCampaign.bookingsCount||0, color:'#a78bfa'},
-                        {label:'Open Rate', value:selectedCampaign.openRate||'—', color:'#00e5a0'},
+                        {label:'Open Rate', value:selectedCampaign.openRate||'—', color:'#D8B16A'},
                       ].map(s => (
                         <div key={s.label} style={{textAlign:'center', padding:'14px', background:'#111622', borderRadius:'4px'}}>
                           <div style={{fontSize:'20px', fontWeight:'800', color:s.color}}>{s.value}</div>
@@ -334,7 +334,7 @@ export default function Campaigns() {
                 <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'24px'}}>Send bulk messages to your contacts</div>
 
                 {sent && (
-                  <div style={{padding:'14px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.3)', borderRadius:'4px', marginBottom:'20px', color:'#00e5a0', fontWeight:'600'}}>
+                  <div style={{padding:'14px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.3)', borderRadius:'4px', marginBottom:'20px', color:'#D8B16A', fontWeight:'600'}}>
                     ✅ Campaign launched successfully!
                   </div>
                 )}
@@ -399,7 +399,7 @@ export default function Campaigns() {
                         { id:'by_tag', label:'By Tag' },
                       ].map(opt => (
                         <button key={opt.id} onClick={() => setAudienceType(opt.id)}
-                          style={{padding:'6px 12px', background: audienceType===opt.id ? 'rgba(0,229,160,.15)' : '#111622', border:`1px solid ${audienceType===opt.id ? 'rgba(0,229,160,.4)' : '#1a2235'}`, borderRadius:'4px', color: audienceType===opt.id ? '#00e5a0' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: audienceType===opt.id ? '700' : '400'}}>
+                          style={{padding:'6px 12px', background: audienceType===opt.id ? 'rgba(216,177,106,.15)' : '#111622', border:`1px solid ${audienceType===opt.id ? 'rgba(216,177,106,.4)' : '#1a2235'}`, borderRadius:'4px', color: audienceType===opt.id ? '#D8B16A' : '#7a8fa6', fontSize:'11px', cursor:'pointer', fontWeight: audienceType===opt.id ? '700' : '400'}}>
                           {opt.label}
                         </button>
                       ))}
@@ -417,7 +417,7 @@ export default function Campaigns() {
                         placeholder="e.g. vip, dental, follow-up (comma-separated)"
                         style={{width:'100%', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'8px 12px', color:'#e2e8f0', fontSize:'12px', outline:'none', marginBottom:'6px'}} />
                     )}
-                    <div style={{padding:'8px 12px', background:'rgba(0,229,160,.05)', border:'1px solid rgba(0,229,160,.15)', borderRadius:'4px', fontSize:'11px', color:'#00e5a0'}}>
+                    <div style={{padding:'8px 12px', background:'rgba(216,177,106,.05)', border:'1px solid rgba(216,177,106,.15)', borderRadius:'4px', fontSize:'11px', color:'#D8B16A'}}>
                       👥 {audienceCount == null ? 'Counting...' : audienceCount === 0 ? 'No contacts match — adjust filter' : `${audienceCount} contact${audienceCount !== 1 ? 's' : ''} will receive this message`}
                     </div>
                   </div>
@@ -429,7 +429,7 @@ export default function Campaigns() {
                 </div>
 
                 <button onClick={sendCampaign} disabled={launching || !campaignName.trim() || !message.trim() || audienceCount === 0}
-                  style={{width:'100%', padding:'12px', background: (launching || !campaignName.trim() || !message.trim() || audienceCount === 0) ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'4px', color: (launching || !campaignName.trim() || !message.trim() || audienceCount === 0) ? '#3d4f63' : '#07090f', fontWeight:'700', fontSize:'13px', cursor: launching ? 'wait' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>
+                  style={{width:'100%', padding:'12px', background: (launching || !campaignName.trim() || !message.trim() || audienceCount === 0) ? '#1a2235' : '#D8B16A', border:'none', borderRadius:'4px', color: (launching || !campaignName.trim() || !message.trim() || audienceCount === 0) ? '#3d4f63' : '#07090f', fontWeight:'700', fontSize:'13px', cursor: launching ? 'wait' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>
                   {launching
                     ? <><span style={{display:'inline-block', width:'12px', height:'12px', border:'2px solid #64748b', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 1s linear infinite'}} /> Creating & launching…</>
                     : `🚀 Launch to ${audienceCount == null ? '…' : audienceCount} contacts`
@@ -454,7 +454,7 @@ export default function Campaigns() {
                         </div>
                       </div>
                       <div style={{fontSize:'11px', color:'#7a8fa6', lineHeight:'1.6', marginBottom:'14px', maxHeight:'80px', overflow:'hidden'}}>{t.text}</div>
-                      <button onClick={() => applyTemplate(t)} style={{width:'100%', padding:'8px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>
+                      <button onClick={() => applyTemplate(t)} style={{width:'100%', padding:'8px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>
                         Use Template →
                       </button>
                     </div>
@@ -475,14 +475,14 @@ export default function Campaigns() {
                   <div style={{fontSize:'12px', color:'#7a8fa6', marginBottom:'6px'}}>Drag and drop or click to browse</div>
                   <div style={{fontSize:'11px', color:'#3d4f63'}}>Supported: .xlsx, .xls, .csv</div>
                   <input id="csvUpload" type="file" accept=".csv,.xlsx,.xls" style={{display:'none'}} onChange={handleFileUpload}/>
-                  {uploadedFile && <div style={{marginTop:'12px', fontSize:'12px', color:'#00e5a0'}}>✅ {uploadedFile.name} uploaded</div>}
+                  {uploadedFile && <div style={{marginTop:'12px', fontSize:'12px', color:'#D8B16A'}}>✅ {uploadedFile.name} uploaded</div>}
                 </div>
 
                 <div style={{padding:'16px', background:'#0f1520', border:'1px solid #1a2235', borderRadius:'4px', marginBottom:'20px'}}>
                   <div style={{fontSize:'12px', fontWeight:'600', marginBottom:'8px'}}>📋 Column Format:</div>
                   <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', marginBottom:'12px'}}>
-                    <div style={{padding:'10px', background:'#111622', border:'1px solid #00e5a0', borderRadius:'4px', textAlign:'center'}}>
-                      <div style={{fontSize:'12px', color:'#00e5a0', fontWeight:'700'}}>phone</div>
+                    <div style={{padding:'10px', background:'#111622', border:'1px solid #D8B16A', borderRadius:'4px', textAlign:'center'}}>
+                      <div style={{fontSize:'12px', color:'#D8B16A', fontWeight:'700'}}>phone</div>
                       <div style={{fontSize:'9px', color:'#3d4f63', marginTop:'3px'}}>REQUIRED</div>
                     </div>
                     <div style={{padding:'10px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', textAlign:'center'}}>
@@ -511,13 +511,13 @@ export default function Campaigns() {
                     </div>
                     {previewContacts.map((c, i) => (
                       <div key={i} style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', padding:'10px 16px', borderBottom:'1px solid #1a2235', alignItems:'center'}}>
-                        <div style={{fontSize:'12px', color:'#00e5a0', fontWeight:'600'}}>{c.phone}</div>
+                        <div style={{fontSize:'12px', color:'#D8B16A', fontWeight:'600'}}>{c.phone}</div>
                         <div style={{fontSize:'12px', color: c.name ? '#e2e8f0' : '#3d4f63'}}>{c.name || '—'}</div>
                         <div style={{fontSize:'12px', color: c.email ? '#e2e8f0' : '#3d4f63'}}>{c.email || '—'}</div>
                       </div>
                     ))}
                     <div style={{padding:'12px 16px', display:'flex', gap:'10px'}}>
-                      <button onClick={() => { setImportedContacts(previewContacts); setShowImportPreview(false); alert(`✅ ${previewContacts.length} contacts imported!`) }} style={{flex:1, padding:'10px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
+                      <button onClick={() => { setImportedContacts(previewContacts); setShowImportPreview(false); alert(`✅ ${previewContacts.length} contacts imported!`) }} style={{flex:1, padding:'10px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>
                         ✅ Import {previewContacts.length} Contacts
                       </button>
                       <button onClick={() => setShowImportPreview(false)} style={{padding:'10px 16px', background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', color:'#7a8fa6', fontSize:'12px', cursor:'pointer'}}>
@@ -546,7 +546,7 @@ export default function Campaigns() {
                         <div style={{fontSize:'11px', color:'#3d4f63', marginTop:'3px'}}>{c.date}</div>
                       </div>
                       <div style={{display:'flex', gap:'8px'}}>
-                        <button onClick={() => exportCSV(c)} style={{padding:'6px 12px', background:'#00e5a0', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>📥 CSV</button>
+                        <button onClick={() => exportCSV(c)} style={{padding:'6px 12px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>📥 CSV</button>
                         <button onClick={() => { setTab('advisor'); askAdvisor(`Analyze campaign ${c.name}: sent ${c.sent}, leads ${c.leads}, bookings ${c.bookings}, open rate ${c.openRate}. Give me detailed analysis and recommendations.`) }} style={{padding:'6px 12px', background:'#a78bfa', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer'}}>🤖 Analyze</button>
                       </div>
                     </div>
@@ -556,7 +556,7 @@ export default function Campaigns() {
                         {label:'Sent', value:c.sent.toLocaleString(), color:'#7a8fa6'},
                         {label:'Leads', value:c.leads, color:'#3b82f6'},
                         {label:'Bookings', value:c.bookings, color:'#a78bfa'},
-                        {label:'Open Rate', value:c.openRate, color:'#00e5a0'},
+                        {label:'Open Rate', value:c.openRate, color:'#D8B16A'},
                         {label:'Click Rate', value:c.clickRate, color:'#f97316'},
                       ].map(s => (
                         <div key={s.label} style={{textAlign:'center', padding:'12px', background:'#111622', borderRadius:'4px'}}>
@@ -693,13 +693,13 @@ export default function Campaigns() {
                           <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px', flexWrap:'wrap'}}>
                             <div style={{fontSize:'12px', fontWeight:'600'}}>{c.user}</div>
                             {c.isLead && <span style={{fontSize:'9px', padding:'2px 6px', background:'rgba(249,115,22,.2)', color:'#f97316', borderRadius:'2px'}}>LEAD</span>}
-                            <span style={{fontSize:'9px', padding:'2px 6px', background: c.status==='Answered' ? 'rgba(0,229,160,.1)' : 'rgba(239,68,68,.1)', color: c.status==='Answered' ? '#00e5a0' : '#ef4444', borderRadius:'2px'}}>{c.status}</span>
+                            <span style={{fontSize:'9px', padding:'2px 6px', background: c.status==='Answered' ? 'rgba(216,177,106,.1)' : 'rgba(239,68,68,.1)', color: c.status==='Answered' ? '#D8B16A' : '#ef4444', borderRadius:'2px'}}>{c.status}</span>
                             <span style={{fontSize:'10px', color:'#3d4f63', marginLeft:'auto'}}>{c.time}</span>
                           </div>
                           <div style={{fontSize:'11px', color:'#7a8fa6', marginBottom:'4px'}}>On: {c.post}</div>
                           <div style={{fontSize:'12px', color:'#e2e8f0', marginBottom:'10px'}}>{c.comment}</div>
                           <div style={{display:'flex', gap:'6px', flexWrap:'wrap'}}>
-                            <button style={{padding:'5px 10px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.2)', borderRadius:'3px', color:'#00e5a0', fontSize:'10px', cursor:'pointer'}}>💬 Reply</button>
+                            <button style={{padding:'5px 10px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.2)', borderRadius:'3px', color:'#D8B16A', fontSize:'10px', cursor:'pointer'}}>💬 Reply</button>
                             <button style={{padding:'5px 10px', background:'rgba(59,130,246,.1)', border:'1px solid rgba(59,130,246,.2)', borderRadius:'3px', color:'#3b82f6', fontSize:'10px', cursor:'pointer'}}>👤 Add to CRM</button>
                             <button style={{padding:'5px 10px', background:'rgba(167,139,250,.1)', border:'1px solid rgba(167,139,250,.2)', borderRadius:'3px', color:'#a78bfa', fontSize:'10px', cursor:'pointer'}}>🤖 AI Reply</button>
                             <button style={{padding:'5px 10px', background:'rgba(239,68,68,.1)', border:'1px solid rgba(239,68,68,.2)', borderRadius:'3px', color:'#ef4444', fontSize:'10px', cursor:'pointer'}}>🗑️ Hide</button>

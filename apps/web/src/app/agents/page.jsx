@@ -90,11 +90,11 @@ function AgentCard({ agent, isSelected, onClick, onToggle }) {
   return (
     <div
       onClick={onClick}
-      style={{ background: isSelected ? 'rgba(0,229,160,.06)' : '#111622', border:`1px solid ${isSelected ? 'rgba(0,229,160,.3)' : agent.isActive ? 'rgba(0,229,160,.15)' : '#1a2235'}`, borderRadius:'10px', padding:'14px', cursor:'pointer', transition:'border-color .15s' }}
+      style={{ background: isSelected ? 'rgba(216,177,106,.06)' : '#111622', border:`1px solid ${isSelected ? 'rgba(216,177,106,.3)' : agent.isActive ? 'rgba(216,177,106,.15)' : '#1a2235'}`, borderRadius:'10px', padding:'14px', cursor:'pointer', transition:'border-color .15s' }}
     >
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'10px' }}>
         <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
-          <div style={{ width:'38px', height:'38px', borderRadius:'50%', background: agent.isActive ? 'rgba(0,229,160,.08)' : '#1a2235', border:`1px solid ${agent.isActive ? 'rgba(0,229,160,.25)' : '#1e2940'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0 }}>
+          <div style={{ width:'38px', height:'38px', borderRadius:'50%', background: agent.isActive ? 'rgba(216,177,106,.08)' : '#1a2235', border:`1px solid ${agent.isActive ? 'rgba(216,177,106,.25)' : '#1e2940'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0 }}>
             {agent.avatar || '🤖'}
           </div>
           <div>
@@ -104,7 +104,7 @@ function AgentCard({ agent, isSelected, onClick, onToggle }) {
         </div>
         <div
           onClick={e => { e.stopPropagation(); onToggle(agent) }}
-          style={{ width:'36px', height:'20px', borderRadius:'10px', background: agent.isActive ? '#00e5a0' : '#1e2940', cursor:'pointer', position:'relative', transition:'background .2s', border:'1px solid transparent', flexShrink:0 }}
+          style={{ width:'36px', height:'20px', borderRadius:'10px', background: agent.isActive ? '#D8B16A' : '#1e2940', cursor:'pointer', position:'relative', transition:'background .2s', border:'1px solid transparent', flexShrink:0 }}
         >
           <div style={{ width:'14px', height:'14px', borderRadius:'50%', background:'white', position:'absolute', top:'2px', left: agent.isActive ? '18px' : '2px', transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.3)' }}></div>
         </div>
@@ -121,7 +121,7 @@ function AgentCard({ agent, isSelected, onClick, onToggle }) {
         <span style={{ color:'#3d4f63' }}>
           {AI_PROVIDERS.find(p => p.id === agent.aiProvider)?.label || agent.aiProvider}
         </span>
-        <span style={{ color: agent.isActive ? '#00e5a0' : '#3d4f63', fontWeight:'700' }}>
+        <span style={{ color: agent.isActive ? '#D8B16A' : '#3d4f63', fontWeight:'700' }}>
           {agent.isActive ? '● LIVE' : '○ OFF'}
         </span>
       </div>
@@ -299,7 +299,7 @@ export default function AIAgentBuilder() {
               <div style={{ fontSize:'10px', color:'#a78bfa', fontWeight:'700', letterSpacing:'0.06em' }}>AI AGENTS</div>
               <div style={{ fontSize:'16px', fontWeight:'800' }}>Your AI Workforce</div>
             </div>
-            <button onClick={openNew} style={{ padding:'6px 12px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer', flexShrink:0 }}>
+            <button onClick={openNew} style={{ padding:'6px 12px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'11px', cursor:'pointer', flexShrink:0 }}>
               + New
             </button>
           </div>
@@ -316,7 +316,7 @@ export default function AIAgentBuilder() {
               <div style={{ fontSize:'32px', marginBottom:'12px' }}>🤖</div>
               <div style={{ fontSize:'13px', fontWeight:'700', marginBottom:'6px' }}>No AI Agents Yet</div>
               <div style={{ fontSize:'11px', color:'#64748b', marginBottom:'16px' }}>Create your first AI agent to automate conversations across all channels</div>
-              <button onClick={openNew} style={{ padding:'8px 16px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}>
+              <button onClick={openNew} style={{ padding:'8px 16px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}>
                 Create First Agent
               </button>
             </div>
@@ -349,7 +349,7 @@ export default function AIAgentBuilder() {
                     <button
                       onClick={() => editing.isActive ? toggleAgent(editing) : goLive()}
                       title={!editing.isActive && missingRequired.length ? 'Missing: ' + missingRequired.map(r=>r.label).join(', ') : ''}
-                      style={{ padding:'7px 14px', background: editing.isActive ? 'rgba(239,68,68,.1)' : 'rgba(0,229,160,.1)', border:`1px solid ${editing.isActive ? 'rgba(239,68,68,.3)' : 'rgba(0,229,160,.3)'}`, borderRadius:'6px', color: editing.isActive ? '#ef4444' : '#00e5a0', fontSize:'11px', cursor:'pointer', fontWeight:'700' }}
+                      style={{ padding:'7px 14px', background: editing.isActive ? 'rgba(239,68,68,.1)' : 'rgba(216,177,106,.1)', border:`1px solid ${editing.isActive ? 'rgba(239,68,68,.3)' : 'rgba(216,177,106,.3)'}`, borderRadius:'6px', color: editing.isActive ? '#ef4444' : '#D8B16A', fontSize:'11px', cursor:'pointer', fontWeight:'700' }}
                     >
                       {editing.isActive ? '⏹ Turn Off' : '▶ Go Live'}
                       {!editing.isActive && missingRequired.length > 0 && (
@@ -361,7 +361,7 @@ export default function AIAgentBuilder() {
                     </button>
                   </>
                 )}
-                <button onClick={save} disabled={saving} style={{ padding:'7px 20px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}>
+                <button onClick={save} disabled={saving} style={{ padding:'7px 20px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}>
                   {saving ? 'Saving...' : (editing.id ? '✅ Save' : '🚀 Create')}
                 </button>
               </div>
@@ -377,7 +377,7 @@ export default function AIAgentBuilder() {
                 { id:'test',     label:'🧪 Test Live' },
               ].map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)}
-                  style={{ padding:'11px 18px', background:'none', border:'none', borderBottom: tab===t.id ? '2px solid #00e5a0' : '2px solid transparent', color: tab===t.id ? '#e2e8f0' : '#64748b', fontSize:'12px', fontWeight:'600', cursor:'pointer' }}
+                  style={{ padding:'11px 18px', background:'none', border:'none', borderBottom: tab===t.id ? '2px solid #D8B16A' : '2px solid transparent', color: tab===t.id ? '#e2e8f0' : '#64748b', fontSize:'12px', fontWeight:'600', cursor:'pointer' }}
                 >
                   {t.label}
                 </button>
@@ -403,7 +403,7 @@ export default function AIAgentBuilder() {
                       <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
                         {['🤖','🧑‍⚕️','👩‍⚕️','🦾','💬','🏥','✨','🎯','📞','🌟'].map(em => (
                           <button key={em} onClick={() => setEditing({...editing, avatar:em})}
-                            style={{ width:'36px', height:'36px', fontSize:'20px', background: editing.avatar===em ? 'rgba(0,229,160,.1)' : '#111622', border:`1px solid ${editing.avatar===em ? 'rgba(0,229,160,.4)' : '#1a2235'}`, borderRadius:'6px', cursor:'pointer' }}
+                            style={{ width:'36px', height:'36px', fontSize:'20px', background: editing.avatar===em ? 'rgba(216,177,106,.1)' : '#111622', border:`1px solid ${editing.avatar===em ? 'rgba(216,177,106,.4)' : '#1a2235'}`, borderRadius:'6px', cursor:'pointer' }}
                           >
                             {em}
                           </button>
@@ -416,7 +416,7 @@ export default function AIAgentBuilder() {
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px' }}>
                         {ROLES.map(r => (
                           <button key={r.id} onClick={() => selectRole(r.id)}
-                            style={{ padding:'8px', background: editing.role===r.id ? 'rgba(0,229,160,.08)' : '#111622', border:`1px solid ${editing.role===r.id ? 'rgba(0,229,160,.25)' : '#1a2235'}`, borderRadius:'6px', color: editing.role===r.id ? '#00e5a0' : '#e2e8f0', fontSize:'11px', cursor:'pointer', fontWeight:'600', textAlign:'left' }}
+                            style={{ padding:'8px', background: editing.role===r.id ? 'rgba(216,177,106,.08)' : '#111622', border:`1px solid ${editing.role===r.id ? 'rgba(216,177,106,.25)' : '#1a2235'}`, borderRadius:'6px', color: editing.role===r.id ? '#D8B16A' : '#e2e8f0', fontSize:'11px', cursor:'pointer', fontWeight:'600', textAlign:'left' }}
                           >
                             {r.emoji} {r.label}
                           </button>
@@ -474,7 +474,7 @@ export default function AIAgentBuilder() {
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'8px' }}>
                       {AI_PROVIDERS.map(p => (
                         <button key={p.id} onClick={() => setEditing({...editing, aiProvider:p.id, aiModel:p.models[0]})}
-                          style={{ padding:'10px 8px', background: editing.aiProvider===p.id ? 'rgba(0,229,160,.08)' : '#111622', border:`1px solid ${editing.aiProvider===p.id ? 'rgba(0,229,160,.3)' : '#1a2235'}`, borderRadius:'6px', color: editing.aiProvider===p.id ? '#00e5a0' : '#64748b', fontSize:'10px', cursor:'pointer', fontWeight:'700', textAlign:'center' }}
+                          style={{ padding:'10px 8px', background: editing.aiProvider===p.id ? 'rgba(216,177,106,.08)' : '#111622', border:`1px solid ${editing.aiProvider===p.id ? 'rgba(216,177,106,.3)' : '#1a2235'}`, borderRadius:'6px', color: editing.aiProvider===p.id ? '#D8B16A' : '#64748b', fontSize:'10px', cursor:'pointer', fontWeight:'700', textAlign:'center' }}
                         >
                           {p.label}
                         </button>
@@ -498,13 +498,13 @@ export default function AIAgentBuilder() {
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'6px' }}>
                       <label style={{ fontSize:'11px', color:'#64748b', fontWeight:'700', letterSpacing:'0.04em' }}>🧠 KNOWLEDGE BASE (AI BRAIN)</label>
                       <button type="button" onClick={() => setKbForm(f => ({ ...f, open: !f.open }))}
-                        style={{ padding:'4px 10px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.3)', borderRadius:'5px', color:'#00e5a0', fontSize:'10px', fontWeight:'700', cursor:'pointer' }}>
+                        style={{ padding:'4px 10px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.3)', borderRadius:'5px', color:'#D8B16A', fontSize:'10px', fontWeight:'700', cursor:'pointer' }}>
                         {kbForm.open ? '✕ Cancel' : '+ Create new'}
                       </button>
                     </div>
 
                     {kbForm.open ? (
-                      <div style={{ background:'#0c0f1a', border:'1px solid rgba(0,229,160,.2)', borderRadius:'8px', padding:'12px', display:'flex', flexDirection:'column', gap:'8px' }}>
+                      <div style={{ background:'#0c0f1a', border:'1px solid rgba(216,177,106,.2)', borderRadius:'8px', padding:'12px', display:'flex', flexDirection:'column', gap:'8px' }}>
                         <input value={kbForm.name} onChange={e => setKbForm(f => ({ ...f, name: e.target.value }))}
                           placeholder="Knowledge base name — e.g. Clinic Info"
                           style={{ width:'100%', padding:'9px 11px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#e2e8f0', fontSize:'12px', outline:'none', boxSizing:'border-box' }}
@@ -515,7 +515,7 @@ export default function AIAgentBuilder() {
                           style={{ width:'100%', padding:'9px 11px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px', color:'#e2e8f0', fontSize:'12px', outline:'none', boxSizing:'border-box', resize:'vertical', lineHeight:'1.6' }}
                         />
                         <button onClick={createInlineKB} disabled={kbForm.saving}
-                          style={{ padding:'9px', background: kbForm.saving ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'6px', color: kbForm.saving ? '#64748b' : '#07090f', fontWeight:'700', fontSize:'12px', cursor: kbForm.saving ? 'wait' : 'pointer' }}>
+                          style={{ padding:'9px', background: kbForm.saving ? '#1a2235' : '#D8B16A', border:'none', borderRadius:'6px', color: kbForm.saving ? '#64748b' : '#07090f', fontWeight:'700', fontSize:'12px', cursor: kbForm.saving ? 'wait' : 'pointer' }}>
                           {kbForm.saving ? 'Creating & indexing…' : '✓ Create & link to this agent'}
                         </button>
                         <div style={{ fontSize:'10px', color:'#3d4f63' }}>Tip: you can add more files later in <strong style={{color:'#a78bfa'}}>Knowledge</strong> (PDF, CSV, TXT).</div>
@@ -540,11 +540,11 @@ export default function AIAgentBuilder() {
                   <div>
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
                       <label style={{ fontSize:'11px', color:'#64748b', fontWeight:'700', letterSpacing:'0.04em' }}>TEMPERATURE (Creativity)</label>
-                      <span style={{ fontSize:'12px', color:'#00e5a0', fontWeight:'700' }}>{editing.temperature}</span>
+                      <span style={{ fontSize:'12px', color:'#D8B16A', fontWeight:'700' }}>{editing.temperature}</span>
                     </div>
                     <input type="range" min="0" max="1" step="0.1" value={editing.temperature}
                       onChange={e => setEditing({...editing, temperature:+e.target.value})}
-                      style={{ width:'100%', accentColor:'#00e5a0' }}
+                      style={{ width:'100%', accentColor:'#D8B16A' }}
                     />
                     <div style={{ display:'flex', justifyContent:'space-between', fontSize:'9px', color:'#3d4f63', marginTop:'3px' }}>
                       <span>0 — Precise & deterministic</span>
@@ -565,11 +565,11 @@ export default function AIAgentBuilder() {
                     <label style={{ fontSize:'11px', color:'#64748b', display:'block', marginBottom:'10px', fontWeight:'700', letterSpacing:'0.04em' }}>ALLOWED ACTIONS</label>
                     <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                       {ALLOWED_ACTIONS.map(a => (
-                        <label key={a.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px', background: (editing.allowedActions||[]).includes(a.id) ? 'rgba(0,229,160,.05)' : '#111622', border:`1px solid ${(editing.allowedActions||[]).includes(a.id) ? 'rgba(0,229,160,.2)' : '#1a2235'}`, borderRadius:'6px', cursor:'pointer' }}>
+                        <label key={a.id} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px', background: (editing.allowedActions||[]).includes(a.id) ? 'rgba(216,177,106,.05)' : '#111622', border:`1px solid ${(editing.allowedActions||[]).includes(a.id) ? 'rgba(216,177,106,.2)' : '#1a2235'}`, borderRadius:'6px', cursor:'pointer' }}>
                           <input type="checkbox"
                             checked={(editing.allowedActions||[]).includes(a.id)}
                             onChange={() => toggleAction(a.id)}
-                            style={{ accentColor:'#00e5a0', width:'14px', height:'14px' }}
+                            style={{ accentColor:'#D8B16A', width:'14px', height:'14px' }}
                           />
                           <span style={{ fontSize:'12px', color:'#e2e8f0' }}>{a.label}</span>
                         </label>
@@ -588,8 +588,8 @@ export default function AIAgentBuilder() {
                         const icons = { WhatsApp:'💬', Instagram:'📸', Facebook:'👤', Email:'📧', Telegram:'✈️', 'Web Chat':'🌐' }
                         const isOn = (editing.channels||[]).includes(ch)
                         return (
-                          <label key={ch} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 14px', background: isOn ? 'rgba(0,229,160,.05)' : '#111622', border:`1px solid ${isOn ? 'rgba(0,229,160,.2)' : '#1a2235'}`, borderRadius:'8px', cursor:'pointer' }}>
-                            <input type="checkbox" checked={isOn} onChange={() => toggleChannel(ch)} style={{ accentColor:'#00e5a0', width:'14px', height:'14px' }} />
+                          <label key={ch} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 14px', background: isOn ? 'rgba(216,177,106,.05)' : '#111622', border:`1px solid ${isOn ? 'rgba(216,177,106,.2)' : '#1a2235'}`, borderRadius:'8px', cursor:'pointer' }}>
+                            <input type="checkbox" checked={isOn} onChange={() => toggleChannel(ch)} style={{ accentColor:'#D8B16A', width:'14px', height:'14px' }} />
                             <span style={{ fontSize:'16px' }}>{icons[ch]}</span>
                             <span style={{ fontSize:'13px', fontWeight:'600' }}>{ch}</span>
                           </label>
@@ -598,7 +598,7 @@ export default function AIAgentBuilder() {
                     </div>
                   </div>
 
-                  <div style={{ background:'rgba(0,229,160,.04)', border:'1px solid rgba(0,229,160,.1)', borderRadius:'8px', padding:'14px', fontSize:'12px', color:'#64748b', lineHeight:'1.7' }}>
+                  <div style={{ background:'rgba(216,177,106,.04)', border:'1px solid rgba(216,177,106,.1)', borderRadius:'8px', padding:'14px', fontSize:'12px', color:'#64748b', lineHeight:'1.7' }}>
                     💡 The agent automatically handles incoming messages on all selected channels. Make sure the corresponding channel is connected in <strong style={{color:'#e2e8f0'}}>Integrations</strong>.
                   </div>
                 </div>
@@ -644,7 +644,7 @@ export default function AIAgentBuilder() {
                       <div style={{ background:'#0c0f1a', border:'1px solid #1a2235', borderRadius:'10px', padding:'14px', marginBottom:'14px' }}>
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>
                           <div style={{ fontSize:'12px', fontWeight:'700', color:'#e2e8f0' }}>🚀 Launch readiness</div>
-                          <span style={{ fontSize:'10px', fontWeight:'700', color: missingRequired.length ? '#f59e0b' : '#00e5a0' }}>
+                          <span style={{ fontSize:'10px', fontWeight:'700', color: missingRequired.length ? '#f59e0b' : '#D8B16A' }}>
                             {missingRequired.length ? `${missingRequired.length} required item${missingRequired.length>1?'s':''} left` : '✓ Ready to go live'}
                           </span>
                         </div>
@@ -652,7 +652,7 @@ export default function AIAgentBuilder() {
                           {readiness.map(r => (
                             <button key={r.label} onClick={() => !r.ok && setTab(r.tab)}
                               style={{ display:'flex', alignItems:'center', gap:'8px', background:'none', border:'none', padding:'2px 0', cursor: r.ok ? 'default' : 'pointer', textAlign:'left' }}>
-                              <span style={{ fontSize:'12px', width:'16px', color: r.ok ? '#00e5a0' : (r.required ? '#f59e0b' : '#64748b') }}>{r.ok ? '✓' : (r.required ? '○' : '·')}</span>
+                              <span style={{ fontSize:'12px', width:'16px', color: r.ok ? '#D8B16A' : (r.required ? '#f59e0b' : '#64748b') }}>{r.ok ? '✓' : (r.required ? '○' : '·')}</span>
                               <span style={{ fontSize:'12px', color: r.ok ? '#94a3b8' : '#e2e8f0' }}>{r.label}</span>
                               {!r.required && <span style={{ fontSize:'9px', color:'#3d4f63' }}>(recommended)</span>}
                               {!r.ok && <span style={{ fontSize:'10px', color:'#3b82f6', marginLeft:'auto' }}>fix →</span>}
@@ -660,12 +660,12 @@ export default function AIAgentBuilder() {
                           ))}
                         </div>
                         {missingRequired.length === 0 && !editing.isActive && (
-                          <button onClick={goLive} style={{ marginTop:'12px', width:'100%', padding:'9px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}>
+                          <button onClick={goLive} style={{ marginTop:'12px', width:'100%', padding:'9px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}>
                             ▶ Go Live Now
                           </button>
                         )}
                         {editing.isActive && (
-                          <div style={{ marginTop:'10px', fontSize:'11px', color:'#00e5a0', fontWeight:'700' }}>● This agent is LIVE and handling messages.</div>
+                          <div style={{ marginTop:'10px', fontSize:'11px', color:'#D8B16A', fontWeight:'700' }}>● This agent is LIVE and handling messages.</div>
                         )}
                       </div>
 
@@ -684,7 +684,7 @@ export default function AIAgentBuilder() {
                       {testMeta && (
                         <div style={{ display:'flex', gap:'6px', marginBottom:'12px', flexWrap:'wrap' }}>
                           {testMeta.testMode && <Badge label="⚙️ TEST MODE — no AI key" color="#f59e0b" />}
-                          <Badge label={`Provider: ${testMeta.provider}`} color="#00e5a0" />
+                          <Badge label={`Provider: ${testMeta.provider}`} color="#D8B16A" />
                           <Badge label={`Model: ${testMeta.model}`} color="#3b82f6" />
                           <Badge label={testMeta.kb ? `KB: ${testMeta.kb} (${testMeta.used} used)` : 'No knowledge base'} color={testMeta.kb ? '#a78bfa' : '#64748b'} />
                         </div>
@@ -715,7 +715,7 @@ export default function AIAgentBuilder() {
                           <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth:'78%' }}>
                             <div style={{
                               padding:'9px 13px', borderRadius:'12px', fontSize:'13px', lineHeight:'1.55', whiteSpace:'pre-wrap',
-                              background: m.role === 'user' ? '#00e5a0' : m.error ? 'rgba(239,68,68,.1)' : '#1a2235',
+                              background: m.role === 'user' ? '#D8B16A' : m.error ? 'rgba(239,68,68,.1)' : '#1a2235',
                               color: m.role === 'user' ? '#07090f' : m.error ? '#ef4444' : '#e2e8f0',
                               border: m.role === 'user' ? 'none' : `1px solid ${m.error ? 'rgba(239,68,68,.3)' : '#253045'}`,
                             }}>
@@ -737,7 +737,7 @@ export default function AIAgentBuilder() {
                           style={{ flex:1, padding:'11px 14px', background:'#111622', border:'1px solid #1a2235', borderRadius:'8px', color:'#e2e8f0', fontSize:'13px', outline:'none' }}
                         />
                         <button onClick={() => runTest()} disabled={testLoading || !testInput.trim()}
-                          style={{ padding:'11px 20px', background: testLoading || !testInput.trim() ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'8px', color: testLoading || !testInput.trim() ? '#64748b' : '#07090f', fontWeight:'700', fontSize:'13px', cursor: testLoading || !testInput.trim() ? 'not-allowed' : 'pointer' }}>
+                          style={{ padding:'11px 20px', background: testLoading || !testInput.trim() ? '#1a2235' : '#D8B16A', border:'none', borderRadius:'8px', color: testLoading || !testInput.trim() ? '#64748b' : '#07090f', fontWeight:'700', fontSize:'13px', cursor: testLoading || !testInput.trim() ? 'not-allowed' : 'pointer' }}>
                           {testLoading ? '…' : 'Send'}
                         </button>
                       </div>

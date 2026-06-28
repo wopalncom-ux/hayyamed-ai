@@ -8,11 +8,11 @@ import { useIsMobile } from '@/lib/useIsMobile'
 const fmt = (n) => n == null ? '—' : n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n)
 const fmtQar = (n) => (n || 0).toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 })
 
-const STAGE_COLOR = { NEW:'#64748b', CONTACTED:'#3b82f6', QUALIFYING:'#f97316', QUALIFIED:'#00e5a0', PROPOSAL:'#8b5cf6', NEGOTIATION:'#fbbf24', WON:'#22c55e', LOST:'#ef4444' }
+const STAGE_COLOR = { NEW:'#64748b', CONTACTED:'#3b82f6', QUALIFYING:'#f97316', QUALIFIED:'#D8B16A', PROPOSAL:'#8b5cf6', NEGOTIATION:'#fbbf24', WON:'#22c55e', LOST:'#ef4444' }
 const ACTIVITY_LABEL = { note_added:'Added note', status_changed:'Status changed', contact_created:'Contact created', message_sent:'Message sent', campaign_sent:'Campaign sent', workflow_triggered:'Workflow triggered' }
 const pct = (a, b) => b > 0 ? Math.round((a / b) * 100) : 0
 
-function MiniAreaChart({ data, color = '#00e5a0', keyName = 'messages', height = 64 }) {
+function MiniAreaChart({ data, color = '#D8B16A', keyName = 'messages', height = 64 }) {
   const W = 400; const H = height
   const n = data.length
   if (n < 2) return <div style={{ height }} />
@@ -101,10 +101,10 @@ export default function Dashboard() {
 
         {/* Topbar */}
         <div style={{ height: '50px', background: '#0c0f1a', borderBottom: '1px solid #1a2235', display: 'flex', alignItems: 'center', padding: '0 20px', gap: '10px', flexShrink: 0, position: 'sticky', top: 0, zIndex: 40 }}>
-          <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#00e5a0' }}> AI</span></div>
+          <div style={{ fontWeight: '800', fontSize: '15px' }}>Hayya<span style={{ color: '#D8B16A' }}> AI</span></div>
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: '10px', padding: '3px 9px', background: roleInfo.color + '18', border: `1px solid ${roleInfo.color}44`, borderRadius: '12px', color: roleInfo.color, fontWeight: '700' }}>{roleInfo.label}</span>
-          <div style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '10px', background: 'rgba(0,229,160,.1)', border: '1px solid rgba(0,229,160,.2)', color: '#00e5a0', fontWeight: '700' }}>● LIVE</div>
+          <div style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '10px', background: 'rgba(216,177,106,.1)', border: '1px solid rgba(216,177,106,.2)', color: '#D8B16A', fontWeight: '700' }}>● LIVE</div>
           <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: `linear-gradient(135deg, ${roleInfo.color}, ${roleInfo.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800', color: '#0a0f1a', cursor: 'pointer' }}
             onClick={logout}>
             {firstName[0]}{(userName.split(' ')[1] || '')[0] || ''}
@@ -120,7 +120,7 @@ export default function Dashboard() {
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>{today} · Here's your CRM overview</div>
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <QuickAction href="/contacts?action=new" icon="➕" label="New Contact" color="#00e5a0" />
+              <QuickAction href="/contacts?action=new" icon="➕" label="New Contact" color="#D8B16A" />
               <QuickAction href="/campaigns" icon="📣" label="New Campaign" color="#3b82f6" />
               <QuickAction href="/pipeline" icon="📊" label="Pipeline" color="#8b5cf6" />
               <QuickAction href="/inbox" icon="💬" label="Inbox" color="#f97316" />
@@ -133,7 +133,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '10px', padding: '12px 16px' }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '4px' }}>Today</span>
               {[
-                { icon: '🌱', label: 'leads', value: todayStats.newLeads, color: '#00e5a0' },
+                { icon: '🌱', label: 'leads', value: todayStats.newLeads, color: '#D8B16A' },
                 { icon: '💬', label: 'conversations', value: todayStats.newConvs, color: '#3b82f6' },
                 { icon: '✉️', label: 'messages', value: todayStats.messages, color: '#a78bfa' },
                 { icon: '📅', label: 'bookings', value: todayStats.bookings, color: '#fbbf24' },
@@ -152,7 +152,7 @@ export default function Dashboard() {
 
           {/* Getting Started checklist — shows until the workspace is set up */}
           {onboarding && !(onboarding.hasKnowledge && onboarding.hasAgent && onboarding.hasChannel && onboarding.hasConversation) && (
-            <div style={{ background: 'linear-gradient(135deg, rgba(0,229,160,.08), rgba(167,139,250,.06))', border: '1px solid rgba(0,229,160,.25)', borderRadius: '12px', padding: '18px 20px' }}>
+            <div style={{ background: 'linear-gradient(135deg, rgba(216,177,106,.08), rgba(167,139,250,.06))', border: '1px solid rgba(216,177,106,.25)', borderRadius: '12px', padding: '18px 20px' }}>
               <div style={{ fontSize: '15px', fontWeight: 800, marginBottom: '3px' }}>🚀 Get your AI live</div>
               <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '14px' }}>Complete these steps to start handling customer conversations automatically.</div>
               <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px' }}>
@@ -162,8 +162,8 @@ export default function Dashboard() {
                   { done: onboarding.hasChannel, label: 'Connect a channel', sub: 'WhatsApp · Telegram · Web', href: '/integrations' },
                   { done: onboarding.hasConversation, label: 'Get a conversation', sub: 'Test it live', href: '/inbox' },
                 ].map((s, i) => (
-                  <a key={i} href={s.href} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: s.done ? 'rgba(0,229,160,.06)' : '#111622', border: `1px solid ${s.done ? 'rgba(0,229,160,.3)' : '#1a2235'}`, borderRadius: '10px', textDecoration: 'none' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, background: s.done ? '#00e5a0' : '#1a2235', color: s.done ? '#07090f' : '#64748b' }}>{s.done ? '✓' : i + 1}</div>
+                  <a key={i} href={s.href} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: s.done ? 'rgba(216,177,106,.06)' : '#111622', border: `1px solid ${s.done ? 'rgba(216,177,106,.3)' : '#1a2235'}`, borderRadius: '10px', textDecoration: 'none' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, background: s.done ? '#D8B16A' : '#1a2235', color: s.done ? '#07090f' : '#64748b' }}>{s.done ? '✓' : i + 1}</div>
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: s.done ? '#94a3b8' : '#e2e8f0' }}>{s.label}</div>
                       <div style={{ fontSize: '10px', color: '#64748b' }}>{s.sub}</div>
@@ -177,7 +177,7 @@ export default function Dashboard() {
           {/* KPI Strip */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
             {[
-              { label: 'Total Contacts',   value: fmt(kpis?.totalContacts),   sub: `+${kpis?.newContacts7d || 0} this week`,    color: '#00e5a0', chart: chart, chartKey: 'contacts' },
+              { label: 'Total Contacts',   value: fmt(kpis?.totalContacts),   sub: `+${kpis?.newContacts7d || 0} this week`,    color: '#D8B16A', chart: chart, chartKey: 'contacts' },
               { label: 'Pipeline Value',   value: fmtQar(kpis?.pipelineValue), sub: `${fmtQar(kpis?.wonValue)} won`,            color: '#3b82f6', chart: null },
               { label: 'Win Rate',         value: `${kpis?.winRate ?? '—'}%`,  sub: `${kpis?.wonContacts || 0} deals closed`,   color: '#22c55e', chart: null },
               { label: 'Open Convs',       value: fmt(kpis?.openConvs),        sub: `${fmt(kpis?.totalConvs)} total`,           color: '#f97316', chart: null },
@@ -208,7 +208,7 @@ export default function Dashboard() {
                 <div style={{ fontWeight: '700', fontSize: '14px' }}>Last 7 Days</div>
                 <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#64748b' }}>
                   <span><span style={{ display: 'inline-block', width: '10px', height: '3px', background: '#3b82f6', borderRadius: '2px', verticalAlign: 'middle', marginRight: '4px' }} />Messages</span>
-                  <span><span style={{ display: 'inline-block', width: '10px', height: '3px', background: '#00e5a0', borderRadius: '2px', verticalAlign: 'middle', marginRight: '4px' }} />Contacts</span>
+                  <span><span style={{ display: 'inline-block', width: '10px', height: '3px', background: '#D8B16A', borderRadius: '2px', verticalAlign: 'middle', marginRight: '4px' }} />Contacts</span>
                 </div>
               </div>
               {chart.length < 2 ? (
@@ -254,9 +254,9 @@ export default function Dashboard() {
                         const area = line + ` L${pts[n-1][0]},115 L0,115 Z`
                         return (
                           <g key="con">
-                            <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#00e5a0" stopOpacity="0.2" /><stop offset="100%" stopColor="#00e5a0" stopOpacity="0" /></linearGradient></defs>
+                            <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#D8B16A" stopOpacity="0.2" /><stop offset="100%" stopColor="#D8B16A" stopOpacity="0" /></linearGradient></defs>
                             <path d={area} fill="url(#gc)" />
-                            <polyline points={pts.map(p => p.join(',')).join(' ')} fill="none" stroke="#00e5a0" strokeWidth="2" strokeLinejoin="round" />
+                            <polyline points={pts.map(p => p.join(',')).join(' ')} fill="none" stroke="#D8B16A" strokeWidth="2" strokeLinejoin="round" />
                           </g>
                         )
                       })()}
@@ -273,7 +273,7 @@ export default function Dashboard() {
                     {chart.map((d, i) => (
                       <div key={i} style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{ fontSize: '9px', color: '#3b82f6', fontWeight: '700' }}>{d.messages || 0}</div>
-                        <div style={{ fontSize: '9px', color: '#00e5a0' }}>{d.contacts || 0}</div>
+                        <div style={{ fontSize: '9px', color: '#D8B16A' }}>{d.contacts || 0}</div>
                       </div>
                     ))}
                   </div>
@@ -342,7 +342,7 @@ export default function Dashboard() {
                     <tbody>
                       {campaigns.map(c => {
                         const readRate = pct(c.read, c.total)
-                        const sc = c.status === 'COMPLETED' ? '#22c55e' : c.status === 'RUNNING' ? '#00e5a0' : '#64748b'
+                        const sc = c.status === 'COMPLETED' ? '#22c55e' : c.status === 'RUNNING' ? '#D8B16A' : '#64748b'
                         return (
                           <tr key={c.id} style={{ borderBottom: '1px solid #111622' }}>
                             <td style={{ padding: '9px 8px', color: '#e2e8f0', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '600' }}>{c.name}</td>
@@ -380,7 +380,7 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
                     {activities.slice(0, 8).map((a, i) => (
                       <div key={a.id} style={{ display: 'flex', gap: '8px', padding: '7px 0', borderBottom: i < Math.min(activities.length, 8) - 1 ? '1px solid #1a2235' : 'none' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00e5a0', flexShrink: 0, marginTop: '5px' }} />
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#D8B16A', flexShrink: 0, marginTop: '5px' }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: '12px', color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {ACTIVITY_LABEL[a.type] || a.type.replace(/_/g, ' ')}
@@ -402,7 +402,7 @@ export default function Dashboard() {
           {/* Bottom nav shortcuts */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingBottom: '8px' }}>
             {[
-              { href: '/contacts', label: 'Contacts', sub: fmt(kpis?.totalContacts) + ' total', color: '#00e5a0' },
+              { href: '/contacts', label: 'Contacts', sub: fmt(kpis?.totalContacts) + ' total', color: '#D8B16A' },
               { href: '/inbox',    label: 'Inbox',    sub: fmt(kpis?.openConvs) + ' open',     color: '#f97316' },
               { href: '/workflows',label: 'Workflows', sub: fmt(kpis?.totalWorkflowRuns) + ' runs', color: '#06b6d4' },
               { href: '/campaigns',label: 'Campaigns', sub: fmt(kpis?.activeCampaigns) + ' active', color: '#8b5cf6' },

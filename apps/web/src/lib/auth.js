@@ -43,7 +43,7 @@ export function canSee(page) {
 }
 
 export const ROLE_LABELS = {
-  owner:        { label:'Owner / Admin',      color:'#00e5a0' },
+  owner:        { label:'Owner / Admin',      color:'#D8B16A' },
   manager:      { label:'Client Manager',     color:'#f97316' },
   marketing:    { label:'Marketing Manager',  color:'#a78bfa' },
   receptionist: { label:'Receptionist',       color:'#3b82f6' },

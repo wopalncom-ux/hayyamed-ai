@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import NavSidebar from '@/components/NavSidebar'
 
-const RISK_COLOR = { LOW: '#00e5a0', MEDIUM: '#f59e0b', HIGH: '#ef4444' }
-const RISK_BG = { LOW: '#00e5a022', MEDIUM: '#f59e0b22', HIGH: '#ef444422' }
-const PLAN_COLOR = { STARTER: '#3b82f6', GROWTH: '#00e5a0', ENTERPRISE: '#a78bfa' }
+const RISK_COLOR = { LOW: '#D8B16A', MEDIUM: '#f59e0b', HIGH: '#ef4444' }
+const RISK_BG = { LOW: '#D8B16A22', MEDIUM: '#f59e0b22', HIGH: '#ef444422' }
+const PLAN_COLOR = { STARTER: '#3b82f6', GROWTH: '#D8B16A', ENTERPRISE: '#a78bfa' }
 
 function ScoreRing({ value, color, size = 56 }) {
   const r = (size - 8) / 2
@@ -45,7 +45,7 @@ function OrgCard({ org, expanded, onToggle }) {
     <div style={{ background: '#111622', border: `1px solid ${RISK_COLOR[risk]}33`, borderRadius: '10px', overflow: 'hidden', marginBottom: '10px' }}>
       <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', cursor: 'pointer' }}>
         <ScoreRing value={org.overallScore}
-          color={org.overallScore >= 60 ? '#00e5a0' : org.overallScore >= 30 ? '#f59e0b' : '#ef4444'} size={52} />
+          color={org.overallScore >= 60 ? '#D8B16A' : org.overallScore >= 30 ? '#f59e0b' : '#ef4444'} size={52} />
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -74,7 +74,7 @@ function OrgCard({ org, expanded, onToggle }) {
             { label: 'Engage', val: org.engagementScore, color: '#3b82f6' },
             { label: 'Adopt', val: org.adoptionScore, color: '#a78bfa' },
             { label: 'Auto', val: org.automationScore, color: '#f97316' },
-            { label: 'AI', val: org.aiUsageScore, color: '#00e5a0' },
+            { label: 'AI', val: org.aiUsageScore, color: '#D8B16A' },
           ].map(s => (
             <div key={s.label} style={{ textAlign: 'center', minWidth: '36px' }}>
               <div style={{ fontSize: '14px', fontWeight: '800', color: s.color }}>{s.val}</div>
@@ -93,7 +93,7 @@ function OrgCard({ org, expanded, onToggle }) {
             <ScoreBar label="Engagement (logins, messages, contacts)" value={org.engagementScore} color="#3b82f6" />
             <ScoreBar label="Adoption (features used)" value={org.adoptionScore} color="#a78bfa" />
             <ScoreBar label="Automation (workflows, AI agents)" value={org.automationScore} color="#f97316" />
-            <ScoreBar label="AI Usage (calls per contact)" value={org.aiUsageScore} color="#00e5a0" />
+            <ScoreBar label="AI Usage (calls per contact)" value={org.aiUsageScore} color="#D8B16A" />
           </div>
           <div>
             <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', marginBottom: '10px' }}>RISK SIGNALS</div>
@@ -103,7 +103,7 @@ function OrgCard({ org, expanded, onToggle }) {
                 <span style={{ fontSize: '12px', color: '#94a3b8' }}>{s}</span>
               </div>
             )) : (
-              <div style={{ fontSize: '12px', color: '#00e5a0' }}>✓ No risk signals detected</div>
+              <div style={{ fontSize: '12px', color: '#D8B16A' }}>✓ No risk signals detected</div>
             )}
           </div>
         </div>
@@ -156,10 +156,10 @@ export default function CustomerHealthPage() {
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
               {[
                 { label: 'Total Orgs', value: data.total, color: '#e2e8f0' },
-                { label: 'Avg Health Score', value: data.avgScore, color: data.avgScore >= 60 ? '#00e5a0' : '#f59e0b' },
+                { label: 'Avg Health Score', value: data.avgScore, color: data.avgScore >= 60 ? '#D8B16A' : '#f59e0b' },
                 { label: '🔴 High Risk', value: data.high, color: '#ef4444' },
                 { label: '🟡 Medium Risk', value: data.medium, color: '#f59e0b' },
-                { label: '🟢 Healthy', value: data.low, color: '#00e5a0' },
+                { label: '🟢 Healthy', value: data.low, color: '#D8B16A' },
               ].map(s => (
                 <div key={s.label} style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '10px', padding: '16px 20px', flex: 1, minWidth: '130px' }}>
                   <div style={{ fontSize: '26px', fontWeight: '800', color: s.color }}>{s.value}</div>
@@ -178,7 +178,7 @@ export default function CustomerHealthPage() {
               ].map(f => (
                 <button key={f.id} onClick={() => setFilter(f.id)} style={{
                   padding: '7px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '600',
-                  background: filter === f.id ? '#00e5a0' : '#1a2235', color: filter === f.id ? '#0a0f1a' : '#94a3b8',
+                  background: filter === f.id ? '#D8B16A' : '#1a2235', color: filter === f.id ? '#0a0f1a' : '#94a3b8',
                 }}>{f.label}</button>
               ))}
             </div>

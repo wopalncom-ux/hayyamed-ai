@@ -30,8 +30,8 @@ function SuccessInner() {
           <>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
             <h1 style={{ fontSize: '22px', fontWeight: 900, margin: '0 0 8px' }}>You&apos;re subscribed!</h1>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px' }}>Your <strong style={{ color: '#00e5a0' }}>{state.plan}</strong> plan is now active. Thank you!</p>
-            <a href="/dashboard" style={{ display: 'inline-block', padding: '12px 28px', background: '#00e5a0', color: '#07090f', borderRadius: '8px', fontWeight: 800, fontSize: '14px', textDecoration: 'none' }}>Go to dashboard →</a>
+            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px' }}>Your <strong style={{ color: '#D8B16A' }}>{state.plan}</strong> plan is now active. Thank you!</p>
+            <a href="/dashboard" style={{ display: 'inline-block', padding: '12px 28px', background: '#D8B16A', color: '#07090f', borderRadius: '8px', fontWeight: 800, fontSize: '14px', textDecoration: 'none' }}>Go to dashboard →</a>
           </>
         ) : pending ? (
           <>

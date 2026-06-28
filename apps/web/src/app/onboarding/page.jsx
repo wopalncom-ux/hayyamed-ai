@@ -19,7 +19,7 @@ const INDUSTRIES = [
 ]
 
 const CHANNELS = [
-  { id:'whatsapp',  icon:'💬', label:'WhatsApp',  desc:'Most popular in GCC',      color:'#00e5a0' },
+  { id:'whatsapp',  icon:'💬', label:'WhatsApp',  desc:'Most popular in GCC',      color:'#D8B16A' },
   { id:'instagram', icon:'📸', label:'Instagram', desc:'DMs & story replies',       color:'#a78bfa' },
   { id:'facebook',  icon:'👤', label:'Facebook',  desc:'Messenger integration',     color:'#3b82f6' },
   { id:'email',     icon:'📧', label:'Email',     desc:'Professional inbox',        color:'#fbbf24' },
@@ -44,16 +44,16 @@ function StepIndicator({ step }) {
           <div key={s.id} style={{ display:'flex', alignItems:'center', gap:'4px', flex: i < STEPS.length-1 ? 1 : 'none' }}>
             <div style={{
               width:'28px', height:'28px', borderRadius:'50%', flexShrink:0,
-              background: done ? '#00e5a0' : current ? 'rgba(0,229,160,.12)' : '#111622',
-              border: `2px solid ${done ? '#00e5a0' : current ? '#00e5a0' : '#1a2235'}`,
+              background: done ? '#D8B16A' : current ? 'rgba(216,177,106,.12)' : '#111622',
+              border: `2px solid ${done ? '#D8B16A' : current ? '#D8B16A' : '#1a2235'}`,
               display:'flex', alignItems:'center', justifyContent:'center',
-              fontSize: done ? '12px' : '10px', color: done ? '#07090f' : current ? '#00e5a0' : '#3d4f63',
+              fontSize: done ? '12px' : '10px', color: done ? '#07090f' : current ? '#D8B16A' : '#3d4f63',
               fontWeight:'700',
             }}>
               {done ? '✓' : s.id}
             </div>
             {i < STEPS.length - 1 && (
-              <div style={{ flex:1, height:'2px', background: done ? '#00e5a0' : '#1a2235', borderRadius:'1px' }}/>
+              <div style={{ flex:1, height:'2px', background: done ? '#D8B16A' : '#1a2235', borderRadius:'1px' }}/>
             )}
           </div>
         )
@@ -124,7 +124,7 @@ export default function Onboarding() {
 
       <div style={{ marginBottom:'40px', textAlign:'center' }}>
         <div style={{ fontWeight:'900', fontSize:'24px', letterSpacing:'-0.02em', marginBottom:'4px' }}>
-          Hayya<span style={{ color:'#00e5a0' }}>med</span> <span style={{ color:'#64748b', fontWeight:'400' }}>AI</span>
+          Hayya<span style={{ color:'#D8B16A' }}>med</span> <span style={{ color:'#64748b', fontWeight:'400' }}>AI</span>
         </div>
         <div style={{ fontSize:'12px', color:'#64748b' }}>AI-Powered CRM for GCC Businesses</div>
       </div>
@@ -191,7 +191,7 @@ export default function Onboarding() {
                   <div style={{ fontSize:'20px', marginBottom:'6px' }}>{ch.icon}</div>
                   <div style={{ fontSize:'13px', fontWeight:'700', color: active ? ch.color : '#e2e8f0' }}>{ch.label}</div>
                   <div style={{ fontSize:'10px', color:'#64748b', marginTop:'2px' }}>{ch.desc}</div>
-                  {ch.id === 'whatsapp' && <div style={{ fontSize:'9px', color:'#00e5a0', marginTop:'4px', fontWeight:'700' }}>RECOMMENDED</div>}
+                  {ch.id === 'whatsapp' && <div style={{ fontSize:'9px', color:'#D8B16A', marginTop:'4px', fontWeight:'700' }}>RECOMMENDED</div>}
                 </div>
               )
             })}
@@ -214,7 +214,7 @@ export default function Onboarding() {
               <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
                 {AI_TONES.map(t => (
                   <button key={t} onClick={() => setAgentTone(t)}
-                    style={{ padding:'6px 14px', background: agentTone===t ? 'rgba(0,229,160,.1)' : '#111622', border:`1px solid ${agentTone===t ? '#00e5a0' : '#1a2235'}`, borderRadius:'4px', color: agentTone===t ? '#00e5a0' : '#64748b', fontSize:'12px', cursor:'pointer', fontWeight: agentTone===t ? '700' : '400' }}
+                    style={{ padding:'6px 14px', background: agentTone===t ? 'rgba(216,177,106,.1)' : '#111622', border:`1px solid ${agentTone===t ? '#D8B16A' : '#1a2235'}`, borderRadius:'4px', color: agentTone===t ? '#D8B16A' : '#64748b', fontSize:'12px', cursor:'pointer', fontWeight: agentTone===t ? '700' : '400' }}
                   >{t}</button>
                 ))}
               </div>
@@ -223,10 +223,10 @@ export default function Onboarding() {
               <label style={{ fontSize:'11px', color:'#64748b', display:'block', marginBottom:'8px', fontWeight:'700' }}>REPLY LANGUAGE</label>
               <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                 {AI_LANGS.map(l => (
-                  <label key={l.id} style={{ display:'flex', alignItems:'center', gap:'10px', cursor:'pointer', padding:'8px 12px', background: agentLang===l.id ? 'rgba(0,229,160,.06)' : '#111622', border:`1px solid ${agentLang===l.id ? '#00e5a0' : '#1a2235'}`, borderRadius:'6px' }}>
-                    <input type="radio" checked={agentLang===l.id} onChange={() => setAgentLang(l.id)} style={{ accentColor:'#00e5a0' }}/>
+                  <label key={l.id} style={{ display:'flex', alignItems:'center', gap:'10px', cursor:'pointer', padding:'8px 12px', background: agentLang===l.id ? 'rgba(216,177,106,.06)' : '#111622', border:`1px solid ${agentLang===l.id ? '#D8B16A' : '#1a2235'}`, borderRadius:'6px' }}>
+                    <input type="radio" checked={agentLang===l.id} onChange={() => setAgentLang(l.id)} style={{ accentColor:'#D8B16A' }}/>
                     <span style={{ fontSize:'12px', color: agentLang===l.id ? '#e2e8f0' : '#64748b' }}>{l.label}</span>
-                    {l.id==='both' && <span style={{ fontSize:'9px', color:'#00e5a0', fontWeight:'700', marginLeft:'auto' }}>RECOMMENDED</span>}
+                    {l.id==='both' && <span style={{ fontSize:'9px', color:'#D8B16A', fontWeight:'700', marginLeft:'auto' }}>RECOMMENDED</span>}
                   </label>
                 ))}
               </div>
@@ -243,7 +243,7 @@ export default function Onboarding() {
 
         {step === 4 && (
           <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
-            <div style={{ padding:'12px', background:'rgba(0,229,160,.04)', border:'1px solid rgba(0,229,160,.1)', borderRadius:'6px', fontSize:'12px', color:'#64748b', marginBottom:'4px' }}>
+            <div style={{ padding:'12px', background:'rgba(216,177,106,.04)', border:'1px solid rgba(216,177,106,.1)', borderRadius:'6px', fontSize:'12px', color:'#64748b', marginBottom:'4px' }}>
               Invite your team to handle conversations and manage contacts. You can skip this and invite later.
             </div>
             {teamEmails.map((email, i) => (
@@ -272,7 +272,7 @@ export default function Onboarding() {
             <div style={{ fontSize:'48px', marginBottom:'16px' }}>🚀</div>
             <div style={{ fontSize:'18px', fontWeight:'800', marginBottom:'8px' }}>You are all set!</div>
             <div style={{ fontSize:'13px', color:'#64748b', lineHeight:'1.7', marginBottom:'20px' }}>
-              Your AI agent <strong style={{ color:'#00e5a0' }}>{agentName}</strong> is ready on {selectedChannels.length} channel{selectedChannels.length!==1 ? 's' : ''}.
+              Your AI agent <strong style={{ color:'#D8B16A' }}>{agentName}</strong> is ready on {selectedChannels.length} channel{selectedChannels.length!==1 ? 's' : ''}.
               <br/>Head to your dashboard to explore all features.
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'10px', marginTop:'20px' }}>
@@ -280,7 +280,7 @@ export default function Onboarding() {
                 <div key={label} style={{ padding:'12px 8px', background:'#111622', border:'1px solid #1a2235', borderRadius:'6px' }}>
                   <div style={{ fontSize:'20px', marginBottom:'4px' }}>{icon}</div>
                   <div style={{ fontSize:'11px', fontWeight:'700' }}>{label}</div>
-                  <div style={{ fontSize:'9px', color:'#00e5a0', fontWeight:'700' }}>Ready</div>
+                  <div style={{ fontSize:'9px', color:'#D8B16A', fontWeight:'700' }}>Ready</div>
                 </div>
               ))}
             </div>
@@ -305,13 +305,13 @@ export default function Onboarding() {
                 </button>
               )}
               <button onClick={next}
-                style={{ padding:'10px 24px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'13px', cursor:'pointer' }}>
+                style={{ padding:'10px 24px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'13px', cursor:'pointer' }}>
                 Continue →
               </button>
             </div>
           ) : (
             <button onClick={next} disabled={saving}
-              style={{ padding:'12px 32px', background: saving ? '#1a2235' : '#00e5a0', border:'none', borderRadius:'6px', color: saving ? '#3d4f63' : '#07090f', fontWeight:'800', fontSize:'14px', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              style={{ padding:'12px 32px', background: saving ? '#1a2235' : '#D8B16A', border:'none', borderRadius:'6px', color: saving ? '#3d4f63' : '#07090f', fontWeight:'800', fontSize:'14px', cursor: saving ? 'not-allowed' : 'pointer' }}>
               {saving ? 'Setting up…' : '🚀 Launch My CRM'}
             </button>
           )}

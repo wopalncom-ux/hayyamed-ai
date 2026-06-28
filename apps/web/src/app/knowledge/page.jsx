@@ -12,7 +12,7 @@ const SOURCE_TYPES = [
   { id:'url',          label:'Website URL',   emoji:'🌐', hint:'Crawl a web page and extract content' },
 ]
 
-const STATUS_COLORS = { pending:'#64748b', processing:'#f97316', ready:'#00e5a0', failed:'#ef4444' }
+const STATUS_COLORS = { pending:'#64748b', processing:'#f97316', ready:'#D8B16A', failed:'#ef4444' }
 const STATUS_LABELS = { pending:'Pending', processing:'Processing...', ready:'Indexed ✓', failed:'Failed ✗' }
 
 function KBCard({ kb, isSelected, onClick }) {
@@ -20,13 +20,13 @@ function KBCard({ kb, isSelected, onClick }) {
   const totalCount = kb._count?.sources ?? (kb.sources?.length ?? 0)
   return (
     <div onClick={onClick}
-      style={{ background: isSelected ? 'rgba(0,229,160,.06)' : '#111622', border:`1px solid ${isSelected ? 'rgba(0,229,160,.3)' : '#1a2235'}`, borderRadius:'10px', padding:'14px', cursor:'pointer', transition:'border-color .15s' }}
+      style={{ background: isSelected ? 'rgba(216,177,106,.06)' : '#111622', border:`1px solid ${isSelected ? 'rgba(216,177,106,.3)' : '#1a2235'}`, borderRadius:'10px', padding:'14px', cursor:'pointer', transition:'border-color .15s' }}
     >
       <div style={{ fontSize:'14px', fontWeight:'700', marginBottom:'4px' }}>{kb.name}</div>
       {kb.description && <div style={{ fontSize:'11px', color:'#64748b', marginBottom:'8px' }}>{kb.description}</div>}
       <div style={{ display:'flex', gap:'10px', fontSize:'11px', color:'#64748b' }}>
         <span>📄 {totalCount} sources</span>
-        <span style={{ color:'#00e5a0' }}>✓ {readyCount} indexed</span>
+        <span style={{ color:'#D8B16A' }}>✓ {readyCount} indexed</span>
         <span>🤖 {kb._count?.agents ?? 0} agents</span>
       </div>
     </div>
@@ -185,7 +185,7 @@ export default function KnowledgeBasePage() {
               onKeyDown={e => e.key === 'Enter' && createKB()}
             />
             <button onClick={createKB} disabled={creating || !newKB.name}
-              style={{ padding:'7px 12px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer', flexShrink:0 }}
+              style={{ padding:'7px 12px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer', flexShrink:0 }}
             >
               {creating ? '...' : '+'}
             </button>
@@ -247,12 +247,12 @@ export default function KnowledgeBasePage() {
                 </button>
                 <input ref={fileRef} type="file" accept=".pdf,.txt,.csv,.md,.json" onChange={handleFileUpload} style={{ display:'none' }} />
                 <button onClick={() => fileRef.current?.click()} disabled={uploading}
-                  style={{ padding:'7px 14px', background:'rgba(0,229,160,.1)', border:'1px solid rgba(0,229,160,.25)', borderRadius:'6px', color:'#00e5a0', fontSize:'12px', cursor: uploading ? 'wait' : 'pointer', fontWeight:'700' }}
+                  style={{ padding:'7px 14px', background:'rgba(216,177,106,.1)', border:'1px solid rgba(216,177,106,.25)', borderRadius:'6px', color:'#D8B16A', fontSize:'12px', cursor: uploading ? 'wait' : 'pointer', fontWeight:'700' }}
                 >
                   {uploading ? '⏳ Uploading…' : '📎 Upload File'}
                 </button>
                 <button onClick={() => setAddSource(true)}
-                  style={{ padding:'7px 14px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}
+                  style={{ padding:'7px 14px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}
                 >
                   + Add Source
                 </button>
@@ -261,8 +261,8 @@ export default function KnowledgeBasePage() {
 
             <div style={{ flex:1, overflow:'auto', padding:'20px' }}>
               {/* RAG Search Test */}
-              <div style={{ background:'rgba(0,229,160,.04)', border:'1px solid rgba(0,229,160,.1)', borderRadius:'8px', padding:'16px', marginBottom:'20px' }}>
-                <div style={{ fontSize:'11px', color:'#00e5a0', fontWeight:'700', letterSpacing:'0.05em', marginBottom:'10px' }}>🔍 TEST RAG SEARCH</div>
+              <div style={{ background:'rgba(216,177,106,.04)', border:'1px solid rgba(216,177,106,.1)', borderRadius:'8px', padding:'16px', marginBottom:'20px' }}>
+                <div style={{ fontSize:'11px', color:'#D8B16A', fontWeight:'700', letterSpacing:'0.05em', marginBottom:'10px' }}>🔍 TEST RAG SEARCH</div>
                 <div style={{ display:'flex', gap:'8px', marginBottom: searchResults ? '12px' : '0' }}>
                   <input
                     value={searchQuery}
@@ -302,7 +302,7 @@ export default function KnowledgeBasePage() {
                   <div style={{ fontSize:'13px', fontWeight:'700', marginBottom:'6px' }}>No sources yet</div>
                   <div style={{ fontSize:'11px', marginBottom:'16px' }}>Add text, FAQs, product lists, or URLs to power your AI agents</div>
                   <button onClick={() => setAddSource(true)}
-                    style={{ padding:'8px 16px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}
+                    style={{ padding:'8px 16px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer' }}
                   >
                     Add First Source
                   </button>
@@ -361,7 +361,7 @@ export default function KnowledgeBasePage() {
               <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'6px' }}>
                 {SOURCE_TYPES.map(t => (
                   <button key={t.id} onClick={() => setSourceType(t.id)}
-                    style={{ padding:'8px 6px', background: sourceType===t.id ? 'rgba(0,229,160,.08)' : '#0c0f1a', border:`1px solid ${sourceType===t.id ? 'rgba(0,229,160,.3)' : '#1a2235'}`, borderRadius:'6px', color: sourceType===t.id ? '#00e5a0' : '#64748b', fontSize:'10px', cursor:'pointer', fontWeight:'600' }}
+                    style={{ padding:'8px 6px', background: sourceType===t.id ? 'rgba(216,177,106,.08)' : '#0c0f1a', border:`1px solid ${sourceType===t.id ? 'rgba(216,177,106,.3)' : '#1a2235'}`, borderRadius:'6px', color: sourceType===t.id ? '#D8B16A' : '#64748b', fontSize:'10px', cursor:'pointer', fontWeight:'600' }}
                   >
                     {t.emoji} {t.label}
                   </button>
@@ -407,7 +407,7 @@ export default function KnowledgeBasePage() {
                 Cancel
               </button>
               <button onClick={saveSource} disabled={savingSource}
-                style={{ flex:2, padding:'10px', background:'#00e5a0', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', cursor:'pointer', fontSize:'13px' }}
+                style={{ flex:2, padding:'10px', background:'#D8B16A', border:'none', borderRadius:'6px', color:'#07090f', fontWeight:'700', cursor:'pointer', fontSize:'13px' }}
               >
                 {savingSource ? 'Saving & Indexing...' : '🧠 Add & Index Source'}
               </button>
