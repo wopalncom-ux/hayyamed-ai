@@ -77,6 +77,7 @@ model Organization {
   profitPercent        Float    @default(0)
   campaignBilling      String   @default("")
   adminNotes           String   @default("")
+  modules              Json?    // per-client enabled modules { key: { enabled, config } }
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -118,6 +118,15 @@ export default function ClientsConsole() {
   const installTemplate = async (tid) => { if (!selected) return; try { await api.installClientTemplate(selected.id, tid); loadAutos(selected.id); openClient(selected.id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Install failed' }) } }
   const toggleAuto = async (w) => { if (!selected) return; try { await api.toggleClientAutomation(selected.id, w.id, !w.isActive); loadAutos(selected.id) } catch {} }
   const delAuto = async (wid) => { if (!selected) return; try { await api.removeClientAutomation(selected.id, wid); loadAutos(selected.id); openClient(selected.id) } catch {} }
+  // Modules (Phase 6)
+  const [modules, setModules] = useState([])
+  const loadModules = async (id) => { try { const m = await api.getClientModules(id); setModules(Array.isArray(m) ? m : []) } catch {} }
+  const toggleModule = async (key, enabled) => {
+    if (!selected) return
+    setModules(prev => prev.map(m => m.key === key ? { ...m, enabled } : m))
+    try { await api.setClientModule(selected.id, key, enabled) } catch { loadModules(selected.id) }
+  }
+  const moduleCost = modules.filter(m => m.enabled && m.price > 0).reduce((s, m) => s + m.price, 0)
 
   const loadBrains = async (id) => {
     try {
@@ -150,7 +159,7 @@ export default function ClientsConsole() {
 
   const openClient = async (id) => {
     setMsg(null)
-    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id); loadAutos(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
+    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id); loadAutos(id); loadModules(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
   }
   const newClient = () => { setSelected(null); setEditing({ ...EMPTY }); setTab('profile'); setMsg(null) }
   const set = (k, v) => setEditing(p => ({ ...p, [k]: v }))
@@ -229,7 +238,7 @@ export default function ClientsConsole() {
 
               {/* Tabs */}
               <div style={{ display: 'flex', gap: '6px', marginBottom: '18px', flexWrap: 'wrap' }}>
-                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['channels', '📡 Channels'], ['automations', '⚡ Automations'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
+                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['channels', '📡 Channels'], ['automations', '⚡ Automations'], ['modules', '🧩 Modules'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
                   <button key={id} onClick={() => setTab(id)} disabled={id !== 'profile' && !selected}
                     style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: id !== 'profile' && !selected ? 'not-allowed' : 'pointer',
                       background: tab === id ? '#1a2235' : 'transparent', color: tab === id ? '#e2e8f0' : (id !== 'profile' && !selected ? '#3d4f63' : '#7a8fa6'), border: '1px solid #1a2235' }}>{label}</button>
@@ -515,6 +524,35 @@ export default function ClientsConsole() {
                       ))}
                   </div>
                   {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#00e5a0' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
+                </div>
+              )}
+
+              {/* MODULES */}
+              {tab === 'modules' && selected && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ ...card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>Enable or disable modules for <strong style={{ color: '#e2e8f0' }}>{selected.name}</strong>. Paid add-ons total below.</div>
+                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: '10px', color: '#64748b' }}>ADD-ON COST</div><div style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>QAR {moduleCost}/mo</div></div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px' }}>
+                    {modules.map(m => (
+                      <div key={m.key} style={{ ...card, border: `1px solid ${m.enabled ? 'rgba(0,229,160,.3)' : '#1a2235'}`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '22px' }}>{m.icon}</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, fontSize: '13px' }}>{m.name}</div>
+                            <div style={{ fontSize: '10px', color: m.price > 0 ? '#fbbf24' : '#64748b' }}>{m.price > 0 ? `QAR ${m.price}/mo add-on` : 'Included'}</div>
+                          </div>
+                          <button onClick={() => toggleModule(m.key, !m.enabled)} title={m.enabled ? 'Disable' : 'Enable'}
+                            style={{ width: '42px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: m.enabled ? '#00e5a0' : '#1a2235', position: 'relative', transition: 'background .2s', flexShrink: 0 }}>
+                            <span style={{ position: 'absolute', top: '3px', left: m.enabled ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
+                          </button>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>{m.desc}</div>
+                        <div style={{ fontSize: '10px', color: m.enabled ? '#00e5a0' : '#64748b', fontWeight: 700 }}>{m.enabled ? '● Enabled for this client' : '○ Disabled'}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

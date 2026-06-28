@@ -17,6 +17,21 @@ const AUTOMATION_TEMPLATES = [
   { id: 'human-handoff', name: 'Human handoff request', desc: 'When a customer asks for a human, tag + log for a takeover.', trigger: 'keyword', conditions: { keyword: 'human' }, actions: [{ type: 'add_tag', tag: 'needs-human' }, { type: 'create_activity', title: 'Customer requested a human agent' }] },
 ]
 
+// Internal marketplace — modules the owner can enable/disable per client.
+// price = monthly QAR add-on the owner can charge (0 = included).
+const MODULE_CATALOG = [
+  { key: 'ai_agents', name: 'AI Agents', icon: '🤖', desc: 'AI agents that answer customers across channels.', price: 0, defaultOn: true },
+  { key: 'whatsapp', name: 'WhatsApp', icon: '💚', desc: 'WhatsApp inbox + AI replies (Unipile or Meta).', price: 0, defaultOn: true },
+  { key: 'website_chatbot', name: 'Website Chatbot', icon: '🌐', desc: 'Embeddable AI chat widget for the client site.', price: 0, defaultOn: true },
+  { key: 'email', name: 'Email', icon: '✉️', desc: 'Transactional + inbound email handling.', price: 30, defaultOn: false },
+  { key: 'crm', name: 'CRM & Pipeline', icon: '👥', desc: 'Contacts, pipeline, lead scoring.', price: 0, defaultOn: true },
+  { key: 'campaigns', name: 'Campaigns', icon: '📣', desc: 'Broadcast + WhatsApp campaign templates.', price: 50, defaultOn: false },
+  { key: 'payments', name: 'Payments', icon: '💳', desc: 'Collect payments / invoices (MyFatoorah).', price: 25, defaultOn: false },
+  { key: 'reporting', name: 'Reporting & Analytics', icon: '📈', desc: 'Dashboards, CSAT, response-time reports.', price: 0, defaultOn: true },
+  { key: 'storage', name: 'Extra Storage', icon: '💾', desc: 'Additional AI Brain storage for this client.', price: 20, defaultOn: false },
+  { key: 'addons', name: 'Premium Add-ons', icon: '✨', desc: 'White-label, priority support, custom work.', price: 100, defaultOn: false },
+]
+
 @Injectable()
 export class AgencyService {
   constructor(
@@ -73,6 +88,29 @@ export class AgencyService {
       orderBy: { createdAt: 'desc' },
       take: 20,
     })
+  }
+
+  // ── Per-client Modules (internal marketplace) ──────────────────────────────
+  moduleCatalog() { return MODULE_CATALOG }
+
+  async getClientModules(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const org = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { modules: true } })
+    const state: any = (org?.modules as any) || {}
+    return MODULE_CATALOG.map(m => ({
+      ...m,
+      enabled: state[m.key]?.enabled ?? m.defaultOn,
+    }))
+  }
+
+  async setClientModule(agencyOrgId: string, clientId: string, moduleKey: string, enabled: boolean) {
+    await this.assertOwns(agencyOrgId, clientId)
+    if (!MODULE_CATALOG.some(m => m.key === moduleKey)) throw new NotFoundException('Unknown module')
+    const org = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { modules: true } })
+    const state: any = (org?.modules as any) || {}
+    state[moduleKey] = { ...(state[moduleKey] || {}), enabled }
+    await this.prisma.organization.update({ where: { id: clientId }, data: { modules: state } })
+    return { key: moduleKey, enabled }
   }
 
   // ── Per-client Channels (agency-scoped) ────────────────────────────────────

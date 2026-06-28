@@ -375,6 +375,12 @@ export const api = {
     request(`/agency/clients/${id}/automations/${wfId}/toggle`, { method: 'POST', body: JSON.stringify({ isActive }) }),
   removeClientAutomation: (id, wfId) =>
     request(`/agency/clients/${id}/automations/${wfId}`, { method: 'DELETE' }),
+  getModuleCatalog: () =>
+    request('/agency/module-catalog'),
+  getClientModules: (id) =>
+    request(`/agency/clients/${id}/modules`),
+  setClientModule: (id, moduleKey, enabled) =>
+    request(`/agency/clients/${id}/modules/${moduleKey}`, { method: 'POST', body: JSON.stringify({ enabled }) }),
   createAgencyClient: (dto) =>
     request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
   updateAgencyClient: (id, dto) =>

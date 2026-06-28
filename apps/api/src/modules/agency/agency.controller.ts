@@ -139,6 +139,22 @@ export class AgencyController {
     return this.agency.disconnectClientChannel(user.orgId, id, channelId)
   }
 
+  // ── Per-client Modules (internal marketplace) ────────────────────────────
+  @Get('module-catalog')
+  moduleCatalog() {
+    return this.agency.moduleCatalog()
+  }
+
+  @Get('clients/:id/modules')
+  getModules(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.getClientModules(user.orgId, id)
+  }
+
+  @Post('clients/:id/modules/:moduleKey')
+  setModule(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('moduleKey') moduleKey: string, @Body() body: { enabled: boolean }) {
+    return this.agency.setClientModule(user.orgId, id, moduleKey, !!body.enabled)
+  }
+
   // ── Per-client Automations ───────────────────────────────────────────────
   @Get('automation-templates')
   automationTemplates() {
