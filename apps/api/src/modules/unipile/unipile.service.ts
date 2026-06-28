@@ -6,6 +6,10 @@ import { RagService } from '../knowledge-base/rag.service'
 import { WebhooksService } from '../webhooks/webhooks.service'
 import { encryptJson, decryptJson } from '../../common/crypto/crypto.util'
 import { computeLeadScore } from '../../common/util/lead-score.util'
+import { detectNegative } from '../../common/util/sentiment.util'
+import { wantsHuman } from '../../common/util/escalation.util'
+import { WorkflowEngineService } from '../workflows/workflow-engine.service'
+import { NotificationsService } from '../notifications/notifications.service'
 
 const PLATFORM_KEY = 'unipile'
 
@@ -21,6 +25,8 @@ export class UnipileService {
     private ai: AIService,
     private rag: RagService,
     @Optional() private webhooks?: WebhooksService,
+    @Optional() private workflows?: WorkflowEngineService,
+    @Optional() private notifications?: NotificationsService,
   ) {}
 
   // ─── Platform config (owner-level) ─────────────────────────────────────────
@@ -169,6 +175,24 @@ export class UnipileService {
 
     await this.prisma.message.create({ data: { conversationId: conv.id, senderId: null, type: 'TEXT', content: text } })
     await this.prisma.conversation.update({ where: { id: conv.id }, data: { lastMessage: text, lastMsgAt: new Date(), isRead: false } })
+
+    // Keyword-triggered automations (non-blocking).
+    this.workflows?.fire(orgId, 'keyword', conv.contactId || undefined, { text }).catch(() => {})
+
+    // Negative sentiment: flag frustrated customers + alert the team (non-blocking).
+    if (detectNegative(text) && !(conv.metadata as any)?.negative) {
+      this.prisma.conversation.update({ where: { id: conv.id }, data: { priority: 'HIGH' as any, metadata: { ...((conv.metadata as any) || {}), negative: true } } }).catch(() => {})
+      this.notifications?.notifyConversation(orgId, { assigneeId: (conv as any).assigneeId, type: 'sentiment', conversationId: conv.id, title: '😟 Unhappy customer', body: `${name} sounds frustrated on WhatsApp — may need attention.` }).catch(() => {})
+    }
+
+    // Explicit human request → escalate: pause AI, flag, notify, acknowledge.
+    if (wantsHuman(text)) {
+      await this.prisma.conversation.update({ where: { id: conv.id }, data: { metadata: { ...((conv.metadata as any) || {}), aiPaused: true, escalated: true } } })
+      this.notifications?.notifyConversation(orgId, { assigneeId: (conv as any).assigneeId, type: 'escalation', conversationId: conv.id, title: '⚠ Customer asked for a human', body: `${name} requested a human on WhatsApp.` }).catch(() => {})
+      this.webhooks?.dispatch(orgId, 'conversation.escalated', { conversationId: conv.id, channel: 'whatsapp' }).catch(() => {})
+      try { await this.sendMessage(orgId, phone, "Thanks — I'm connecting you with a team member who'll reply shortly.") } catch {}
+      return { ok: true, escalated: true }
+    }
 
     // Don't auto-reply if a human paused the AI for this conversation.
     if ((conv.metadata as any)?.aiPaused) return { ok: true, paused: true }
