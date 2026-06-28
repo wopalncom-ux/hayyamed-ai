@@ -14,6 +14,22 @@ export class AgencyController {
     return this.agency.getStats(user.orgId)
   }
 
+  // ── Owner control & logs (P8) ────────────────────────────────────────────
+  @Get('overview')
+  overview(@CurrentUser() user: JwtPayload) {
+    return this.agency.ownerOverview(user.orgId)
+  }
+
+  @Get('audit-logs')
+  auditLogs(@CurrentUser() user: JwtPayload) {
+    return this.agency.ownerAuditLogs(user.orgId)
+  }
+
+  @Post('clients/:id/active')
+  setActive(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { isActive: boolean }) {
+    return this.agency.setClientActive(user.orgId, id, !!body.isActive)
+  }
+
   // ── Clients ────────────────────────────────────────────────────────────────
 
   @Get('clients')

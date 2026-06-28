@@ -168,8 +168,12 @@ export default function ClientsConsole() {
     try { await api.retrainClientBrain(selected.id, kbId); loadBrains(selected.id) } catch {}
   }
 
+  const [overview, setOverview] = useState(null)
+  const [auditLogs, setAuditLogs] = useState([])
   const loadClients = () => api.getAgencyClients().then(c => setClients(Array.isArray(c) ? c : [])).catch(() => {}).finally(() => setLoading(false))
-  useEffect(() => { loadClients() }, [])
+  const loadOverview = () => { api.getAgencyOverview().then(setOverview).catch(() => {}); api.getAgencyAuditLogs().then(l => setAuditLogs(Array.isArray(l) ? l : [])).catch(() => {}) }
+  useEffect(() => { loadClients(); loadOverview() }, [])
+  const setClientActive = async (id, isActive) => { try { await api.setAgencyClientActive(id, isActive); loadClients(); loadOverview() } catch {} }
 
   const openClient = async (id) => {
     setMsg(null)
@@ -216,7 +220,8 @@ export default function ClientsConsole() {
         <div style={{ width: '280px', borderRight: '1px solid #1a2235', padding: '20px 16px', overflow: 'auto', flexShrink: 0 }}>
           <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 800, letterSpacing: '1px', marginBottom: '2px' }}>CLIENT AI OPERATING CENTER</div>
           <div style={{ fontWeight: 900, fontSize: '17px', marginBottom: '14px' }}>Clients</div>
-          <button onClick={newClient} style={{ width: '100%', padding: '9px', background: '#00e5a0', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer', marginBottom: '14px' }}>+ New Client</button>
+          <button onClick={newClient} style={{ width: '100%', padding: '9px', background: '#00e5a0', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer', marginBottom: '8px' }}>+ New Client</button>
+          <button onClick={() => { setSelected(null); setEditing(null); loadOverview() }} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontWeight: 700, fontSize: '12px', cursor: 'pointer', marginBottom: '14px' }}>📊 Owner Overview</button>
           {loading ? <div style={{ color: '#64748b', fontSize: '12px' }}>Loading…</div>
             : clients.length === 0 ? <div style={{ color: '#64748b', fontSize: '12px', lineHeight: 1.6 }}>No clients yet. Create your first client to set up their AI brain, agents, automations and billing.</div>
             : clients.map(c => (
@@ -234,10 +239,46 @@ export default function ClientsConsole() {
         {/* Detail / editor */}
         <div style={{ flex: 1, padding: '24px 28px', overflow: 'auto' }}>
           {!editing ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '10px', color: '#64748b' }}>
-              <div style={{ fontSize: '40px' }}>🏢</div>
-              <div style={{ fontWeight: 700, color: '#94a3b8' }}>Select a client or create a new one</div>
-              <div style={{ fontSize: '12px' }}>Set up each client's profile, AI brain, agents, automations and billing.</div>
+            <div style={{ maxWidth: '960px' }}>
+              <div style={{ fontWeight: 900, fontSize: '22px', marginBottom: '4px' }}>📊 Owner Overview</div>
+              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '18px' }}>Every client, their AI setup, costs and activity — at a glance.</div>
+              {/* Totals */}
+              {overview && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px,1fr))', gap: '10px', marginBottom: '18px' }}>
+                  {[['Clients', overview.totals.clients, '#3b82f6'], ['Active', overview.totals.active, '#00e5a0'], ['Wallet (QAR)', overview.totals.wallet, '#fbbf24'], ['Agents', overview.totals.agents, '#a78bfa'], ['Automations', overview.totals.automations, '#06b6d4'], ['Low balance', overview.totals.lowBalance, '#ef4444']].map(([label, val, color]) => (
+                    <div key={label} style={{ ...card, padding: '12px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '22px', fontWeight: 900, color }}>{val}</div>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Clients table */}
+              <div style={{ ...card, padding: 0, overflow: 'hidden', marginBottom: '18px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr repeat(5, 0.7fr) 1fr 0.9fr', padding: '10px 14px', borderBottom: '1px solid #1a2235', background: '#0c0f1a', fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <span>Client</span><span>Brains</span><span>Agents</span><span>Autos</span><span>Channels</span><span>Contacts</span><span>Balance</span><span>Status</span>
+                </div>
+                {(overview?.clients || []).length === 0 ? <div style={{ padding: '16px', fontSize: '12px', color: '#64748b' }}>No clients yet — create your first client.</div>
+                  : overview.clients.map(c => (
+                    <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '2fr repeat(5, 0.7fr) 1fr 0.9fr', padding: '10px 14px', borderBottom: '1px solid #131a28', fontSize: '12px', alignItems: 'center', opacity: c.isActive ? 1 : 0.5 }}>
+                      <span onClick={() => openClient(c.id)} style={{ cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '7px' }}>{c.logo || '🏢'} {c.name}</span>
+                      <span>{c.knowledgeBases}</span><span>{c.agents}</span><span>{c.automations}</span><span>{c.channels}</span><span>{c.contacts}</span>
+                      <span style={{ color: c.lowBalance ? '#ef4444' : '#fbbf24', fontWeight: 700 }}>{Number(c.balance || 0).toLocaleString()}</span>
+                      <button onClick={() => setClientActive(c.id, !c.isActive)} style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '10px', cursor: 'pointer', border: '1px solid', borderColor: c.isActive ? 'rgba(0,229,160,.3)' : 'rgba(239,68,68,.3)', background: 'transparent', color: c.isActive ? '#00e5a0' : '#ef4444', fontWeight: 700 }}>{c.isActive ? 'Active' : 'Disabled'}</button>
+                    </div>
+                  ))}
+              </div>
+              {/* Audit logs */}
+              <div style={card}>
+                <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '10px' }}>🛡️ Recent activity (audit log)</div>
+                {auditLogs.length === 0 ? <div style={{ fontSize: '12px', color: '#64748b' }}>No activity yet.</div>
+                  : auditLogs.slice(0, 20).map(l => (
+                    <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '5px 0', borderBottom: '1px solid #131a28', color: '#94a3b8' }}>
+                      <span><strong style={{ color: '#cbd5e1' }}>{l.action}</strong> {l.resource}{l.resourceId ? ` (${String(l.resourceId).slice(0, 8)})` : ''}</span>
+                      <span style={{ color: '#64748b' }}>{new Date(l.createdAt).toLocaleString()}</span>
+                    </div>
+                  ))}
+              </div>
             </div>
           ) : (
             <div style={{ maxWidth: '860px' }}>

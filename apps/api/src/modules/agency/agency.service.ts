@@ -240,6 +240,54 @@ export class AgencyService {
     }
   }
 
+  // ── Owner control: global overview + logs (P8) ─────────────────────────────
+  async ownerOverview(agencyOrgId: string) {
+    const clients = await this.prisma.organization.findMany({
+      where: { parentOrgId: agencyOrgId },
+      select: {
+        id: true, name: true, logo: true, industry: true, isActive: true,
+        agencyBalance: true, agencyStatus: true, agencyMonthlyRev: true, lowBalanceThreshold: true,
+        _count: { select: { contacts: true, aiAgents: true, knowledgeBases: true, workflows: true, channels: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+    const rows = clients.map(c => ({
+      id: c.id, name: c.name, logo: c.logo, industry: c.industry, isActive: c.isActive,
+      balance: c.agencyBalance, status: c.agencyStatus, monthlyRev: c.agencyMonthlyRev,
+      lowBalance: c.agencyBalance <= (c.lowBalanceThreshold ?? 0),
+      contacts: c._count.contacts, agents: c._count.aiAgents,
+      knowledgeBases: c._count.knowledgeBases, automations: c._count.workflows, channels: c._count.channels,
+    }))
+    return {
+      totals: {
+        clients: rows.length,
+        active: rows.filter(r => r.isActive).length,
+        wallet: +rows.reduce((s, r) => s + (r.balance || 0), 0).toFixed(2),
+        monthlyRev: +rows.reduce((s, r) => s + (r.monthlyRev || 0), 0).toFixed(2),
+        agents: rows.reduce((s, r) => s + r.agents, 0),
+        automations: rows.reduce((s, r) => s + r.automations, 0),
+        lowBalance: rows.filter(r => r.isActive && r.lowBalance).length,
+      },
+      clients: rows,
+    }
+  }
+
+  async ownerAuditLogs(agencyOrgId: string) {
+    const clientIds = (await this.prisma.organization.findMany({ where: { parentOrgId: agencyOrgId }, select: { id: true } })).map(c => c.id)
+    return this.prisma.auditLog.findMany({
+      where: { orgId: { in: [agencyOrgId, ...clientIds] } },
+      select: { id: true, orgId: true, action: true, resource: true, resourceId: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      take: 40,
+    })
+  }
+
+  async setClientActive(agencyOrgId: string, clientId: string, isActive: boolean) {
+    await this.assertOwns(agencyOrgId, clientId)
+    await this.prisma.organization.update({ where: { id: clientId }, data: { isActive } })
+    return { id: clientId, isActive }
+  }
+
   // ── Clients ────────────────────────────────────────────────────────────────
 
   async listClients(agencyOrgId: string) {

@@ -327,6 +327,12 @@ export const api = {
     request('/agency/clients'),
   getAgencyClient: (id) =>
     request(`/agency/clients/${id}`),
+  getAgencyOverview: () =>
+    request('/agency/overview'),
+  getAgencyAuditLogs: () =>
+    request('/agency/audit-logs'),
+  setAgencyClientActive: (id, isActive) =>
+    request(`/agency/clients/${id}/active`, { method: 'POST', body: JSON.stringify({ isActive }) }),
   getClientBrains: (id) =>
     request(`/agency/clients/${id}/brains`),
   getClientStorage: (id) =>
