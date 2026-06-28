@@ -80,8 +80,18 @@ export class UnipileService {
       const res = await axios.post(`${base}/accounts`, body, { headers: this.headers(key), timeout: 20000 })
       data = res.data || {}
     } catch (e: any) {
-      this.logger.warn(`Unipile connect failed: ${e?.response?.status} ${JSON.stringify(e?.response?.data || e.message)}`)
-      throw new BadRequestException(e?.response?.data?.message || 'Could not start the WhatsApp connection.')
+      const status = e?.response?.status
+      const detail = e?.response?.data
+      this.logger.warn(`Unipile connect failed: ${status} ${JSON.stringify(detail || e.message)}`)
+      // Surface the real cause so the owner can act.
+      if (status === 401 || status === 403) {
+        throw new BadRequestException('Unipile rejected the API key — re-check the DSN and API key in the platform settings.')
+      }
+      if (e?.code === 'ENOTFOUND' || e?.code === 'ECONNREFUSED' || /getaddrinfo|ENOTFOUND/.test(String(e?.message))) {
+        throw new BadRequestException('Could not reach Unipile at that DSN — check the DSN value (e.g. apiXX.unipile.com:XXXXX).')
+      }
+      const msg = detail?.detail || detail?.message || detail?.title || (typeof detail === 'string' ? detail : null)
+      throw new BadRequestException(msg ? `Unipile: ${msg}` : `Could not start the WhatsApp connection (HTTP ${status || '?'}).`)
     }
     const accountId = data.account_id || data.accountId || data.id || ''
     const meta: any = { provider: 'unipile', accountId }

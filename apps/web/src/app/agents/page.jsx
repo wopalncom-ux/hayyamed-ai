@@ -489,6 +489,9 @@ export default function AIAgentBuilder() {
                     >
                       {modelsForProvider.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
+                    <div style={{ fontSize:'10px', color:'#64748b', marginTop:'6px', lineHeight:1.5 }}>
+                      🛟 <strong style={{ color:'#7a8fa6' }}>Automatic fallback:</strong> if this provider is unavailable or its key fails, the engine retries your other connected providers (OpenAI → Claude → Gemini → Groq) so replies never stop.
+                    </div>
                   </div>
 
                   <div>
