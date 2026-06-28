@@ -21,8 +21,13 @@ export class AgencyController {
     return this.agency.listClients(user.orgId)
   }
 
+  @Get('clients/:id')
+  getClient(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.getClientDetail(user.orgId, id)
+  }
+
   @Post('clients')
-  createClient(@CurrentUser() user: JwtPayload, @Body() dto: { name: string; type?: string; logo?: string; plan?: string; monthlyRev?: number }) {
+  createClient(@CurrentUser() user: JwtPayload, @Body() dto: any) {
     return this.agency.createClient(user.orgId, dto)
   }
 

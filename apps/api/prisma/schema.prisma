@@ -67,6 +67,17 @@ model Organization {
   agencyMonthlyRev Float   @default(0)
   agencyCustomMgn  Float?
 
+  // Client profile (Client AI Operating Center)
+  contactPerson        String?
+  whatsappNumber       String?
+  clientEmail          String?
+  businessType         String?
+  storageLimitMb       Int      @default(500)
+  paymentResponsibility String  @default("client")  // client | owner | hybrid
+  profitPercent        Float    @default(0)
+  campaignBilling      String   @default("")
+  adminNotes           String   @default("")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

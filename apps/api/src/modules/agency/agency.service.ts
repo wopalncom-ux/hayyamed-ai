@@ -42,6 +42,15 @@ export class AgencyService {
     logo?: string
     plan?: string
     monthlyRev?: number
+    contactPerson?: string
+    whatsappNumber?: string
+    clientEmail?: string
+    website?: string
+    businessType?: string
+    storageLimitMb?: number
+    paymentResponsibility?: string
+    profitPercent?: number
+    adminNotes?: string
   }) {
     const slug = `${dto.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
     const client = await this.prisma.organization.create({
@@ -52,9 +61,46 @@ export class AgencyService {
         logo:          dto.logo || '🏢',
         parentOrgId:   agencyOrgId,
         agencyMonthlyRev: dto.monthlyRev || 0,
+        contactPerson:  dto.contactPerson,
+        whatsappNumber: dto.whatsappNumber,
+        clientEmail:    dto.clientEmail,
+        website:        dto.website,
+        businessType:   dto.businessType,
+        ...(dto.storageLimitMb != null ? { storageLimitMb: dto.storageLimitMb } : {}),
+        ...(dto.paymentResponsibility ? { paymentResponsibility: dto.paymentResponsibility } : {}),
+        ...(dto.profitPercent != null ? { profitPercent: dto.profitPercent } : {}),
+        ...(dto.adminNotes ? { adminNotes: dto.adminNotes } : {}),
       },
     })
     return { id: client.id, name: client.name }
+  }
+
+  // Full client profile + resource counts for the Client AI Operating Center.
+  async getClientDetail(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const c = await this.prisma.organization.findUnique({
+      where: { id: clientId },
+      include: {
+        _count: { select: { contacts: true, aiAgents: true, knowledgeBases: true, workflows: true, channels: true } },
+        channels: { select: { id: true, type: true, name: true, isActive: true, isVerified: true } },
+      },
+    })
+    if (!c) throw new NotFoundException('Client not found')
+    return {
+      id: c.id, name: c.name, logo: c.logo, industry: c.industry, website: c.website,
+      contactPerson: c.contactPerson, whatsappNumber: c.whatsappNumber, clientEmail: c.clientEmail,
+      businessType: c.businessType, plan: c.plan, status: c.agencyStatus,
+      storageLimitMb: c.storageLimitMb, paymentResponsibility: c.paymentResponsibility,
+      profitPercent: c.profitPercent, campaignBilling: c.campaignBilling,
+      adminNotes: c.adminNotes, notes: c.agencyNotes, balance: c.agencyBalance,
+      monthlyRev: c.agencyMonthlyRev, customMargin: c.agencyCustomMgn, aiScore: c.agencyAiScore,
+      counts: {
+        contacts: c._count.contacts, agents: c._count.aiAgents,
+        knowledgeBases: c._count.knowledgeBases, automations: c._count.workflows,
+        channels: c._count.channels,
+      },
+      channels: c.channels,
+    }
   }
 
   async updateClient(agencyOrgId: string, clientId: string, dto: {
@@ -67,21 +113,32 @@ export class AgencyService {
     customMargin?: number | null
     monthlyRev?: number
     aiScore?: number
+    contactPerson?: string
+    whatsappNumber?: string
+    clientEmail?: string
+    website?: string
+    businessType?: string
+    storageLimitMb?: number
+    paymentResponsibility?: string
+    profitPercent?: number
+    campaignBilling?: string
+    adminNotes?: string
   }) {
     await this.assertOwns(agencyOrgId, clientId)
-    return this.prisma.organization.update({
-      where: { id: clientId },
-      data: {
-        name:            dto.name,
-        industry:        dto.type,
-        logo:            dto.logo,
-        agencyStatus:    dto.status,
-        agencyNotes:     dto.notes,
-        agencyCustomMgn: dto.customMargin,
-        agencyMonthlyRev:dto.monthlyRev,
-        agencyAiScore:   dto.aiScore,
-      },
-    })
+    const data: any = {
+      name: dto.name, industry: dto.type, logo: dto.logo,
+      agencyStatus: dto.status, agencyNotes: dto.notes, agencyCustomMgn: dto.customMargin,
+      agencyMonthlyRev: dto.monthlyRev, agencyAiScore: dto.aiScore,
+      contactPerson: dto.contactPerson, whatsappNumber: dto.whatsappNumber,
+      clientEmail: dto.clientEmail, website: dto.website, businessType: dto.businessType,
+      paymentResponsibility: dto.paymentResponsibility, campaignBilling: dto.campaignBilling,
+      adminNotes: dto.adminNotes,
+    }
+    if (dto.storageLimitMb != null) data.storageLimitMb = dto.storageLimitMb
+    if (dto.profitPercent != null) data.profitPercent = dto.profitPercent
+    // Strip undefined so we only update provided fields.
+    Object.keys(data).forEach(k => data[k] === undefined && delete data[k])
+    return this.prisma.organization.update({ where: { id: clientId }, data })
   }
 
   async topUp(agencyOrgId: string, clientId: string, amount: number) {
