@@ -105,6 +105,8 @@ export const api = {
     request('/reports/onboarding'),
   getToday: () =>
     request('/reports/today'),
+  getCsat: () =>
+    request('/reports/csat'),
   // Outbound webhooks
   getWebhooks: () =>
     request('/webhooks'),

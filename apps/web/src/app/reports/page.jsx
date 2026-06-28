@@ -48,6 +48,7 @@ export default function Reports() {
   const [aiResponse, setAiResponse] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [showAI, setShowAI] = useState(false)
+  const [csat, setCsat] = useState(null)
 
   useEffect(() => {
     api.getContacts({ limit: 200 })
@@ -58,6 +59,8 @@ export default function Reports() {
       .catch(() => {})
       .finally(() => setDataLoading(false))
   }, [])
+
+  useEffect(() => { api.getCsat().then(setCsat).catch(() => {}) }, [])
 
   const filtered = reportData.filter(d => {
     const matchChannel = channel === 'All Channels' || d.channel === channel
@@ -210,6 +213,39 @@ export default function Reports() {
                 ))}
               </div>
             </div>
+
+            {/* CSAT & response time (last 90 days) */}
+            {csat && (csat.ratingCount > 0 || csat.respSample > 0) && (
+              <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'16px', borderRadius:'4px'}}>
+                <div style={{fontSize:'10px', color:'#3d4f63', letterSpacing:'2px', marginBottom:'12px'}}>SERVICE QUALITY · LAST 90 DAYS</div>
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px'}}>
+                  <div style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'14px'}}>
+                    <div style={{fontSize:'10px', color:'#7a8fa6', marginBottom:'6px'}}>CUSTOMER SATISFACTION</div>
+                    <div style={{fontSize:'24px', fontWeight:900, color:'#fbbf24'}}>{csat.avgRating || '—'}<span style={{fontSize:'13px', color:'#64748b', fontWeight:600}}> / 5</span></div>
+                    <div style={{fontSize:'10px', color:'#64748b', marginTop:'4px'}}>{csat.ratingCount} rating{csat.ratingCount === 1 ? '' : 's'}</div>
+                  </div>
+                  <div style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'14px'}}>
+                    <div style={{fontSize:'10px', color:'#7a8fa6', marginBottom:'6px'}}>MEDIAN FIRST RESPONSE</div>
+                    <div style={{fontSize:'24px', fontWeight:900, color:'#00e5a0'}}>{csat.medianFirstRespMin || '—'}<span style={{fontSize:'13px', color:'#64748b', fontWeight:600}}> min</span></div>
+                    <div style={{fontSize:'10px', color:'#64748b', marginTop:'4px'}}>{csat.respSample} conversation{csat.respSample === 1 ? '' : 's'}</div>
+                  </div>
+                  <div style={{background:'#111622', border:'1px solid #1a2235', borderRadius:'4px', padding:'14px'}}>
+                    <div style={{fontSize:'10px', color:'#7a8fa6', marginBottom:'6px'}}>RATING BREAKDOWN</div>
+                    {['5','4','3','2','1'].map(s => {
+                      const n = (csat.distribution && csat.distribution[s]) || 0
+                      const pct = csat.ratingCount ? Math.round(n / csat.ratingCount * 100) : 0
+                      return (
+                        <div key={s} style={{display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px'}}>
+                          <span style={{fontSize:'10px', color:'#64748b', width:'10px'}}>{s}★</span>
+                          <div style={{flex:1, height:'6px', background:'#1a2235', borderRadius:'3px', overflow:'hidden'}}><div style={{width:`${pct}%`, height:'100%', background:'#fbbf24'}}/></div>
+                          <span style={{fontSize:'10px', color:'#64748b', width:'24px', textAlign:'right'}}>{n}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Summary KPIs */}
             <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'10px'}}>

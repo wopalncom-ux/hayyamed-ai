@@ -111,6 +111,36 @@ export class ReportsController {
     return { newLeads, newConvs, bookings, messages: Number(msgRows[0]?.c || 0) }
   }
 
+  // Customer satisfaction (CSAT) + first-response time over the last 90 days.
+  @Get('csat')
+  async getCsat(@CurrentUser() user: JwtPayload) {
+    const orgId = user.orgId
+    const since = new Date(Date.now() - 90 * 24 * 3600 * 1000)
+    const convs = await this.prisma.conversation.findMany({
+      where: { orgId, updatedAt: { gte: since } },
+      select: { metadata: true },
+    })
+    let ratingSum = 0, ratingCount = 0
+    const distribution: Record<string, number> = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
+    const resp: number[] = []
+    for (const c of convs) {
+      const m: any = c.metadata || {}
+      const r = Number(m.rating)
+      if (r >= 1 && r <= 5) { ratingSum += r; ratingCount++; distribution[String(r)]++ }
+      const fr = Number(m.firstRespMs)
+      if (fr > 0) resp.push(fr)
+    }
+    resp.sort((a, b) => a - b)
+    const median = resp.length ? resp[Math.floor(resp.length / 2)] : 0
+    return {
+      avgRating: ratingCount ? +(ratingSum / ratingCount).toFixed(2) : 0,
+      ratingCount,
+      distribution,
+      medianFirstRespMin: median ? +(median / 60000).toFixed(1) : 0,
+      respSample: resp.length,
+    }
+  }
+
   // Getting-started checklist status for new workspaces.
   @Get('onboarding')
   async getOnboarding(@CurrentUser() user: JwtPayload) {
