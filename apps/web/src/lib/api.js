@@ -325,6 +325,8 @@ export const api = {
     request('/agency/stats'),
   getAgencyClients: () =>
     request('/agency/clients'),
+  getAgencyClient: (id) =>
+    request(`/agency/clients/${id}`),
   createAgencyClient: (dto) =>
     request('/agency/clients', { method: 'POST', body: JSON.stringify(dto) }),
   updateAgencyClient: (id, dto) =>
