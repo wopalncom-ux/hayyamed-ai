@@ -215,7 +215,7 @@ export default function Integrations() {
           if (next[row.type]) {
             next[row.type] = {
               ...next[row.type],
-              status: row.status === 'active' ? 'connected' : 'disconnected',
+              status: row.status === 'active' ? 'connected' : (row.status === 'configured' ? 'configured' : 'disconnected'),
               values: (row.config && typeof row.config === 'object') ? row.config : {},
             }
           }
@@ -245,14 +245,16 @@ export default function Integrations() {
     const vals = integrations[id]?.values || {}
     setSaving(id)
     try {
-      await api.saveIntegration(id, intg.name, vals)
-      setIntegrations(prev => ({ ...prev, [id]: { ...prev[id], status: 'connected' } }))
-      saveMsg(`${intg.name} keys saved!`)
-    } catch {
-      saveMsg('Failed to save — check your API keys')
+      const saved = await api.saveIntegration(id, intg.name, vals)
+      const verified = saved?.status === 'active'
+      setIntegrations(prev => ({ ...prev, [id]: { ...prev[id], status: verified ? 'connected' : 'configured' } }))
+      saveMsg(verified ? `${intg.name} connected ✓` : `${intg.name} saved (credentials stored)`)
+      setExpandedId(null)
+    } catch (e) {
+      // Verification failed — keep the card open so the user can fix the keys.
+      saveMsg(e?.message || 'Those credentials were rejected — please check them')
     } finally {
       setSaving(null)
-      setExpandedId(null)
     }
   }
 
@@ -325,6 +327,7 @@ export default function Integrations() {
                     {items.map(intg => {
                       const state    = integrations[intg.id]
                       const isConn   = state?.status === 'connected'
+                      const isConfigured = state?.status === 'configured'
                       const isOpen   = expandedId === intg.id
                       const isSaving = saving === intg.id
                       return (
@@ -344,8 +347,8 @@ export default function Integrations() {
                           {/* Status + action bar */}
                           <div style={{padding:'12px 18px', borderTop:'1px solid #1e2d42', display:'flex', alignItems:'center', justifyContent:'space-between', background:'#0c0f1a'}}>
                             <div style={{display:'flex', alignItems:'center', gap:'7px'}}>
-                              <div style={{width:'7px', height:'7px', borderRadius:'50%', background: isConn ? '#00e5a0' : '#3d4f63'}}></div>
-                              <span style={{fontSize:'11px', color: isConn ? '#00e5a0' : '#7a8fa6', fontWeight: isConn ? '700' : '400'}}>{isConn ? 'Connected' : 'Not connected'}</span>
+                              <div style={{width:'7px', height:'7px', borderRadius:'50%', background: isConn ? '#00e5a0' : (isConfigured ? '#fbbf24' : '#3d4f63')}}></div>
+                              <span style={{fontSize:'11px', color: isConn ? '#00e5a0' : (isConfigured ? '#fbbf24' : '#7a8fa6'), fontWeight: isConn || isConfigured ? '700' : '400'}}>{isConn ? 'Connected ✓' : (isConfigured ? 'Saved (not verified)' : 'Not connected')}</span>
                             </div>
                             <div style={{display:'flex', gap:'8px'}}>
                               {(intg.setupUrl || intg.id === 'whatsapp') ? (
