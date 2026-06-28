@@ -534,6 +534,11 @@ export default function ClientsConsole() {
                       <Field label="Webhook Verify Token / App Secret"><input type="password" style={input} value={meta.webhookSecret} onChange={e => setMeta({ ...meta, webhookSecret: e.target.value })} /></Field>
                     </div>
                     <button onClick={connectMeta} disabled={busy} style={{ marginTop: '12px', padding: '9px 18px', background: '#3b82f6', border: 'none', borderRadius: '7px', color: '#fff', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>{busy ? 'Connecting…' : 'Connect Meta'}</button>
+                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '10px', lineHeight: 1.7 }}>
+                      In your Meta app webhook config:<br />
+                      Callback URL <code style={{ color: '#cbd5e1' }}>https://api.hayyaai.com/api/v1/whatsapp/webhook</code><br />
+                      Verify token <code style={{ color: '#cbd5e1' }}>hayyaai_webhook_prod</code> · subscribe to <code style={{ color: '#cbd5e1' }}>messages</code>
+                    </div>
                   </div>
 
                   {/* Instagram DM (Meta) */}
