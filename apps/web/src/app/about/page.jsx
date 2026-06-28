@@ -13,13 +13,13 @@ const card = { background: '#0f1520', border: '1px solid #1a2235', borderRadius:
 
 export default function About() {
   return (
-    <div style={{ background: '#07090f', color: '#e2e8f0', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', overflowX: 'hidden' }}>
+    <div style={{ background: '#070b0a', color: '#e2e8f0', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', overflowX: 'hidden' }}>
       {/* Nav */}
       <header style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', maxWidth: '1100px', margin: '0 auto' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '9px', fontWeight: 900, fontSize: '18px', color: '#e2e8f0', textDecoration: 'none' }}><img src="/logo.svg" alt="Hayya AI" width="28" height="28" style={{ display: 'block' }} />Hayya<span style={{ color: '#C9A96E' }}> AI</span></Link>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '9px', fontWeight: 900, fontSize: '18px', color: '#e2e8f0', textDecoration: 'none' }}><img src="/logo.svg" alt="Hayya AI" width="28" height="28" style={{ display: 'block' }} />Hayya<span style={{ color: '#D8B16A' }}> AI</span></Link>
         <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
           <Link href="/" style={{ fontSize: '13px', color: '#94a3b8', textDecoration: 'none' }}>Home</Link>
-          <Link href="/register" style={{ fontSize: '13px', fontWeight: 700, color: '#07090f', background: '#C9A96E', padding: '8px 16px', borderRadius: '8px', textDecoration: 'none' }}>Start free</Link>
+          <Link href="/register" style={{ fontSize: '13px', fontWeight: 700, color: '#070b0a', background: '#D8B16A', padding: '8px 16px', borderRadius: '8px', textDecoration: 'none' }}>Start free</Link>
         </div>
       </header>
 
@@ -27,7 +27,7 @@ export default function About() {
       <section style={{ position: 'relative', textAlign: 'center', padding: '72px 24px 56px' }}>
         <AiBackdrop />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '760px', margin: '0 auto' }}>
-          <div style={{ display: 'inline-block', fontSize: '11px', fontWeight: 800, letterSpacing: '0.14em', color: '#C9A96E', border: '1px solid rgba(201,169,110,.3)', borderRadius: '999px', padding: '6px 14px', marginBottom: '22px' }}>BUILT &amp; OPERATED BY HAYYA MED AI</div>
+          <div style={{ display: 'inline-block', fontSize: '11px', fontWeight: 800, letterSpacing: '0.14em', color: '#D8B16A', border: '1px solid rgba(216,177,106,.3)', borderRadius: '999px', padding: '6px 14px', marginBottom: '22px' }}>BUILT &amp; OPERATED BY HAYYA MED AI</div>
           <h1 style={{ fontSize: 'clamp(32px, 6vw, 52px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, margin: '0 0 18px' }}>
             We build the <span className="hai-shimmer">AI</span> that runs your customer conversations
           </h1>
@@ -46,7 +46,7 @@ export default function About() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px' }}>
           {[['3', 'Channels — WhatsApp, Instagram, Web'], ['24/7', 'AI agents that never sleep'], ['100%', 'Data hosted in Qatar'], ['2025', 'Founded in Doha']].map(([n, l], i) => (
             <Reveal key={l} delay={i * 90} style={{ ...card, textAlign: 'center', padding: '22px 16px' }}>
-              <div style={{ fontSize: '30px', fontWeight: 900, color: '#C9A96E' }}>{n}</div>
+              <div style={{ fontSize: '30px', fontWeight: 900, color: '#D8B16A' }}>{n}</div>
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', lineHeight: 1.5 }}>{l}</div>
             </Reveal>
           ))}
@@ -90,9 +90,9 @@ export default function About() {
       {/* Founder */}
       <section style={{ ...wrap, marginBottom: '64px' }}>
         <Reveal style={{ ...card, display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'linear-gradient(135deg,#C9A96E,#7C1535)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', fontWeight: 900, color: '#fff', flexShrink: 0 }}>AA</div>
+          <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'linear-gradient(135deg,#D8B16A,#5A1026)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', fontWeight: 900, color: '#fff', flexShrink: 0 }}>AA</div>
           <div style={{ flex: 1, minWidth: '260px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: '#C9A96E', marginBottom: '6px' }}>FOUNDER</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: '#D8B16A', marginBottom: '6px' }}>FOUNDER</div>
             <h2 style={{ fontSize: '22px', fontWeight: 900, margin: '0 0 4px' }}>Abbas Al Masri</h2>
             <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px' }}>Founder &amp; Chief Executive Officer, Hayya Med AI</div>
             <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.8, margin: 0 }}>
@@ -109,7 +109,7 @@ export default function About() {
         <Reveal>
           <h2 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 12px' }}>Put an AI agent on your business</h2>
           <p style={{ fontSize: '15px', color: '#94a3b8', margin: '0 0 24px' }}>WhatsApp, Instagram and web — answering instantly, trained on you.</p>
-          <Link href="/register" style={{ display: 'inline-block', padding: '14px 36px', background: '#C9A96E', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '15px', fontWeight: 800 }}>Create your free account →</Link>
+          <Link href="/register" style={{ display: 'inline-block', padding: '14px 36px', background: '#D8B16A', borderRadius: '8px', color: '#070b0a', textDecoration: 'none', fontSize: '15px', fontWeight: 800 }}>Create your free account →</Link>
         </Reveal>
       </section>
 

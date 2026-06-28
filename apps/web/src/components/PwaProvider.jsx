@@ -81,7 +81,7 @@ export default function PwaProvider() {
           <div style={{ fontSize: '12px', color: '#7a8fa6', marginTop: '2px' }}>Add to your home screen for a faster, app-like experience.</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
-          <button onClick={install} style={{ padding: '8px 16px', background: '#C9A96E', border: 'none', borderRadius: '8px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>Install</button>
+          <button onClick={install} style={{ padding: '8px 16px', background: '#D8B16A', border: 'none', borderRadius: '8px', color: '#070b0a', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>Install</button>
           <button onClick={dismiss} style={{ padding: '4px', background: 'none', border: 'none', color: '#64748b', fontSize: '11px', cursor: 'pointer' }}>Not now</button>
         </div>
       </div>

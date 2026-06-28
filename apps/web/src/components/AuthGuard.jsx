@@ -22,9 +22,9 @@ export default function AuthGuard({ children }) {
   }, [])
 
   if (status === 'loading') return (
-    <div style={{background:'#07090f', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif'}}>
+    <div style={{background:'#070b0a', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif'}}>
       <div style={{fontSize:'22px', fontWeight:'900', letterSpacing:'-0.5px', color:'#e2e8f0'}}>
-        Hayya<span style={{color:'#C9A96E'}}> AI</span>
+        Hayya<span style={{color:'#D8B16A'}}> AI</span>
       </div>
     </div>
   )

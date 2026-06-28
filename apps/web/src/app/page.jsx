@@ -18,7 +18,7 @@ const FEATURES = [
     icon: '💬',
     title: 'Omnichannel Inbox',
     desc: 'WhatsApp, Instagram, Facebook, Telegram, Email — one unified inbox. Never miss a message again.',
-    color: '#C9A96E',
+    color: '#D8B16A',
   },
   {
     icon: '🤖',
@@ -53,7 +53,7 @@ const FEATURES = [
 ]
 
 const CHANNELS = [
-  { icon: '💬', name: 'WhatsApp', color: '#C9A96E' },
+  { icon: '💬', name: 'WhatsApp', color: '#D8B16A' },
   { icon: '📸', name: 'Instagram', color: '#ec4899' },
   { icon: '👤', name: 'Facebook', color: '#3b82f6' },
   { icon: '📧', name: 'Email', color: '#fbbf24' },
@@ -76,7 +76,7 @@ const PLANS = [
     name: 'Growth',
     price: 'QAR 599',
     period: '/month',
-    color: '#C9A96E',
+    color: '#D8B16A',
     popular: true,
     features: ['50,000 messages/mo', '20,000 AI responses', '5,000 contacts', '15 team members', 'Advanced AI agent'],
   },
@@ -99,7 +99,7 @@ const STATS = [
 
 export default function LandingPage() {
   return (
-    <div style={{ background: '#07090f', color: '#e2e8f0', fontFamily: 'system-ui, -apple-system, sans-serif', minHeight: '100vh' }}>
+    <div style={{ background: '#070b0a', color: '#e2e8f0', fontFamily: 'system-ui, -apple-system, sans-serif', minHeight: '100vh' }}>
 
       {/* ─── Hero (HLS video, glass card, mobile menu) ──────────────── */}
       <HeroVideo />
@@ -122,7 +122,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: '800px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', textAlign: 'center' }}>
           {STATS.map(s => (
             <div key={s.label}>
-              <div style={{ fontSize: '32px', fontWeight: '900', color: '#C9A96E' }}>{s.value}</div>
+              <div style={{ fontSize: '32px', fontWeight: '900', color: '#D8B16A' }}>{s.value}</div>
               <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', letterSpacing: '0.05em' }}>{s.label}</div>
             </div>
           ))}
@@ -157,7 +157,7 @@ export default function LandingPage() {
               { step: '3', title: 'Activate your AI agent', desc: 'Your AI starts replying to customers immediately.' },
             ].map(s => (
               <div key={s.step} style={{ textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(201,169,110,.08)', border: '2px solid rgba(201,169,110,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '18px', fontWeight: '900', color: '#C9A96E' }}>{s.step}</div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(216,177,106,.08)', border: '2px solid rgba(216,177,106,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '18px', fontWeight: '900', color: '#D8B16A' }}>{s.step}</div>
                 <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>{s.title}</div>
                 <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.6' }}>{s.desc}</div>
               </div>
@@ -171,7 +171,7 @@ export default function LandingPage() {
 
       {/* ─── Backed by Hayya Med AI ─────────────────────────────────── */}
       <section style={{ borderTop: '1px solid #1a2235', padding: '72px 24px', textAlign: 'center', maxWidth: '820px', margin: '0 auto' }}>
-        <div style={{ fontSize: '11px', color: '#C9A96E', fontWeight: '800', letterSpacing: '0.12em', marginBottom: '12px' }}>BUILT &amp; OPERATED BY</div>
+        <div style={{ fontSize: '11px', color: '#D8B16A', fontWeight: '800', letterSpacing: '0.12em', marginBottom: '12px' }}>BUILT &amp; OPERATED BY</div>
         <h2 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '14px' }}>Hayya Med AI</h2>
         <p style={{ fontSize: '15px', color: '#94a3b8', lineHeight: '1.8', marginBottom: '18px' }}>
           Hayya AI is built and operated by <strong style={{ color: '#e2e8f0' }}>Hayya Med AI</strong> — an Artificial
@@ -183,7 +183,7 @@ export default function LandingPage() {
           Qatar-Born · GCC-Proven · Globally Ready
         </div>
         <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', fontSize: '12px', color: '#64748b' }}>
-          <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#C9A96E', textDecoration: 'none' }}>hayyamed.ai ↗</a>
+          <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#D8B16A', textDecoration: 'none' }}>hayyamed.ai ↗</a>
           <span>Founded by Abbas Al Masri</span>
           <span>Doha, Qatar</span>
         </div>
@@ -193,7 +193,7 @@ export default function LandingPage() {
       <section style={{ background: '#0c0f1a', borderTop: '1px solid #1a2235', padding: '80px 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>Start automating your business today</h2>
         <p style={{ fontSize: '15px', color: '#94a3b8', marginBottom: '28px' }}>Join Qatar businesses using AI to respond faster, convert more leads, and grow revenue.</p>
-        <Link href="/register" style={{ display: 'inline-block', padding: '14px 36px', background: '#C9A96E', borderRadius: '8px', color: '#07090f', textDecoration: 'none', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.01em' }}>
+        <Link href="/register" style={{ display: 'inline-block', padding: '14px 36px', background: '#D8B16A', borderRadius: '8px', color: '#070b0a', textDecoration: 'none', fontSize: '15px', fontWeight: '800', letterSpacing: '-0.01em' }}>
           Create your free account →
         </Link>
         <p style={{ marginTop: '14px', fontSize: '11px', color: '#475569' }}>Data stored in Qatar · me-central1 (Doha) · PDPL compliant</p>
@@ -202,12 +202,12 @@ export default function LandingPage() {
       {/* ─── Footer ─────────────────────────────────────────────────── */}
       <footer style={{ padding: '32px 24px', borderTop: '1px solid #1a2235', maxWidth: '960px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ fontWeight: '700', fontSize: '14px' }}>Hayya<span style={{ color: '#C9A96E' }}> AI</span></div>
+          <div style={{ fontWeight: '700', fontSize: '14px' }}>Hayya<span style={{ color: '#D8B16A' }}> AI</span></div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <Link href="/about" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>About</Link>
             <Link href="/developers" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Developers</Link>
             <Link href="/login" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Log in</Link>
-            <Link href="/register" style={{ fontSize: '11px', color: '#C9A96E', textDecoration: 'none' }}>Sign up free</Link>
+            <Link href="/register" style={{ fontSize: '11px', color: '#D8B16A', textDecoration: 'none' }}>Sign up free</Link>
           </div>
         </div>
         <div style={{ fontSize: '11px', color: '#475569', marginTop: '16px', textAlign: 'center', lineHeight: '1.8' }}>
