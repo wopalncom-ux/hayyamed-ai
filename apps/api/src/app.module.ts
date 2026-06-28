@@ -39,6 +39,7 @@ import { WebchatModule } from './modules/webchat/webchat.module'
 import { TelegramModule } from './modules/telegram/telegram.module'
 import { QuickRepliesModule } from './modules/quick-replies/quick-replies.module'
 import { MyFatoorahModule } from './modules/myfatoorah/myfatoorah.module'
+import { UnipileModule } from './modules/unipile/unipile.module'
 import { WebhooksModule } from './modules/webhooks/webhooks.module'
 import { ApiKeysModule } from './modules/api-keys/api-keys.module'
 import { DatabaseModule } from './database/database.module'
@@ -87,6 +88,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     TelegramModule,
     QuickRepliesModule,
     MyFatoorahModule,
+    UnipileModule,
     WebhooksModule,
     ApiKeysModule,
   ],

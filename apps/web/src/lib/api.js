@@ -427,6 +427,13 @@ export const api = {
   connectWhatsApp: (body) => request('/whatsapp/channels', { method: 'POST', body: JSON.stringify(body) }),
   disconnectWhatsApp: (id) => request(`/whatsapp/channels/${id}`, { method: 'DELETE' }),
   testWhatsApp: (body) => request('/whatsapp/channels/test', { method: 'POST', body: JSON.stringify(body) }),
+
+  // WhatsApp via Unipile (QR connect — no Meta approval)
+  unipilePlatformStatus: () => request('/unipile/platform-status'),
+  saveUnipilePlatform: (dsn, apiKey) => request('/unipile/platform-config', { method: 'POST', body: JSON.stringify({ dsn, apiKey }) }),
+  unipileWhatsAppStatus: () => request('/unipile/whatsapp/status'),
+  unipileWhatsAppConnect: (pairingPhone) => request('/unipile/whatsapp/connect', { method: 'POST', body: JSON.stringify({ pairingPhone }) }),
+  unipileWhatsAppDisconnect: () => request('/unipile/whatsapp/disconnect', { method: 'POST' }),
   sendWhatsApp: (body) => request('/whatsapp/send', { method: 'POST', body: JSON.stringify(body) }),
   broadcastWhatsApp: (body) => request('/whatsapp/broadcast', { method: 'POST', body: JSON.stringify(body) }),
 

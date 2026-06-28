@@ -28,6 +28,13 @@ const INTEGRATIONS = [
     docs:'https://developers.facebook.com/docs/whatsapp',
   },
   {
+    id:'whatsapp-unipile', category:'Social & Messaging', color:'#25D366', setupUrl:'/integrations/whatsapp-unipile',
+    name:'WhatsApp (QR connect)', icon:'💚',
+    desc:'Connect your own WhatsApp number by scanning a QR / entering a pairing code — no Meta Business approval. Powered by Unipile. Best for two-way support chat.',
+    badge:'Recommended', fields:[],
+    docs:'https://www.unipile.com/whatsapp-api-documentation/',
+  },
+  {
     id:'website', category:'Social & Messaging', color:'#00e5a0', setupUrl:'/integrations/website',
     name:'Website Chat Widget', icon:'🌐',
     desc:'Add an AI chat bubble to any website. Visitor messages land in your inbox; AI replies from your knowledge base. Live now — no credentials needed.',
