@@ -154,6 +154,11 @@ export default function ClientsConsole() {
   }
   useEffect(() => { api.getAutomationTemplates().then(t => setAutoTemplates(Array.isArray(t) ? t : [])).catch(() => {}) }, [])
   const installTemplate = async (tid) => { if (!selected) return; try { await api.installClientTemplate(selected.id, tid); loadAutos(selected.id); openClient(selected.id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Install failed' }) } }
+  const [autoDesc, setAutoDesc] = useState('')
+  const [autoPreview, setAutoPreview] = useState(null)
+  const [autoGen, setAutoGen] = useState(false)
+  const genAuto = async () => { if (!selected || !autoDesc.trim()) return; setAutoGen(true); setAutoPreview(null); try { setAutoPreview(await api.generateClientAutomation(selected.id, autoDesc.trim())) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not generate' }) } finally { setAutoGen(false) } }
+  const createAuto = async () => { if (!selected || !autoPreview) return; try { await api.createClientAutomationFlow(selected.id, autoPreview); setAutoPreview(null); setAutoDesc(''); loadAutos(selected.id); openClient(selected.id); setMsg({ ok: true, text: 'Automation created ✓' }) } catch (e) { setMsg({ ok: false, text: e?.message || 'Create failed' }) } }
   const toggleAuto = async (w) => { if (!selected) return; try { await api.toggleClientAutomation(selected.id, w.id, !w.isActive); loadAutos(selected.id) } catch {} }
   const delAuto = async (wid) => { if (!selected) return; try { await api.removeClientAutomation(selected.id, wid); loadAutos(selected.id); openClient(selected.id) } catch {} }
   // Modules (Phase 6)
@@ -692,6 +697,31 @@ export default function ClientsConsole() {
               {/* AUTOMATIONS */}
               {tab === 'automations' && selected && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* AI automation builder — describe it in plain words */}
+                  <div style={{ ...card, border: '1px solid rgba(167,139,250,.35)' }}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>✨ Describe an automation</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Tell the AI what you want in plain language and it builds the flow for this client. e.g. <i>"When a new WhatsApp lead arrives, tag them 'hot' and send a welcome, then follow up after 1 day."</i></div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <input value={autoDesc} onChange={e => setAutoDesc(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') genAuto() }} placeholder="Describe what should happen…" style={{ ...input, flex: '1 1 260px' }} />
+                      <button onClick={genAuto} disabled={autoGen || !autoDesc.trim()} style={{ padding: '9px 18px', background: autoDesc.trim() ? '#a78bfa' : '#1a2235', border: 'none', borderRadius: '8px', color: autoDesc.trim() ? '#fff' : '#64748b', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>{autoGen ? 'Thinking…' : '✨ Generate'}</button>
+                    </div>
+                    {autoPreview && (
+                      <div style={{ marginTop: '12px', background: '#0a121e', border: '1px solid #1e2d42', borderRadius: '8px', padding: '12px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 800, marginBottom: '4px' }}>{autoPreview.name}</div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '8px' }}>Trigger: <b style={{ color: '#D8B16A' }}>{autoPreview.trigger}</b>{autoPreview.conditions && Object.keys(autoPreview.conditions).length ? ` · ${JSON.stringify(autoPreview.conditions)}` : ''}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
+                          {(autoPreview.actions || []).map((a, i) => (
+                            <div key={i} style={{ fontSize: '12px', color: '#cbd5e1' }}>→ <b>{a.type}</b>{a.message ? `: "${a.message}"` : a.tag ? `: ${a.tag}` : a.title ? `: ${a.title}` : a.seconds ? `: wait ${Math.round(a.seconds / 3600)}h` : a.status ? `: ${a.status}` : ''}</div>
+                          ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={createAuto} style={{ padding: '8px 16px', background: '#D8B16A', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>✓ Create this automation</button>
+                          <button onClick={() => setAutoPreview(null)} style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontSize: '12px', cursor: 'pointer' }}>Discard</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Template gallery */}
                   <div style={card}>
                     <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>Quick-install templates</div>

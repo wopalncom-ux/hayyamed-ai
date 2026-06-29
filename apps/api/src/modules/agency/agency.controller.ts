@@ -254,6 +254,11 @@ export class AgencyController {
     return this.agency.createClientAutomation(user.orgId, id, dto)
   }
 
+  @Post('clients/:id/automations/generate')
+  generateAutomation(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { description: string }) {
+    return this.agency.aiGenerateAutomation(user.orgId, id, body.description)
+  }
+
   @Post('clients/:id/automations/install')
   installTemplate(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { templateId: string }) {
     return this.agency.installClientTemplate(user.orgId, id, body.templateId)

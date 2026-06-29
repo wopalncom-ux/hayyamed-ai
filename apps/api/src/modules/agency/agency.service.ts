@@ -89,6 +89,12 @@ export class AgencyService {
     return this.workflows.create(clientId, dto)
   }
 
+  // AI: describe an automation in plain language → preview a workflow for this client.
+  async aiGenerateAutomation(agencyOrgId: string, clientId: string, description: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.workflows.generateFromDescription(clientId, description)
+  }
+
   async installClientTemplate(agencyOrgId: string, clientId: string, templateId: string) {
     await this.assertOwns(agencyOrgId, clientId)
     const t = AUTOMATION_TEMPLATES.find(x => x.id === templateId)
