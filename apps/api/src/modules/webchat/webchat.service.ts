@@ -150,8 +150,14 @@ export class WebchatService {
       let knowledge = ''
       try { knowledge = await this.rag.getContextForQuery(orgId, text, 4) } catch { knowledge = '' }
       if (!knowledge && isSubstantiveQuestion(text)) this.rag.logGap(orgId, text, 'webchat').catch(() => {})
+      let memBlock = ''
+      try {
+        const cm = conv.contactId ? await this.prisma.contact.findUnique({ where: { id: conv.contactId }, select: { metadata: true } }) : null
+        const mem: string[] = Array.isArray((cm?.metadata as any)?.memory) ? (cm!.metadata as any).memory : []
+        if (mem.length) memBlock = `\n\nWHAT YOU REMEMBER ABOUT THIS VISITOR (use naturally — greet a returning visitor by name):\n- ${mem.join('\n- ')}`
+      } catch {}
       const history = await this.prisma.message.findMany({ where: { conversationId: conv.id }, orderBy: { createdAt: 'asc' }, take: 12 })
-      const system = `You are the website assistant for ${org.name}${org.industry ? `, a ${org.industry} business` : ''}. Be concise, friendly, and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the visitor with the team.${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
+      const system = `You are the website assistant for ${org.name}${org.industry ? `, a ${org.industry} business` : ''}. Be concise, friendly, and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the visitor with the team.${memBlock}${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
       const messages = [
         { role: 'system' as const, content: system },
         ...history.map(m => ({ role: (m.senderId || m.isAI ? 'assistant' : 'user') as 'user' | 'assistant', content: m.content || '' })).filter(m => m.content),

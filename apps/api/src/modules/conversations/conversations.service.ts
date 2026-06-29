@@ -203,8 +203,32 @@ export class ConversationsService {
           data: { conversationId: id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: 'Glad we could help! How would you rate this conversation from 1 to 5? ⭐' },
         })
       }
+      // Learn durable facts about this customer for next time (async, best-effort).
+      this.extractMemory(id, orgId).catch(() => {})
     }
     return this.prisma.conversation.update({ where: { id }, data: { status: status as any, metadata: md } })
+  }
+
+  // AI memory: pull durable facts about the customer from a finished conversation
+  // and append them to the contact, so a returning customer is greeted with context.
+  private async extractMemory(conversationId: string, orgId: string) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id: conversationId, orgId }, select: { contactId: true } })
+    if (!conv?.contactId) return
+    const msgs = await this.prisma.message.findMany({ where: { conversationId }, orderBy: { createdAt: 'asc' }, take: 40, select: { content: true, isAI: true, isFromBot: true } })
+    const transcript = msgs.map(m => `${(m.isAI || m.isFromBot) ? 'Us' : 'Customer'}: ${m.content}`).join('\n')
+    if (transcript.length < 30) return
+    const contact = await this.prisma.contact.findUnique({ where: { id: conv.contactId }, select: { metadata: true } })
+    const existing: string[] = Array.isArray((contact?.metadata as any)?.memory) ? (contact!.metadata as any).memory : []
+    const sys = `Extract durable facts worth remembering about the CUSTOMER for next time — name, preferences, what they asked about, what they bought, key personal/business details. Output ONLY a JSON array of short strings (max 6). Do not repeat anything we already know. If nothing new, output []. Already known: ${JSON.stringify(existing)}`
+    let facts: string[] = []
+    try {
+      const raw = await this.ai.complete([{ role: 'system', content: sys }, { role: 'user', content: transcript }], { maxTokens: 220, temperature: 0.2, orgId, module: 'memory', action: 'extract' })
+      const m = raw.match(/\[[\s\S]*\]/); facts = JSON.parse(m ? m[0] : '[]')
+    } catch { return }
+    facts = (Array.isArray(facts) ? facts : []).filter(f => typeof f === 'string' && f.trim() && !existing.includes(f.trim())).map(f => f.trim()).slice(0, 6)
+    if (!facts.length) return
+    const memory = [...existing, ...facts].slice(-20)
+    await this.prisma.contact.update({ where: { id: conv.contactId }, data: { metadata: { ...((contact?.metadata as any) || {}), memory } } }).catch(() => {})
   }
 
   // Plain-text transcript of a conversation (for records / export).

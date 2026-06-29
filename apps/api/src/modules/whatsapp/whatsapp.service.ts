@@ -346,7 +346,16 @@ export class WhatsAppService {
       const persona = agent
         ? [`You are ${agent.name}, a ${agent.role} for ${org?.name || 'our business'}.`, agent.personality ? `Personality: ${agent.personality}.` : '', agent.objective ? `Objective: ${agent.objective}.` : ''].filter(Boolean).join(' ')
         : `You are the WhatsApp assistant for ${org?.name || 'our business'}${org?.industry ? `, a ${org.industry} business` : ''}.`
-      const system = `${persona} ${lang} Be concise, warm and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the customer with the team.${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
+
+      // Per-customer memory — greet returning customers with context.
+      let memBlock = ''
+      try {
+        const cm = await this.prisma.contact.findUnique({ where: { id: contact.id }, select: { metadata: true } })
+        const mem: string[] = Array.isArray((cm?.metadata as any)?.memory) ? (cm!.metadata as any).memory : []
+        if (mem.length) memBlock = `\n\nWHAT YOU REMEMBER ABOUT THIS CUSTOMER (use naturally — e.g. greet a returning customer by name):\n- ${mem.join('\n- ')}`
+      } catch {}
+
+      const system = `${persona} ${lang} Be concise, warm and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the customer with the team.${memBlock}${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
 
       const reply = await this.ai.complete(
         [{ role: 'system', content: system }, { role: 'user', content: text }],

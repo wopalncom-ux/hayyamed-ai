@@ -142,6 +142,21 @@ export default function ClientLeads({ me }) {
               </div>
             )}
 
+            {/* AI memory — what the assistant remembers about this customer */}
+            <div style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'10px', padding:'12px', marginBottom:'14px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px' }}>
+                <div style={{ fontSize:'12px', fontWeight:800, color:'#06b6d4' }}>🧠 What we remember</div>
+                {can('add_notes') && <button onClick={async () => { const f = prompt('Add a fact the AI should remember about this customer:'); if (!f || !f.trim()) return; const mem = [...(sel.metadata?.memory || []), f.trim()].slice(-20); try { await api.updateContact(sel.id, { metadata: { ...(sel.metadata||{}), memory: mem } }); setSel(s => ({ ...s, metadata: { ...(s.metadata||{}), memory: mem } })) } catch {} }} style={{ fontSize:'11px', background:'none', border:'1px solid #1e2d42', borderRadius:'6px', padding:'3px 9px', color:'#7a8fa6', cursor:'pointer' }}>+ Add</button>}
+              </div>
+              {(sel.metadata?.memory || []).length === 0 ? <div style={{ fontSize:'11px', color:'#3d4f63' }}>Nothing yet — the AI learns durable facts each time a conversation is resolved.</div>
+                : (sel.metadata.memory).map((f, i) => (
+                  <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:'12px', color:'#cbd5e1', padding:'3px 0' }}>
+                    <span>• {f}</span>
+                    {can('add_notes') && <button onClick={async () => { const mem = (sel.metadata.memory || []).filter((_, j) => j !== i); try { await api.updateContact(sel.id, { metadata: { ...(sel.metadata||{}), memory: mem } }); setSel(s => ({ ...s, metadata: { ...(s.metadata||{}), memory: mem } })) } catch {} }} style={{ fontSize:'11px', background:'none', border:'none', color:'#64748b', cursor:'pointer' }}>×</button>}
+                  </div>
+                ))}
+            </div>
+
             {!detail ? <div style={{ color:'#3d4f63', fontSize:'12px' }}>Loading history…</div> : (<>
               {detail.conversations?.length>0 && (
                 <div style={{ marginBottom:'18px' }}>
