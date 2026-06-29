@@ -114,9 +114,21 @@ export default function RootLayout({ children }) {
           .hai-reveal.in { opacity:1; transform:translate3d(0,0,0); }
           .hai-orb { position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none; }
           .hai-shimmer { background:linear-gradient(100deg,#EAD9A6 20%,#D8B16A 45%,#fff7e6 50%,#D8B16A 55%,#A07C3A 80%); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:hai-shimmer 6s linear infinite; }
+          /* App polish: skeleton shimmer + card entrance */
+          @keyframes hai-skel { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+          .hai-skel { background:linear-gradient(100deg,#141a28 30%,#1f2738 50%,#141a28 70%); background-size:200% 100%; animation:hai-skel 1.4s ease-in-out infinite; border-radius:6px; display:inline-block; }
+          @keyframes hai-rise { from{opacity:0;transform:translate3d(0,10px,0)} to{opacity:1;transform:none} }
+          .hai-rise { animation:hai-rise .5s cubic-bezier(.2,.7,.2,1) both; }
+          .hai-stagger > * { animation:hai-rise .5s cubic-bezier(.2,.7,.2,1) both; }
+          .hai-stagger > *:nth-child(1){animation-delay:.02s} .hai-stagger > *:nth-child(2){animation-delay:.06s}
+          .hai-stagger > *:nth-child(3){animation-delay:.10s} .hai-stagger > *:nth-child(4){animation-delay:.14s}
+          .hai-stagger > *:nth-child(5){animation-delay:.18s} .hai-stagger > *:nth-child(6){animation-delay:.22s}
+          .hai-stagger > *:nth-child(7){animation-delay:.26s} .hai-stagger > *:nth-child(8){animation-delay:.30s}
           @media (prefers-reduced-motion: reduce) {
             .hai-reveal{opacity:1!important;transform:none!important;transition:none!important}
             .hai-orb,.hai-shimmer,[data-anim]{animation:none!important}
+            .hai-rise,.hai-stagger > *{animation:none!important}
+            .hai-skel{animation:none!important}
           }
         ` }} />
       </head>

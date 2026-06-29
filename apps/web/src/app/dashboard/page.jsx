@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { api } from '@/lib/api'
 import { getAuth, ROLE_LABELS, logout } from '@/lib/auth'
 import { useIsMobile } from '@/lib/useIsMobile'
+import Skeleton from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 const fmt = (n) => n == null ? '—' : n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n)
 const fmtQar = (n) => (n || 0).toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 })
@@ -175,7 +177,7 @@ export default function Dashboard() {
           )}
 
           {/* KPI Strip */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+          <div className="hai-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
             {[
               { label: 'Total Contacts',   value: fmt(kpis?.totalContacts),   sub: `+${kpis?.newContacts7d || 0} this week`,    color: '#D8B16A', chart: chart, chartKey: 'contacts' },
               { label: 'Pipeline Value',   value: fmtQar(kpis?.pipelineValue), sub: `${fmtQar(kpis?.wonValue)} won`,            color: '#3b82f6', chart: null },
@@ -188,7 +190,7 @@ export default function Dashboard() {
             ].map((k, i) => (
               <div key={i} style={{ background: '#111622', border: '1px solid #1a2235', borderTop: `2px solid ${k.color}`, borderRadius: '8px', padding: '14px 16px', overflow: 'hidden', position: 'relative' }}>
                 <div style={{ fontSize: '10px', color: '#475569', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{k.label}</div>
-                <div style={{ fontSize: '20px', fontWeight: '800', color: k.color }}>{loading ? '—' : k.value}</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: k.color }}>{loading ? <Skeleton width={52} height={20} /> : k.value}</div>
                 <div style={{ fontSize: '11px', color: '#475569', marginTop: '3px' }}>{k.sub}</div>
                 {k.chart && k.chart.length > 2 && (
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, opacity: 0.5 }}>
@@ -200,7 +202,7 @@ export default function Dashboard() {
           </div>
 
           {/* Chart + Pipeline funnel */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '16px' }}>
+          <div className="hai-rise" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '16px' }}>
 
             {/* 7-day chart */}
             <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
@@ -288,9 +290,11 @@ export default function Dashboard() {
                 <a href="/pipeline" style={{ fontSize: '11px', color: '#3b82f6', textDecoration: 'none' }}>Open →</a>
               </div>
               {loading ? (
-                <div style={{ fontSize: '12px', color: '#475569' }}>Loading…</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {[0,1,2,3].map(i => <Skeleton key={i} width="100%" height={22} />)}
+                </div>
               ) : pipeline.every(s => s.count === 0) ? (
-                <div style={{ fontSize: '12px', color: '#475569', padding: '20px 0' }}>No contacts in pipeline yet.<br /><a href="/contacts" style={{ color: '#3b82f6' }}>Add contacts →</a></div>
+                <EmptyState compact icon="📊" title="No deals yet" hint="Add your first contacts to start tracking your pipeline." action={{ href: '/contacts', label: 'Add contacts' }} />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {pipeline.filter(s => s.count > 0).map(s => {
