@@ -9,7 +9,10 @@
   var API = (script && script.getAttribute('data-api')) || 'https://api.hayyaai.com'
   if (!ORG) { console.warn('[Hayyamed widget] missing data-org'); return }
 
-  var GRN = '#00e5a0', BG = '#0f1622', BD = '#1e2d42', TX = '#e8eef5', MUT = '#7a8fa6'
+  // Accent defaults to the Hayya AI champagne gold; each client can brand their
+  // own widget with data-color="#RRGGBB".
+  var GRN = (script && script.getAttribute('data-color')) || '#D8B16A'
+  var BG = '#0f1622', BD = '#1e2d42', TX = '#e8eef5', MUT = '#7a8fa6'
   var sessionId = localStorage.getItem('hm_webchat_sid')
   if (!sessionId) { sessionId = 'web-' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('hm_webchat_sid', sessionId) }
 
@@ -31,7 +34,11 @@
     '.hmw-ft{padding:12px;border-top:1px solid ' + BD + ';display:flex;gap:8px;background:' + BG + '}' +
     '.hmw-in{flex:1;background:#0a121e;border:1px solid ' + BD + ';border-radius:9px;padding:10px 12px;color:' + TX + ';font-size:14px;outline:none}' +
     '.hmw-send{background:' + GRN + ';border:none;border-radius:9px;color:#07090f;font-weight:800;padding:0 16px;cursor:pointer}' +
-    '.hmw-pwr{text-align:center;font-size:10px;color:' + MUT + ';padding:6px}'
+    '.hmw-pwr{text-align:center;font-size:10px;color:' + MUT + ';padding:6px}' +
+    '.hmw-typing{display:flex;gap:4px;align-items:center}' +
+    '.hmw-typing span{width:6px;height:6px;border-radius:50%;background:' + MUT + ';display:inline-block;animation:hmw-bounce 1.2s infinite ease-in-out}' +
+    '.hmw-typing span:nth-child(2){animation-delay:.15s}.hmw-typing span:nth-child(3){animation-delay:.3s}' +
+    '@keyframes hmw-bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-4px);opacity:1}}'
   document.head.appendChild(css)
 
   var btn = document.createElement('button')
@@ -59,7 +66,7 @@
   function send() {
     var text = inp.value.trim(); if (!text) return
     inp.value = ''; add(text, 'visitor')
-    var typing = document.createElement('div'); typing.className = 'hmw-msg hmw-b'; typing.textContent = '…'; body.appendChild(typing); body.scrollTop = body.scrollHeight
+    var typing = document.createElement('div'); typing.className = 'hmw-msg hmw-b'; typing.innerHTML = '<span class="hmw-typing"><span></span><span></span><span></span></span>'; body.appendChild(typing); body.scrollTop = body.scrollHeight
     fetch(API + '/api/v1/webchat/' + ORG + '/message', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId: sessionId, text: text }),
