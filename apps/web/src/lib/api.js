@@ -101,6 +101,21 @@ export const api = {
     request(`/contacts/${id}`, { method: 'DELETE' }),
   bulkContacts: (ids, action, value) =>
     request('/contacts/bulk', { method: 'POST', body: JSON.stringify({ ids, action, value }) }),
+  previewImport: async (file) => {
+    const fd = new FormData(); fd.append('file', file)
+    const r = await authFetch('/contacts/import/preview', { method: 'POST', body: fd })
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Preview failed')
+    return r.json()
+  },
+  importContacts: async (file, mapping, opts = {}) => {
+    const fd = new FormData(); fd.append('file', file); fd.append('mapping', JSON.stringify(mapping))
+    if (opts.defaultSource) fd.append('defaultSource', opts.defaultSource)
+    if (opts.defaultStatus) fd.append('defaultStatus', opts.defaultStatus)
+    if (opts.overwriteDuplicates) fd.append('overwriteDuplicates', 'true')
+    const r = await authFetch('/contacts/import', { method: 'POST', body: fd })
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Import failed')
+    return r.json()
+  },
 
   // Campaigns
   getCampaigns: (params = {}) =>

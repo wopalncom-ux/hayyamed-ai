@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
+import ClientImport from './ClientImport'
 
 const SRC = {
   whatsapp:{i:'💬',l:'WhatsApp'}, instagram:{i:'📸',l:'Instagram'}, facebook:{i:'👤',l:'Facebook'},
@@ -29,10 +30,12 @@ export default function ClientLeads({ me }) {
   const [aiSummary, setAiSummary] = useState('')
   const [summarizing, setSummarizing] = useState(false)
   const [followUp, setFollowUp] = useState('')
+  const [importing, setImporting] = useState(false)
   const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
+  const loadLeads = () => api.getContacts({ limit: 200 }).then(r => setLeads((r?.data || r || []))).catch(() => {}).finally(() => setLoading(false))
 
   useEffect(() => {
-    api.getContacts({ limit: 200 }).then(r => setLeads((r?.data || r || []))).catch(() => {}).finally(() => setLoading(false))
+    loadLeads()
     api.getCampaigns({ limit: 100 }).then(r => { const a = r?.data || r || []; setCampMap(Object.fromEntries(a.map(c => [c.id, c.name]))) }).catch(() => {})
   }, [])
   const campName = (id) => id ? (campMap[id] || 'Campaign') : null
@@ -89,8 +92,11 @@ export default function ClientLeads({ me }) {
         <span style={{ fontSize:'11px', color:'#64748b' }}>to</span>
         <input type="date" value={fTo} onChange={e=>setFTo(e.target.value)} style={{ background:'#0a121e', border:`1px solid ${fTo?'#D8B16A':'#1e2d42'}`, borderRadius:'8px', padding:'8px 9px', color:'#e8eef5', fontSize:'11px', cursor:'pointer' }} />
         {(fFrom||fTo) && <button onClick={()=>{ setFFrom(''); setFTo('') }} style={{ fontSize:'11px', background:'none', border:'none', color:'#ef4444', cursor:'pointer' }}>clear</button>}
-        <span style={{ fontSize:'12px', color:'#7a8fa6', marginLeft:'auto' }}>{filtered.length} leads</span>
+        {can('launch_campaigns') && <button onClick={()=>setImporting(true)} style={{ marginLeft:'auto', padding:'8px 14px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'8px', color:'#D8B16A', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>⬆ Import CSV</button>}
+        <span style={{ fontSize:'12px', color:'#7a8fa6', marginLeft: can('launch_campaigns') ? '0' : 'auto' }}>{filtered.length} leads</span>
       </div>
+
+      {importing && <ClientImport onClose={()=>setImporting(false)} onDone={loadLeads} />}
 
       <div style={{ ...card, overflow:'hidden' }}>
         {loading ? <div style={{ padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'13px' }}>Loading…</div>
