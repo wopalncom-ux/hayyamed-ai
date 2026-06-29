@@ -66,6 +66,10 @@ export default function ClientsConsole() {
     catch (e) { setMsg({ ok: false, text: e?.message || 'Credentials rejected' }) }
   }
   const removeInteg = async (type) => { if (!selected?.id) return; try { await api.removeClientIntegration(selected.id, type); loadClientInteg(selected.id) } catch {} }
+  const [ownerView, setOwnerView] = useState('overview')
+  const [storageData, setStorageData] = useState(null)
+  const openStorage = () => { setSelected(null); setEditing(null); setOwnerView('storage'); api.getAgencyStorage().then(setStorageData).catch(() => {}) }
+  const savePayCfg = async (key, who) => { if (!selected?.id) return; const cfg = { ...(selected.paymentConfig || {}), [key]: who }; try { await api.updateAgencyClient(selected.id, { paymentConfig: cfg }); setSelected(s => ({ ...s, paymentConfig: cfg })); setMsg({ ok: true, text: 'Payment responsibility saved' }) } catch (e) { setMsg({ ok: false, text: e?.message || 'Failed' }) } }
   const createPortalLogin = async () => {
     if (!selected?.id || !portalEmail.trim()) return
     setPortalResult(null)
@@ -268,7 +272,8 @@ export default function ClientsConsole() {
           <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 800, letterSpacing: '1px', marginBottom: '2px' }}>CLIENT AI OPERATING CENTER</div>
           <div style={{ fontWeight: 900, fontSize: '17px', marginBottom: '14px' }}>Clients</div>
           <button onClick={newClient} style={{ width: '100%', padding: '9px', background: '#D8B16A', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer', marginBottom: '8px' }}>+ New Client</button>
-          <button onClick={() => { setSelected(null); setEditing(null); loadOverview() }} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontWeight: 700, fontSize: '12px', cursor: 'pointer', marginBottom: '14px' }}>📊 Owner Overview</button>
+          <button onClick={() => { setSelected(null); setEditing(null); setOwnerView('overview'); loadOverview() }} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontWeight: 700, fontSize: '12px', cursor: 'pointer', marginBottom: '6px' }}>📊 Owner Overview</button>
+          <button onClick={openStorage} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid #1a2235', borderRadius: '7px', color: '#7a8fa6', fontWeight: 700, fontSize: '12px', cursor: 'pointer', marginBottom: '14px' }}>💾 Storage</button>
           {loading ? <div style={{ color: '#64748b', fontSize: '12px' }}>Loading…</div>
             : clients.length === 0 ? <div style={{ color: '#64748b', fontSize: '12px', lineHeight: 1.6 }}>No clients yet. Create your first client to set up their AI brain, agents, automations and billing.</div>
             : clients.map(c => (
@@ -285,7 +290,31 @@ export default function ClientsConsole() {
 
         {/* Detail / editor */}
         <div style={{ flex: 1, padding: '24px 28px', overflow: 'auto' }}>
-          {!editing ? (
+          {!editing && ownerView === 'storage' ? (
+            <div style={{ maxWidth: '960px' }}>
+              <div style={{ fontWeight: 900, fontSize: '22px', marginBottom: '4px' }}>💾 Storage</div>
+              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '18px' }}>AI Brain storage used by each client, against their limit.</div>
+              {!storageData ? <div style={{ color: '#64748b', fontSize: '12px' }}>Loading…</div> : (<>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '10px', marginBottom: '18px' }}>
+                  {[['Clients', storageData.clientCount, '#3b82f6'], ['Total used (MB)', storageData.totalUsedMb, '#D8B16A'], ['Total limit (MB)', storageData.totalLimitMb, '#a78bfa'], ['Sources', storageData.totalSources, '#06b6d4']].map(([l, v, c]) => (
+                    <div key={l} style={{ ...card, padding: '12px', textAlign: 'center' }}><div style={{ fontSize: '22px', fontWeight: 900, color: c }}>{v}</div><div style={{ fontSize: '10px', color: '#64748b' }}>{l}</div></div>
+                  ))}
+                </div>
+                <div style={card}>
+                  {storageData.clients.length === 0 ? <div style={{ color: '#64748b', fontSize: '12px' }}>No clients yet.</div> : storageData.clients.map(c => (
+                    <div key={c.id} onClick={() => openClient(c.id)} style={{ padding: '11px 0', borderBottom: '1px solid #1a2235', cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700 }}>{c.logo} {c.name}</span>
+                        <span style={{ fontSize: '12px', color: c.pct > 85 ? '#ef4444' : '#94a3b8' }}>{c.usedMb} / {c.limitMb} MB · {c.sources} source{c.sources === 1 ? '' : 's'}</span>
+                      </div>
+                      <div style={{ height: '7px', background: '#0a121e', borderRadius: '4px', overflow: 'hidden' }}><div style={{ width: `${c.pct}%`, height: '100%', background: c.pct > 85 ? '#ef4444' : '#D8B16A', borderRadius: '4px' }} /></div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ ...card, marginTop: '12px', fontSize: '12px', color: '#64748b' }}>🛟 <b style={{ color: '#94a3b8' }}>Backups:</b> all AI Brain content (knowledge sources + embeddings) is stored in Postgres (Cloud SQL, me-central1) with automated daily backups + point-in-time recovery. Per-client export/restore can be added on request.</div>
+              </>)}
+            </div>
+          ) : !editing ? (
             <div style={{ maxWidth: '960px' }}>
               <div style={{ fontWeight: 900, fontSize: '22px', marginBottom: '4px' }}>📊 Owner Overview</div>
               <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '18px' }}>Every client, their AI setup, costs and activity — at a glance.</div>
@@ -775,6 +804,25 @@ export default function ClientsConsole() {
                       <input type="number" min="0" style={{ ...input, width: '110px' }} defaultValue={selected.chargeLimit ?? ''} onBlur={e => saveChargeLimit(e.target.value)} placeholder="No limit" />
                       <span style={{ fontSize: '10px', color: '#64748b' }}>charges blocked once exceeded this month</span>
                     </div>
+                  </div>
+
+                  {/* Payment responsibility per cost type */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>💳 Payment Responsibility</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Who pays for each cost type. (Default: you cover AI tokens; the client covers messaging.)</div>
+                    {[['ai', 'AI tokens', 'owner'], ['messaging', 'Messaging (WhatsApp / SMS)', 'client'], ['other', 'Other integrations', 'client']].map(([key, label, def]) => {
+                      const who = (selected.paymentConfig && selected.paymentConfig[key]) || def
+                      return (
+                        <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1a2235' }}>
+                          <span style={{ fontSize: '12px', color: '#e2e8f0' }}>{label}</span>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            {[['owner', 'Me'], ['client', 'Client']].map(([w, l]) => (
+                              <button key={w} onClick={() => savePayCfg(key, w)} style={{ fontSize: '11px', padding: '4px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${who === w ? '#D8B16A' : '#1a2235'}`, background: who === w ? 'rgba(216,177,106,.12)' : 'transparent', color: who === w ? '#D8B16A' : '#7a8fa6', fontWeight: 700 }}>{l}</button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
 
                   {/* Campaign / usage charge calculator */}

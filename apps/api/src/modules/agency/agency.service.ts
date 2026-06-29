@@ -274,6 +274,28 @@ export class AgencyService {
     }
   }
 
+  // Storage across ALL clients (owner Storage page) + a simple backup snapshot count.
+  async agencyStorage(agencyOrgId: string) {
+    const clients = await this.prisma.organization.findMany({
+      where: { parentOrgId: agencyOrgId },
+      select: { id: true, name: true, logo: true, storageLimitMb: true },
+      orderBy: { name: 'asc' },
+    })
+    const rows = await Promise.all(clients.map(async c => {
+      const srcs = await this.prisma.knowledgeSource.findMany({ where: { knowledgeBase: { orgId: c.id } }, select: { sizeBytes: true } })
+      const usedMb = +(srcs.reduce((s, r) => s + (r.sizeBytes || 0), 0) / 1048576).toFixed(2)
+      const limitMb = c.storageLimitMb ?? 500
+      return { id: c.id, name: c.name, logo: c.logo || '🏢', sources: srcs.length, usedMb, limitMb, pct: limitMb > 0 ? Math.min(100, Math.round(usedMb / limitMb * 100)) : 0 }
+    }))
+    return {
+      clients: rows,
+      totalUsedMb: +rows.reduce((s, r) => s + r.usedMb, 0).toFixed(2),
+      totalLimitMb: rows.reduce((s, r) => s + r.limitMb, 0),
+      totalSources: rows.reduce((s, r) => s + r.sources, 0),
+      clientCount: rows.length,
+    }
+  }
+
   // ── Owner control: global overview + logs (P8) ─────────────────────────────
   async ownerOverview(agencyOrgId: string) {
     const clients = await this.prisma.organization.findMany({
@@ -470,7 +492,7 @@ export class AgencyService {
       profitPercent: c.profitPercent, campaignBilling: c.campaignBilling,
       adminNotes: c.adminNotes, notes: c.agencyNotes, balance: c.agencyBalance,
       monthlyRev: c.agencyMonthlyRev, customMargin: c.agencyCustomMgn, aiScore: c.agencyAiScore,
-      maxSeats: (c as any).maxSeats, chargeLimit: (c as any).chargeLimit,
+      maxSeats: (c as any).maxSeats, chargeLimit: (c as any).chargeLimit, paymentConfig: (c as any).paymentConfig || {},
       counts: {
         contacts: c._count.contacts, agents: c._count.aiAgents,
         knowledgeBases: c._count.knowledgeBases, automations: c._count.workflows,
@@ -514,6 +536,7 @@ export class AgencyService {
     if (dto.storageLimitMb != null) data.storageLimitMb = dto.storageLimitMb
     if ((dto as any).maxSeats != null) data.maxSeats = Math.max(1, Math.min(50, Number((dto as any).maxSeats) || 5))
     if ((dto as any).chargeLimit !== undefined) data.chargeLimit = (dto as any).chargeLimit === null || (dto as any).chargeLimit === '' ? null : Math.max(0, Number((dto as any).chargeLimit) || 0)
+    if ((dto as any).paymentConfig !== undefined) data.paymentConfig = (dto as any).paymentConfig
     if (dto.profitPercent != null) data.profitPercent = dto.profitPercent
     // Strip undefined so we only update provided fields.
     Object.keys(data).forEach(k => data[k] === undefined && delete data[k])

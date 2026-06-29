@@ -14,6 +14,11 @@ export class AgencyController {
 
   // ── Stats ──────────────────────────────────────────────────────────────────
 
+  @Get('storage')
+  agencyStorageOverview(@CurrentUser() user: JwtPayload) {
+    return this.agency.agencyStorage(user.orgId)
+  }
+
   @Get('stats')
   stats(@CurrentUser() user: JwtPayload) {
     return this.agency.getStats(user.orgId)

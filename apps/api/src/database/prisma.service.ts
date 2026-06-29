@@ -34,6 +34,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       await this.$executeRawUnsafe('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "permissions" JSONB')
       await this.$executeRawUnsafe('ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "maxSeats" INTEGER DEFAULT 5')
       await this.$executeRawUnsafe('ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "chargeLimit" DOUBLE PRECISION')
+      await this.$executeRawUnsafe('ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "paymentConfig" JSONB')
     } catch {
       // best effort
     }

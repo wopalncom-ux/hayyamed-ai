@@ -609,6 +609,7 @@ export const api = {
   // ── Client Portal (self-service, scoped to the caller's org) ──────────────
   getContactProfile: (id) => request(`/contacts/${id}/profile`),
   createClientPortalUser: (id, dto) => request(`/agency/clients/${id}/portal-user`, { method: 'POST', body: JSON.stringify(dto) }),
+  getAgencyStorage: () => request('/agency/storage'),
   getClientIntegrations: (id) => request(`/agency/clients/${id}/integrations`),
   saveClientIntegration: (id, dto) => request(`/agency/clients/${id}/integrations`, { method: 'POST', body: JSON.stringify(dto) }),
   removeClientIntegration: (id, type) => request(`/agency/clients/${id}/integrations/${type}`, { method: 'DELETE' }),
