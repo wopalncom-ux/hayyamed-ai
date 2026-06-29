@@ -39,10 +39,13 @@ function refreshAccessToken() {
   return _refreshPromise
 }
 
-async function request(path, options = {}, _retried = false) {
+// Low-level authenticated fetch — attaches the session headers and transparently
+// refreshes an expired token once, then retries. Returns the raw Response so it
+// works for JSON, FormData uploads, and blob downloads alike. Does NOT force a
+// Content-Type (so multipart/form-data boundaries are preserved).
+export async function authFetch(path, options = {}, _retried = false) {
   const auth = getAuth()
   const headers = {
-    'Content-Type': 'application/json',
     ...(auth.orgId ? { 'x-org-id': auth.orgId } : {}),
     ...(auth.userId ? { 'x-user-id': auth.userId } : {}),
     ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}),
@@ -51,17 +54,22 @@ async function request(path, options = {}, _retried = false) {
 
   const res = await fetch(`${BASE}/api/v1${path}`, { ...options, headers })
 
-  // Transparently refresh an expired/invalid token once, then retry. Never for
-  // the auth endpoints themselves.
   if (res.status === 401 && !_retried && !path.startsWith('/auth/')) {
     const newToken = await refreshAccessToken()
-    if (newToken) return request(path, options, true)
+    if (newToken) return authFetch(path, options, true)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('hayyamed_auth')
       if (!window.location.pathname.startsWith('/login')) window.location.href = '/login'
     }
   }
+  return res
+}
 
+async function request(path, options = {}) {
+  const res = await authFetch(path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+  })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: 'Request failed' }))
     throw new Error(err.message || 'Request failed')
@@ -298,17 +306,10 @@ export const api = {
   reindexKnowledge: (id) =>
     request(`/knowledge-bases/${id}/reindex`, { method: 'POST' }),
   uploadKnowledgeFile: (id, file) => {
-    const auth = getAuth()
     const form = new FormData()
     form.append('file', file)
-    return fetch(`${BASE}/api/v1/knowledge-bases/${id}/upload`, {
-      method: 'POST', body: form,
-      headers: {
-        ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}),
-        ...(auth.orgId ? { 'x-org-id': auth.orgId } : {}),
-        ...(auth.userId ? { 'x-user-id': auth.userId } : {}),
-      },
-    }).then(async r => { if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Upload failed'); return r.json() })
+    return authFetch(`/knowledge-bases/${id}/upload`, { method: 'POST', body: form })
+      .then(async r => { if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Upload failed'); return r.json() })
   },
   searchKnowledge: (id, query, topK = 5) =>
     request(`/knowledge-bases/${id}/search`, { method: 'POST', body: JSON.stringify({ query, topK }) }),
@@ -387,13 +388,10 @@ export const api = {
   retrainClientBrain: (id, kbId) =>
     request(`/agency/clients/${id}/brains/${kbId}/retrain`, { method: 'POST' }),
   uploadClientFile: (id, kbId, file) => {
-    const auth = getAuth()
     const form = new FormData()
     form.append('file', file)
-    return fetch(`${BASE}/api/v1/agency/clients/${id}/brains/${kbId}/upload`, {
-      method: 'POST', body: form,
-      headers: { ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}) },
-    }).then(async r => { if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Upload failed'); return r.json() })
+    return authFetch(`/agency/clients/${id}/brains/${kbId}/upload`, { method: 'POST', body: form })
+      .then(async r => { if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'Upload failed'); return r.json() })
   },
   getClientAgents: (id) =>
     request(`/agency/clients/${id}/agents`),
@@ -512,28 +510,13 @@ export const api = {
 
   // Contact Import / Export
   previewContactImport: (file) => {
-    const auth = getAuth()
     const form = new FormData()
     form.append('file', file)
-    return fetch(`${BASE}/api/v1/contacts/import/preview`, {
-      method: 'POST', body: form,
-      headers: {
-        ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}),
-        ...(auth.orgId ? { 'x-org-id': auth.orgId } : {}),
-        ...(auth.userId ? { 'x-user-id': auth.userId } : {}),
-      },
-    }).then(r => r.json())
+    return authFetch('/contacts/import/preview', { method: 'POST', body: form }).then(r => r.json())
   },
   exportContactsCsv: (params = {}) => {
-    const auth = getAuth()
     const qs = new URLSearchParams(params)
-    return fetch(`${BASE}/api/v1/contacts/export/csv?${qs}`, {
-      headers: {
-        ...(auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {}),
-        ...(auth.orgId ? { 'x-org-id': auth.orgId } : {}),
-        ...(auth.userId ? { 'x-user-id': auth.userId } : {}),
-      },
-    })
+    return authFetch(`/contacts/export/csv?${qs}`)
   },
 
   // Campaign Execution Engine
