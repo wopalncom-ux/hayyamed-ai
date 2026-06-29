@@ -34,9 +34,37 @@ export class MyFatoorahService {
     return { configured: !!cfg?.apiToken, isTest: !!cfg?.isTest, country: cfg?.country || 'QA' }
   }
 
+  // Country → ISO currency, for the verification probe below.
+  private currencyFor(country?: string) {
+    const map: Record<string, string> = { QA: 'QAR', SA: 'SAR', AE: 'AED', KW: 'KWD', BH: 'BHD', OM: 'OMR', EG: 'EGP' }
+    return map[String(country || 'QA').toUpperCase()] || 'KWD'
+  }
+
+  // Validate the API token (and the Test/Live + country combo) against MyFatoorah
+  // before we mark it active — InitiatePayment is the lightweight call MyFatoorah
+  // recommends for this. Mirrors the "no fake Connected" rule used elsewhere.
+  private async verifyToken(cfg: { apiToken: string; isTest?: boolean; country?: string }) {
+    let res: Response
+    try {
+      res = await fetch(`${this.baseUrl(cfg)}/v2/InitiatePayment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.apiToken}` },
+        body: JSON.stringify({ InvoiceAmount: 1, CurrencyIso: this.currencyFor(cfg.country) }),
+      })
+    } catch (err: any) {
+      throw new BadRequestException('Could not reach MyFatoorah to verify the token: ' + (err?.message || 'network error'))
+    }
+    if (res.status === 401) throw new BadRequestException('MyFatoorah rejected this API token. Double-check the token and the Test/Live + country settings.')
+    const json: any = await res.json().catch(() => null)
+    if (!res.ok || !json?.IsSuccess) throw new BadRequestException(json?.Message || 'MyFatoorah could not validate this token. Check the token and the Test/Live + country settings.')
+    return true
+  }
+
   async saveConfig(orgId: string, dto: { apiToken: string; isTest?: boolean; country?: string }) {
     if (!dto?.apiToken) throw new BadRequestException('apiToken is required')
-    const encrypted = encryptJson({ apiToken: dto.apiToken.trim(), isTest: !!dto.isTest, country: dto.country || 'QA' }) as any
+    const cleanCfg = { apiToken: dto.apiToken.trim(), isTest: !!dto.isTest, country: dto.country || 'QA' }
+    await this.verifyToken(cleanCfg) // throws with a clear message if rejected
+    const encrypted = encryptJson(cleanCfg) as any
     const existing = await this.prisma.integration.findFirst({ where: { orgId, type: TYPE } })
     if (existing) {
       await this.prisma.integration.update({ where: { id: existing.id }, data: { config: encrypted, status: 'active', name: 'MyFatoorah', lastSyncAt: new Date() } })
