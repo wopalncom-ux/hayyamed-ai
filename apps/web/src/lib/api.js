@@ -607,6 +607,7 @@ export const api = {
     request(`/master-admin/feature-flags/orgs/${orgId}`),
 
   // ── Client Portal (self-service, scoped to the caller's org) ──────────────
+  getContactProfile: (id) => request(`/contacts/${id}/profile`),
   getPortalMe: () => request('/portal/me'),
   getPortalTeamCatalog: () => request('/portal/team/catalog'),
   getPortalTeam: () => request('/portal/team'),
