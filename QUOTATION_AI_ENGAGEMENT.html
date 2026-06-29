@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hayya AI — Quotation</title>
+<style>
+  :root{
+    --gold:#A07C3A; --gold-bright:#D8B16A; --burg:#5A1026;
+    --ink:#1f2433; --muted:#6b7280; --line:#e6e8ec; --bg:#ffffff; --soft:#faf7f1;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        color:var(--ink); background:#eceef1; line-height:1.55; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .page{ width:820px; max-width:100%; margin:24px auto; background:var(--bg);
+         box-shadow:0 10px 40px rgba(0,0,0,.12); border-radius:6px; overflow:hidden; }
+  .pad{ padding:44px 52px; }
+
+  /* Header */
+  .top{ display:flex; justify-content:space-between; align-items:flex-start;
+        padding:34px 52px; background:linear-gradient(135deg,#0b0f0e 0%,#161b1a 55%,#241015 100%); color:#fff; }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .logo{ width:38px; height:38px; border-radius:9px;
+         background:linear-gradient(135deg,#EAD9A6,#D8B16A 55%,#A07C3A); }
+  .brand b{ font-size:21px; letter-spacing:.5px; font-weight:800; }
+  .brand b span{ color:var(--gold-bright); }
+  .brand small{ display:block; color:#9aa3ad; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; margin-top:2px; }
+  .qbox{ text-align:right; }
+  .qbox .tag{ display:inline-block; font-size:11px; letter-spacing:.28em; color:#0b0f0e; background:var(--gold-bright);
+              padding:5px 12px; border-radius:4px; font-weight:800; }
+  .qbox table{ margin-top:12px; font-size:11.5px; color:#cfd4da; border-collapse:collapse; }
+  .qbox td{ padding:2px 0 2px 14px; text-align:right; }
+  .qbox td:first-child{ color:#8b939c; text-align:left; padding-left:0; }
+  .qbox td b{ color:#fff; }
+
+  /* parties */
+  .parties{ display:flex; gap:28px; padding:28px 52px 6px; }
+  .party{ flex:1; }
+  .party h4{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:7px; }
+  .party .l{ font-weight:700; font-size:14px; }
+  .party .s{ font-size:12.5px; color:var(--muted); }
+
+  .lead{ padding:14px 52px 0; font-size:13.5px; color:#404757; }
+
+  /* table */
+  table.items{ width:100%; border-collapse:collapse; margin-top:10px; }
+  table.items thead th{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+                        text-align:left; padding:10px 0; border-bottom:2px solid var(--ink); }
+  table.items thead th.r{ text-align:right; }
+  .grouprow td{ padding:16px 0 6px; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--burg); font-weight:800; }
+  table.items tbody td{ padding:11px 0; border-bottom:1px solid var(--line); vertical-align:top; font-size:13px; }
+  table.items td.r{ text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; font-weight:700; }
+  .it-name{ font-weight:700; }
+  .it-desc{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+
+  /* totals */
+  .totals{ display:flex; justify-content:flex-end; padding:18px 52px 4px; }
+  .totals table{ width:320px; border-collapse:collapse; }
+  .totals td{ padding:7px 0; font-size:13px; }
+  .totals td.r{ text-align:right; font-variant-numeric:tabular-nums; font-weight:700; }
+  .totals tr.sub td{ color:var(--muted); border-bottom:1px solid var(--line); }
+  .totals tr.grand td{ font-size:17px; font-weight:800; color:#0b0f0e; padding-top:12px; }
+  .totals tr.grand td.r{ color:var(--burg); }
+  .totals .renew{ font-size:11px; color:var(--muted); padding-top:4px; }
+
+  /* sections */
+  .cols{ display:flex; gap:26px; padding:24px 52px 0; }
+  .col{ flex:1; }
+  .col h4{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold);
+           margin-bottom:9px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .col ul{ list-style:none; }
+  .col li{ font-size:12.3px; color:#3c434f; padding:4px 0 4px 18px; position:relative; }
+  .col li::before{ content:"✓"; position:absolute; left:0; color:var(--gold-bright); font-weight:800; }
+  .col.terms li::before{ content:"•"; color:var(--burg); }
+
+  .note{ margin:22px 52px 0; background:var(--soft); border:1px solid #efe6d4; border-left:3px solid var(--gold-bright);
+         border-radius:5px; padding:13px 16px; font-size:12px; color:#5b5340; line-height:1.7; }
+  .note b{ color:var(--burg); }
+
+  /* accept + footer */
+  .accept{ display:flex; gap:40px; padding:30px 52px 6px; }
+  .sig{ flex:1; }
+  .sig .line{ height:1px; background:#cfd4da; margin:34px 0 7px; }
+  .sig small{ font-size:11px; color:var(--muted); letter-spacing:.04em; }
+  .foot{ margin-top:18px; padding:18px 52px 30px; border-top:1px solid var(--line);
+         display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
+  .foot b{ color:var(--ink); }
+  .foot a{ color:var(--gold); text-decoration:none; }
+
+  @page{ size:A4; margin:0; }
+  @media print{ body{ background:#fff; } .page{ box-shadow:none; margin:0; width:100%; border-radius:0; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>HAYYA<span> AI</span></b>
+        <small>An Hayya Med AI Platform</small>
+      </div>
+    </div>
+    <div class="qbox">
+      <span class="tag">QUOTATION</span>
+      <table>
+        <tr><td>Quote No.</td><td><b>HMA-Q-2026-001</b></td></tr>
+        <tr><td>Date</td><td><b>29 June 2026</b></td></tr>
+        <tr><td>Valid until</td><td><b>29 July 2026</b></td></tr>
+        <tr><td>Currency</td><td><b>QAR</b></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="party">
+      <h4>From</h4>
+      <div class="l">Hayya Med AI</div>
+      <div class="s">AI Solutions &amp; Enterprise Technology</div>
+      <div class="s">Doha, Qatar</div>
+      <div class="s">abbas@hayyamed.ai · +974 3367 7333</div>
+    </div>
+    <div class="party">
+      <h4>Prepared for</h4>
+      <div class="l">[ Client / Business Name ]</div>
+      <div class="s">[ Contact person ]</div>
+      <div class="s">[ Phone / Email ]</div>
+      <div class="s">Doha, Qatar</div>
+    </div>
+  </div>
+
+  <p class="lead">
+    Thank you for the opportunity. The following quotation covers the setup, integration and first year of
+    <b>Hayya AI</b> — an AI customer-engagement platform with WhatsApp &amp; Instagram automation, a live AI receptionist,
+    and an AI analyzer, trained on your business and hosted in Qatar.
+  </p>
+
+  <div class="pad" style="padding-top:14px; padding-bottom:0;">
+    <table class="items">
+      <thead>
+        <tr><th>Item</th><th class="r">Amount (QAR)</th></tr>
+      </thead>
+      <tbody>
+        <tr class="grouprow"><td colspan="2">One-Time Setup</td></tr>
+        <tr>
+          <td><div class="it-name">Platform Setup &amp; Onboarding</div>
+              <div class="it-desc">Account provisioning, AI Brain training on your content (website, documents, FAQs, price lists), agent persona &amp; tone, configuration, testing &amp; go-live.</div></td>
+          <td class="r">6,000</td>
+        </tr>
+        <tr>
+          <td><div class="it-name">Instagram DM Integration Setup</div>
+              <div class="it-desc">Official Meta Instagram Direct Messages connection, routing into the shared inbox, and AI auto-reply configuration.</div></td>
+          <td class="r">2,000</td>
+        </tr>
+        <tr>
+          <td><div class="it-name">Live Agent Setup — AI Receptionist + AI Analyzer</div>
+              <div class="it-desc">24/7 AI receptionist that qualifies, answers &amp; books; plus the AI analyzer for sentiment, intent, lead scoring and human-handover alerts.</div></td>
+          <td class="r">1,500</td>
+        </tr>
+
+        <tr class="grouprow"><td colspan="2">Annual Subscription</td></tr>
+        <tr>
+          <td><div class="it-name">AI Learning &amp; Platform — 12 Months</div>
+              <div class="it-desc">Continuous AI learning &amp; tuning, platform hosting (Qatar / me-central1), omnichannel inbox &amp; CRM, ongoing <b>support and platform updates</b>.</div></td>
+          <td class="r">8,000</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="totals">
+    <table>
+      <tr class="sub"><td>One-time setup</td><td class="r">9,500</td></tr>
+      <tr class="sub"><td>Annual subscription (Year 1)</td><td class="r">8,000</td></tr>
+      <tr class="grand"><td>Total — Year 1</td><td class="r">QAR 17,500</td></tr>
+      <tr><td colspan="2" class="renew">Renewal from Year 2 onwards: QAR 8,000 / year (platform, support &amp; updates).</td></tr>
+    </table>
+  </div>
+
+  <div class="cols">
+    <div class="col">
+      <h4>What's included</h4>
+      <ul>
+        <li>AI agent trained on your business — Arabic &amp; English</li>
+        <li>WhatsApp Business API + Instagram DM automation</li>
+        <li>AI Receptionist (24/7) + AI Analyzer</li>
+        <li>Shared team inbox with live human takeover</li>
+        <li>Contact CRM, lead status, sources &amp; reporting</li>
+        <li>Data hosted in Qatar (me-central1) — PDPL-aligned</li>
+        <li>Ongoing support &amp; platform updates</li>
+      </ul>
+    </div>
+    <div class="col terms">
+      <h4>Terms &amp; exclusions</h4>
+      <ul>
+        <li>Meta messaging fees are paid by the client at Meta's standard rates (pass-through, at cost)</li>
+        <li>Meta business verification is excluded from this quotation</li>
+        <li>Additional channel integrations (e.g. Facebook, Telegram, Email) are quoted separately</li>
+        <li>Quotation valid for 30 days from the date above</li>
+        <li>Setup begins on receipt of the one-time payment</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Payment terms:</b> One-time setup (QAR 9,500) payable on acceptance to begin onboarding. Annual subscription
+    (QAR 8,000) payable on go-live, then yearly on renewal. All amounts are in Qatari Riyals and exclude Meta's
+    pass-through messaging fees.
+  </div>
+
+  <div class="accept">
+    <div class="sig">
+      <h4 style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);">Accepted by (Client)</h4>
+      <div class="line"></div>
+      <small>Name, signature &amp; date</small>
+    </div>
+    <div class="sig">
+      <h4 style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);">For Hayya Med AI</h4>
+      <div class="line"></div>
+      <small>Abbas Al Masri — Founder &amp; CEO</small>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div><b>Hayya Med AI</b> · AI Solutions &amp; Enterprise Technology · Doha, Qatar</div>
+    <div><a href="mailto:abbas@hayyamed.ai">abbas@hayyamed.ai</a> · +974 3367 7333 · hayyamed.ai</div>
+  </div>
+
+</div>
+</body>
+</html>

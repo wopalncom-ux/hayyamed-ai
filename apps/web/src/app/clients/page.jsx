@@ -213,7 +213,7 @@ export default function ClientsConsole() {
     }
     try {
       if (selected?.id) { await api.updateAgencyClient(selected.id, dto); setMsg({ ok: true, text: 'Saved ✓' }); await openClient(selected.id); loadClients() }
-      else { const r = await api.createAgencyClient(dto); setMsg({ ok: true, text: 'Client created ✓' }); await loadClients(); await openClient(r.id) }
+      else { const r = await api.createAgencyClient(dto); await loadClients(); await openClient(r.id); setTab('resources'); setMsg({ ok: true, text: 'Client created ✓ — now add their AI Brain (train it on their business).' }) }
     } catch (e) { setMsg({ ok: false, text: e?.message || 'Save failed' }) } finally { setBusy(false) }
   }
 
@@ -311,13 +311,22 @@ export default function ClientsConsole() {
               </div>
 
               {/* Tabs */}
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '18px', flexWrap: 'wrap' }}>
-                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['channels', '📡 Channels'], ['automations', '⚡ Automations'], ['modules', '🧩 Modules'], ['billing', '💳 Billing & Profit']].map(([id, label]) => (
-                  <button key={id} onClick={() => setTab(id)} disabled={id !== 'profile' && !selected}
-                    style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: id !== 'profile' && !selected ? 'not-allowed' : 'pointer',
-                      background: tab === id ? '#1a2235' : 'transparent', color: tab === id ? '#e2e8f0' : (id !== 'profile' && !selected ? '#3d4f63' : '#7a8fa6'), border: '1px solid #1a2235' }}>{label}</button>
-                ))}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: selected ? '18px' : '8px', flexWrap: 'wrap' }}>
+                {[['profile', '👤 Profile'], ['resources', '🧠 AI Brain'], ['agents', '🤖 Agents'], ['channels', '📡 Channels'], ['automations', '⚡ Automations'], ['modules', '🧩 Modules'], ['billing', '💳 Billing & Profit']].map(([id, label]) => {
+                  const locked = id !== 'profile' && !selected
+                  return (
+                    <button key={id} onClick={() => setTab(id)} disabled={locked}
+                      title={locked ? 'Create the client profile first to unlock this' : ''}
+                      style={{ padding: '7px 14px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: locked ? 'not-allowed' : 'pointer',
+                        background: tab === id ? '#1a2235' : 'transparent', color: tab === id ? '#e2e8f0' : (locked ? '#3d4f63' : '#7a8fa6'), border: '1px solid #1a2235' }}>{locked ? `🔒 ${label}` : label}</button>
+                  )
+                })}
               </div>
+              {!selected && (
+                <div style={{ marginBottom: '18px', padding: '10px 14px', background: 'rgba(216,177,106,.08)', border: '1px solid rgba(216,177,106,.25)', borderRadius: '8px', fontSize: '12px', color: '#D8B16A' }}>
+                  👉 Step 1: fill in the profile below and click <b>Create client</b>. The AI Brain, Agents, Channels, Automations, Modules &amp; Billing tabs unlock once the client exists.
+                </div>
+              )}
 
               {/* PROFILE */}
               {tab === 'profile' && (
