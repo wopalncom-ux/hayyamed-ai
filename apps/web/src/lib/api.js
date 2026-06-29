@@ -608,6 +608,7 @@ export const api = {
 
   // ── Client Portal (self-service, scoped to the caller's org) ──────────────
   getContactProfile: (id) => request(`/contacts/${id}/profile`),
+  createClientPortalUser: (id, dto) => request(`/agency/clients/${id}/portal-user`, { method: 'POST', body: JSON.stringify(dto) }),
   getPortalMe: () => request('/portal/me'),
   getPortalTeamCatalog: () => request('/portal/team/catalog'),
   getPortalTeam: () => request('/portal/team'),

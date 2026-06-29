@@ -33,6 +33,10 @@ const MODULE_CATALOG = [
   { key: 'reporting', name: 'Reporting & Analytics', icon: '📈', desc: 'Dashboards, CSAT, response-time reports.', price: 0, defaultOn: true },
   { key: 'storage', name: 'Extra Storage', icon: '💾', desc: 'Additional AI Brain storage for this client.', price: 20, defaultOn: false },
   { key: 'addons', name: 'Premium Add-ons', icon: '✨', desc: 'White-label, priority support, custom work.', price: 100, defaultOn: false },
+  // Client-portal feature toggles (owner-controlled per client).
+  { key: 'portal_chat', name: 'Portal: Chat', icon: '💬', desc: 'Let the client reply to leads from their portal.', price: 0, defaultOn: true },
+  { key: 'portal_reports', name: 'Portal: Reports', icon: '📈', desc: 'Reports & analytics tab in the client portal.', price: 0, defaultOn: true },
+  { key: 'portal_export', name: 'Portal: Export', icon: '⬇️', desc: 'Allow the client to export reports (CSV/PDF).', price: 0, defaultOn: true },
 ]
 
 @Injectable()
@@ -491,6 +495,7 @@ export class AgencyService {
       adminNotes: dto.adminNotes,
     }
     if (dto.storageLimitMb != null) data.storageLimitMb = dto.storageLimitMb
+    if ((dto as any).maxSeats != null) data.maxSeats = Math.max(1, Math.min(50, Number((dto as any).maxSeats) || 5))
     if (dto.profitPercent != null) data.profitPercent = dto.profitPercent
     // Strip undefined so we only update provided fields.
     Object.keys(data).forEach(k => data[k] === undefined && delete data[k])

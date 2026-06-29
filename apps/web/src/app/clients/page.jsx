@@ -46,6 +46,15 @@ export default function ClientsConsole() {
   const [tab, setTab] = useState('profile')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
+  const [portalEmail, setPortalEmail] = useState('')
+  const [portalResult, setPortalResult] = useState(null)
+  const createPortalLogin = async () => {
+    if (!selected?.id || !portalEmail.trim()) return
+    setPortalResult(null)
+    try { const r = await api.createClientPortalUser(selected.id, { email: portalEmail.trim() }); setPortalResult(r); setPortalEmail('') }
+    catch (e) { setMsg({ ok: false, text: e?.message || 'Could not create login' }) }
+  }
+  const saveSeats = async (n) => { if (!selected?.id) return; try { await api.updateAgencyClient(selected.id, { maxSeats: Number(n) || 5 }); await openClient(selected.id); setMsg({ ok: true, text: 'Seat cap updated' }) } catch (e) { setMsg({ ok: false, text: e?.message || 'Failed' }) } }
   const [topup, setTopup] = useState('')
   // AI Brain (Phase 2)
   const [brains, setBrains] = useState([])
@@ -358,6 +367,30 @@ export default function ClientsConsole() {
                   </div>
                   {msg && <div style={{ fontSize: '13px', color: msg.ok ? '#D8B16A' : '#ef4444' }}>{msg.ok ? '✓ ' : '⚠️ '}{msg.text}</div>}
                   <div><button onClick={save} disabled={busy} style={{ padding: '11px 26px', background: busy ? '#1a2235' : '#D8B16A', border: 'none', borderRadius: '8px', color: busy ? '#64748b' : '#07090f', fontWeight: 800, fontSize: '14px', cursor: busy ? 'wait' : 'pointer' }}>{busy ? 'Saving…' : (selected ? 'Save changes' : 'Create client')}</button></div>
+
+                  {selected && (
+                    <div style={{ ...card, border: '1px solid rgba(216,177,106,.3)' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>🔐 Portal Access</div>
+                      <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>Give this client a login to their own portal (leads inbox, chat, reports, team). Toggle portal features in the Modules tab.</div>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>Team seats:</span>
+                        <input type="number" min="1" max="50" defaultValue={selected.maxSeats ?? 5} onBlur={e => saveSeats(e.target.value)} style={{ ...input, width: '80px' }} />
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>members max</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <input value={portalEmail} onChange={e => setPortalEmail(e.target.value)} placeholder="owner@client.com" style={{ ...input, flex: '1 1 200px' }} />
+                        <button onClick={createPortalLogin} disabled={!portalEmail.trim()} style={{ padding: '10px 18px', background: portalEmail.trim() ? '#D8B16A' : '#1a2235', border: 'none', borderRadius: '8px', color: portalEmail.trim() ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Create login</button>
+                      </div>
+                      {portalResult && (
+                        <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(22,163,74,.1)', border: '1px solid rgba(22,163,74,.3)', borderRadius: '8px', fontSize: '12px', color: '#86efac' }}>
+                          ✓ Login created — share these once:<br />
+                          <b>URL:</b> https://www.hayyaai.com/login<br />
+                          <b>Email:</b> {portalResult.email}<br />
+                          <b>Password:</b> <code style={{ color: '#fff' }}>{portalResult.password}</code>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

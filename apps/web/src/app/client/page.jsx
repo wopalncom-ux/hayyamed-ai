@@ -34,6 +34,8 @@ export default function ClientPortal() {
   const [teamMsg,   setTeamMsg]   = useState(null)
   const [invite,    setInvite]    = useState({ email: '', name: '', clientRole: 'agent' })
   const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
+  // Owner-controlled per-client portal feature flags (default on).
+  const feat = (key) => me?.org?.modules?.[key]?.enabled !== false
   const [loading,   setLoading]   = useState(true)
   const [showAiPanel, setShowAiPanel] = useState(false)
   const [aiMsg,     setAiMsg]     = useState('')
@@ -168,9 +170,9 @@ export default function ClientPortal() {
         <div style={{borderBottom:'1px solid #1e2d42', marginBottom:'24px', display:'flex', gap:'4px'}}>
           {[
             { id:'overview',   label:'Overview' },
-            ...(can('view_inbox') ? [{ id:'fullinbox', label:'Inbox' }] : []),
+            ...(can('view_inbox') && feat('portal_chat') ? [{ id:'fullinbox', label:'Inbox' }] : []),
             ...((can('view_inbox') || can('view_dashboard')) ? [{ id:'leads', label:'Leads' }] : []),
-            ...(can('view_reports') ? [{ id:'reports', label:'Reports' }] : []),
+            ...(can('view_reports') && feat('portal_reports') ? [{ id:'reports', label:'Reports' }] : []),
             { id:'campaigns',  label:'Campaigns' },
             { id:'inbox',      label:'Recent Messages' },
             ...(can('manage_team') ? [{ id:'team', label:'Team' }] : []),

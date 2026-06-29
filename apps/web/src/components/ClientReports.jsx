@@ -23,7 +23,7 @@ function Donut({ data, total }) {
 }
 
 export default function ClientReports({ me }) {
-  const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
+  const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p) && me?.org?.modules?.portal_export?.enabled !== false
   const [full, setFull] = useState(null)
   const [days, setDays] = useState([])
   const [team, setTeam] = useState([])
