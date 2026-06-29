@@ -43,6 +43,20 @@ export class AIService {
     ].filter(Boolean).join(', ') || 'none'}`)
   }
 
+  // Use the requested model only for the provider it belongs to; otherwise fall
+  // back to that provider's default. Prevents e.g. a Claude model being sent to
+  // OpenAI during failover (which would 400 and make the whole chain fail).
+  private modelFor(p: Provider, model: string | undefined, def: string): string {
+    if (!model) return def
+    const m = model.toLowerCase()
+    const belongs =
+      (p === 'openai' && (m.startsWith('gpt') || m.startsWith('o1') || m.startsWith('o3') || m.startsWith('chatgpt'))) ||
+      (p === 'anthropic' && m.startsWith('claude')) ||
+      (p === 'gemini' && m.startsWith('gemini')) ||
+      (p === 'groq' && (m.startsWith('llama') || m.startsWith('mixtral') || m.startsWith('gemma') || m.startsWith('qwen')))
+    return belongs ? model : def
+  }
+
   // ─── Multi-provider router ────────────────────────────────────────────────
   async complete(
     messages: ChatMessage[],
@@ -65,7 +79,7 @@ export class AIService {
         let promptTokens = 0, completionTokens = 0
 
         if (p === 'anthropic' && this.anthropic) {
-          usedModel = model || 'claude-haiku-4-5-20251001'
+          usedModel = this.modelFor(p, model, 'claude-haiku-4-5-20251001')
           const resp = await this.anthropic.messages.create({
             model: usedModel, max_tokens: maxTokens, system: systemMsg,
             messages: chatMsgs.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
@@ -74,7 +88,7 @@ export class AIService {
           promptTokens = resp.usage.input_tokens
           completionTokens = resp.usage.output_tokens
         } else if (p === 'gemini' && this.gemini) {
-          usedModel = model || 'gemini-1.5-flash'
+          usedModel = this.modelFor(p, model, 'gemini-1.5-flash')
           const genModel = this.gemini.getGenerativeModel({ model: usedModel })
           const history = chatMsgs.slice(0, -1).map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
           const lastMsg = chatMsgs.at(-1)?.content || ''
@@ -85,13 +99,13 @@ export class AIService {
           promptTokens = meta?.promptTokenCount ?? 0
           completionTokens = meta?.candidatesTokenCount ?? 0
         } else if (p === 'groq' && this.groq) {
-          usedModel = model || 'llama-3.1-8b-instant'
+          usedModel = this.modelFor(p, model, 'llama-3.1-8b-instant')
           const resp = await this.groq.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
           result = resp.choices[0]?.message?.content || ''
           promptTokens = resp.usage?.prompt_tokens ?? 0
           completionTokens = resp.usage?.completion_tokens ?? 0
         } else if (p === 'openai' && this.openai) {
-          usedModel = model || 'gpt-4o-mini'
+          usedModel = this.modelFor(p, model, 'gpt-4o-mini')
           const resp = await this.openai.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
           result = resp.choices[0]?.message?.content || ''
           promptTokens = resp.usage?.prompt_tokens ?? 0

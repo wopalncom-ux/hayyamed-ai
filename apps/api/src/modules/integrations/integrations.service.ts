@@ -37,22 +37,57 @@ export class IntegrationsService {
     return false // provider we don't verify server-side
   }
 
+  // Any config key that looks like a credential — never sent to the browser.
+  private readonly SECRET_RE = /(token|secret|password|api_?key|access_?key|client_?secret)/i
+
+  // Strip secret VALUES from anything returned to the client. Non-secret fields
+  // (account ids, page ids, emails) stay visible; secrets become '' + a `__set`
+  // flag so the UI can show "configured" without exposing the value.
+  private maskSecrets(config: any) {
+    if (!config || typeof config !== 'object') return config
+    const out: any = {}
+    for (const [k, v] of Object.entries(config)) {
+      if (this.SECRET_RE.test(k) && typeof v === 'string' && v) {
+        out[k] = ''
+        out[`${k}__set`] = true
+      } else out[k] = v
+    }
+    return out
+  }
+
+  // On save, a blank secret means "unchanged" — keep the stored credential
+  // rather than wiping it. Non-secret fields are always taken from the input.
+  private mergeSecrets(incoming: Record<string, string>, existing: any) {
+    const merged: Record<string, any> = { ...(existing || {}), ...(incoming || {}) }
+    for (const k of Object.keys(incoming || {})) {
+      if (this.SECRET_RE.test(k) && (incoming[k] === '' || incoming[k] == null)) {
+        if (existing && existing[k] != null) merged[k] = existing[k]
+        else delete merged[k]
+      }
+    }
+    for (const k of Object.keys(merged)) if (k.endsWith('__set')) delete merged[k]
+    return merged
+  }
+
   async list(orgId: string) {
     const rows = await this.prisma.integration.findMany({
       where: { orgId },
       orderBy: { createdAt: 'asc' },
       select: { id: true, type: true, name: true, status: true, config: true, lastSyncAt: true, updatedAt: true },
     })
-    // Decrypt credentials for the owner UI (tolerant of legacy plaintext rows).
-    return rows.map(r => ({ ...r, config: decryptJson(r.config) }))
+    // Decrypt then MASK — credentials are never returned to the browser.
+    return rows.map(r => ({ ...r, config: this.maskSecrets(decryptJson(r.config)) }))
   }
 
   async upsert(orgId: string, type: string, dto: { name: string; credentials: Record<string, string> }) {
-    // Verify against the provider first — throws on bad credentials.
-    const verified = await this.verifyCredentials(type, dto.credentials || {})
-    const status = verified ? 'active' : 'configured'
-    const encrypted = encryptJson(dto.credentials) as any // { _enc: "..." }
     const existing = await this.prisma.integration.findFirst({ where: { orgId, type } })
+    // Merge so a blank secret keeps the stored one (the UI never receives secrets).
+    const existingConfig = existing ? decryptJson(existing.config) : {}
+    const creds = this.mergeSecrets(dto.credentials || {}, existingConfig)
+    // Verify against the provider first — throws on bad credentials.
+    const verified = await this.verifyCredentials(type, creds)
+    const status = verified ? 'active' : 'configured'
+    const encrypted = encryptJson(creds) as any // { _enc: "..." }
     if (existing) {
       return this.prisma.integration.update({
         where: { id: existing.id },
