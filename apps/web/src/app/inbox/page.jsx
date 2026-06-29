@@ -34,6 +34,8 @@ function toUiConv(c) {
     color: COLORS[(name.charCodeAt(0) || 0) % COLORS.length],
     channel: c.channel?.type || c.channelType || 'WHATSAPP',
     status: c.contact?.status === 'WON' ? 'Customer' : c.contact?.status === 'QUALIFYING' ? 'Hot Lead' : c.contact?.status === 'CONTACTED' ? 'Cold Lead' : 'New Lead',
+    leadStatus: c.contact?.status || 'NEW',
+    services: (c.contact?.metadata && c.contact.metadata.services) || c.contact?.services || [],
     score: c.contact?.score || 0,
     isNew: c.status === 'OPEN',
     convId: c.id,
@@ -255,6 +257,8 @@ function InboxInner() {
   }
   const [filterChannel, setFilterChannel] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
+  const [filterLeadStatus, setFilterLeadStatus] = useState('All')
+  const [filterService, setFilterService] = useState('All')
   const [escalatedOnly, setEscalatedOnly] = useState(false)
   const [quickFilter, setQuickFilter] = useState('all') // all | unread | mine | unassigned
   const myUserId = getAuth().userId
@@ -388,6 +392,8 @@ function InboxInner() {
     // Text search is handled server-side (matches message content + phone too).
     if (filterChannel !== 'All' && c.channel !== filterChannel) return false
     if (filterStatus !== 'All' && c.status !== filterStatus) return false
+    if (filterLeadStatus !== 'All' && c.leadStatus !== filterLeadStatus) return false
+    if (filterService !== 'All' && !(c.services || []).includes(filterService) && !(c.tags || []).includes(filterService)) return false
     if (escalatedOnly && !(c.escalated || c.negative)) return false
     if (quickFilter === 'unread' && !(c.unread > 0)) return false
     if (quickFilter === 'mine' && c.assigneeId !== myUserId) return false
@@ -395,6 +401,8 @@ function InboxInner() {
     return true
   })
   const escalatedCount = contacts.filter(c => c.escalated || c.negative).length
+  // Service/tag options for the inbox filter — derived from the loaded conversations.
+  const serviceOptions = Array.from(new Set(contacts.flatMap(c => [...(c.services || []), ...(c.tags || [])]).filter(Boolean))).sort()
 
   const sendMessage = async () => {
     if (!input.trim() || !selected || sending) return
@@ -496,6 +504,19 @@ function InboxInner() {
                   </button>
                 )
               })}
+            </div>
+            {/* Lead status + service/tag filters */}
+            <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+              <select value={filterLeadStatus} onChange={e => setFilterLeadStatus(e.target.value)}
+                style={{ flex: 1, minWidth: 0, background: '#111622', border: `1px solid ${filterLeadStatus !== 'All' ? '#D8B16A' : '#1a2235'}`, borderRadius: '5px', padding: '5px 6px', color: filterLeadStatus !== 'All' ? '#D8B16A' : '#94a3b8', fontSize: '10px', cursor: 'pointer', outline: 'none' }}>
+                <option value="All">All statuses</option>
+                {['NEW','CONTACTED','QUALIFYING','QUALIFIED','NEGOTIATION','WON','LOST'].map(s => <option key={s} value={s}>{s[0] + s.slice(1).toLowerCase()}</option>)}
+              </select>
+              <select value={filterService} onChange={e => setFilterService(e.target.value)}
+                style={{ flex: 1, minWidth: 0, background: '#111622', border: `1px solid ${filterService !== 'All' ? '#D8B16A' : '#1a2235'}`, borderRadius: '5px', padding: '5px 6px', color: filterService !== 'All' ? '#D8B16A' : '#94a3b8', fontSize: '10px', cursor: 'pointer', outline: 'none' }}>
+                <option value="All">All services</option>
+                {serviceOptions.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
           </div>
 

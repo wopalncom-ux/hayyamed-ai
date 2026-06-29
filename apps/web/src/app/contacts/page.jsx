@@ -17,7 +17,7 @@ const toUi = (c) => ({
 
 const statusColors = { 'NEW':'#3b82f6','CONTACTED':'#06b6d4','QUALIFYING':'#f97316','QUALIFIED':'#D8B16A','PROPOSAL':'#a78bfa','WON':'#16a34a','LOST':'#ef4444','Hot Lead':'#ef4444','Customer':'#D8B16A','Cold Lead':'#3b82f6','Prospect':'#f97316','New Lead':'#64748b' }
 // Real contact status enum (what the API returns), with display labels.
-const STATUS_OPTIONS = [['NEW','New'],['CONTACTED','Contacted'],['QUALIFYING','Qualifying'],['QUALIFIED','Qualified'],['PROPOSAL','Proposal'],['WON','Won'],['LOST','Lost']]
+const STATUS_OPTIONS = [['NEW','New'],['CONTACTED','Contacted'],['QUALIFYING','Qualifying'],['QUALIFIED','Qualified'],['NEGOTIATION','Negotiation'],['WON','Won'],['LOST','Lost']]
 // Contact "source" is stored lowercase (website/whatsapp/instagram/import…); map it
 // to a friendly icon/label. Fixes blank icons + a channel filter that matched nothing.
 const SOURCE_META = {
@@ -27,18 +27,25 @@ const SOURCE_META = {
   import:{label:'Import',icon:'📥'}, manual:{label:'Manual',icon:'✍️'},
 }
 const sourceMeta = (s) => SOURCE_META[String(s||'').toLowerCase()] || { label: s || 'Unknown', icon:'•' }
-const servicesList = ['Dental Checkup', 'Whitening', 'Surgery', 'Consultation', 'Follow Up', 'X-Ray', 'Cleaning', 'Braces']
+// Industry-agnostic fallback; the business defines its own list in Settings → Lead Services.
+const DEFAULT_SERVICES = ['Consultation', 'Quote Request', 'Support', 'Sales Enquiry', 'Follow Up', 'General Enquiry']
 
 export default function Contacts() {
   const isMobile = useIsMobile()
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [services, setServices] = useState(DEFAULT_SERVICES)
 
   useEffect(() => {
     api.getContacts({ limit: 200 })
       .then(res => setContacts((res.data || []).map(toUi)))
       .catch(() => {})
       .finally(() => setLoading(false))
+    // Business-defined service tags (Settings → Lead Services); fall back to generic.
+    api.getSettings().then(s => {
+      const list = Array.isArray(s?.leadServices) ? s.leadServices : []
+      if (list.length) setServices(list)
+    }).catch(() => {})
   }, [])
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState('')
@@ -424,8 +431,8 @@ export default function Contacts() {
 
             <label style={lbl}>SERVICES INTERESTED (optional)</label>
             <div style={{display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'12px'}}>
-              {servicesList.map(s => (
-                <button key={s} onClick={() => toggleService(s)} style={{padding:'5px 10px', background: newContact.services.includes(s) ? 'rgba(167,139,250,.2)' : '#111622', border:'1px solid', borderColor: newContact.services.includes(s) ? '#a78bfa' : '#1a2235', borderRadius:'3px', color: newContact.services.includes(s) ? '#a78bfa' : '#7a8fa6', fontSize:'10px', cursor:'pointer'}}>
+              {services.map(s => (
+                <button key={s} onClick={() => toggleService(s)} style={{padding:'5px 10px', background: newContact.services.includes(s) ? 'rgba(216,177,106,.2)' : '#111622', border:'1px solid', borderColor: newContact.services.includes(s) ? '#D8B16A' : '#1a2235', borderRadius:'3px', color: newContact.services.includes(s) ? '#D8B16A' : '#7a8fa6', fontSize:'10px', cursor:'pointer'}}>
                   {s}
                 </button>
               ))}

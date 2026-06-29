@@ -132,6 +132,7 @@ model OrgSettings {
   aiEnabled      Boolean      @default(true)
   aiModel        String       @default("gpt-4o")
   workingHours   Json?
+  leadServices   Json?        // business-defined service tags (industry-agnostic)
   autoReply      Boolean      @default(true)
   autoReplyMsg   String?
   language       String       @default("ar")

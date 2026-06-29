@@ -174,6 +174,7 @@ export class ReportsController {
       pipelineStages, sourceCounts,
       topCampaigns,
       recentActivities,
+      assignedOpen, unassignedOpen,
     ] = await Promise.all([
       this.prisma.contact.count({ where: { orgId } }),
       this.prisma.contact.count({ where: { orgId, status: 'WON' } }),
@@ -216,6 +217,8 @@ export class ReportsController {
           user: { select: { name: true } },
         },
       }),
+      this.prisma.conversation.count({ where: { orgId, status: 'OPEN', assigneeId: { not: null } } }),
+      this.prisma.conversation.count({ where: { orgId, status: 'OPEN', assigneeId: null } }),
     ])
 
     const campaignIds = topCampaigns.map(c => c.id)
@@ -279,6 +282,9 @@ export class ReportsController {
       sources: sourceCounts
         .filter(s => s.source)
         .map(s => ({ source: s.source!, count: s._count.id })),
+      leadStats: {
+        openConvs, assignedOpen, unassignedOpen, avgResponseMin,
+      },
       campaigns: topCampaigns.map(c => ({
         id: c.id, name: c.name, status: c.status,
         total: c._count.contacts,

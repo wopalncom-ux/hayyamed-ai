@@ -11,6 +11,8 @@ const fmt = (n) => n == null ? '—' : n >= 1_000_000 ? `${(n/1_000_000).toFixed
 const fmtQar = (n) => (n || 0).toLocaleString('en-QA', { style: 'currency', currency: 'QAR', minimumFractionDigits: 0 })
 
 const STAGE_COLOR = { NEW:'#64748b', CONTACTED:'#3b82f6', QUALIFYING:'#f97316', QUALIFIED:'#D8B16A', PROPOSAL:'#8b5cf6', NEGOTIATION:'#fbbf24', WON:'#22c55e', LOST:'#ef4444' }
+const SOURCE_META = { whatsapp:{label:'WhatsApp',icon:'💬',color:'#25D366'}, website:{label:'Website',icon:'🌐',color:'#3b82f6'}, webchat:{label:'Website',icon:'🌐',color:'#3b82f6'}, live_chat:{label:'Website',icon:'🌐',color:'#3b82f6'}, instagram:{label:'Instagram',icon:'📸',color:'#a78bfa'}, facebook:{label:'Facebook',icon:'👤',color:'#3b82f6'}, messenger:{label:'Messenger',icon:'👤',color:'#3b82f6'}, telegram:{label:'Telegram',icon:'✈️',color:'#06b6d4'}, email:{label:'Email',icon:'📧',color:'#fbbf24'}, import:{label:'Import',icon:'📥',color:'#64748b'}, manual:{label:'Manual',icon:'✍️',color:'#64748b'}, referral:{label:'Referral',icon:'🤝',color:'#16a34a'} }
+const srcMeta = (s) => SOURCE_META[String(s||'').toLowerCase()] || { label: s || 'Other', icon:'•', color:'#64748b' }
 const ACTIVITY_LABEL = { note_added:'Added note', status_changed:'Status changed', contact_created:'Contact created', message_sent:'Message sent', campaign_sent:'Campaign sent', workflow_triggered:'Workflow triggered' }
 const pct = (a, b) => b > 0 ? Math.round((a / b) * 100) : 0
 
@@ -79,6 +81,10 @@ export default function Dashboard() {
   const pipeline = full?.pipeline || []
   const campaigns = full?.campaigns || []
   const activities = full?.recentActivities || []
+  const sources = full?.sources || []
+  const leadStats = full?.leadStats || {}
+  const sourceTotal = sources.reduce((a, s) => a + (s.count || 0), 0) || 1
+  const sourceMax = Math.max(...sources.map(s => s.count || 0), 1)
 
   const userName = auth.userName || auth.name || 'Abbas'
   const firstName = userName.split(' ')[0]
@@ -204,89 +210,64 @@ export default function Dashboard() {
           {/* Chart + Pipeline funnel */}
           <div className="hai-rise" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '16px' }}>
 
-            {/* 7-day chart */}
+            {/* Leads by Source + response/assignment */}
             <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ fontWeight: '700', fontSize: '14px' }}>Last 7 Days</div>
-                <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#64748b' }}>
-                  <span><span style={{ display: 'inline-block', width: '10px', height: '3px', background: '#3b82f6', borderRadius: '2px', verticalAlign: 'middle', marginRight: '4px' }} />Messages</span>
-                  <span><span style={{ display: 'inline-block', width: '10px', height: '3px', background: '#D8B16A', borderRadius: '2px', verticalAlign: 'middle', marginRight: '4px' }} />Contacts</span>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ fontWeight: '700', fontSize: '14px' }}>Leads by Source</div>
+                <a href="/contacts" style={{ fontSize: '11px', color: '#D8B16A', textDecoration: 'none' }}>View leads →</a>
               </div>
-              {chart.length < 2 ? (
-                <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '12px' }}>
-                  {loading ? 'Loading…' : 'No activity data yet'}
+
+              {loading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {[0,1,2,3].map(i => <Skeleton key={i} height={22} />)}
                 </div>
+              ) : sources.length === 0 ? (
+                <EmptyState compact icon="📡" title="No leads yet" hint="Leads appear here as they arrive from your channels (WhatsApp, website, Instagram…)." action={{ href: '/contacts', label: 'Add a lead' }} />
               ) : (
-                <>
-                  {/* Dual mini chart */}
-                  <div style={{ position: 'relative', height: '120px' }}>
-                    <svg viewBox={`0 0 700 120`} style={{ width: '100%', height: '120px' }} preserveAspectRatio="none">
-                      {/* Grid */}
-                      {[0, 0.33, 0.66, 1].map((t, i) => (
-                        <line key={i} x1="0" x2="700" y1={t * 110 + 5} y2={t * 110 + 5} stroke="#1a2235" strokeWidth="1" />
-                      ))}
-                      {/* Messages area */}
-                      {(() => {
-                        const n = chart.length
-                        const pts = chart.map((d, i) => {
-                          const x = (i / (n - 1)) * 700
-                          const y = 110 - ((d.messages || 0) / chartMsgMax) * 100 + 5
-                          return [x, y]
-                        })
-                        const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ')
-                        const area = line + ` L${pts[n-1][0]},115 L0,115 Z`
-                        return (
-                          <g key="msg">
-                            <defs><linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" /><stop offset="100%" stopColor="#3b82f6" stopOpacity="0" /></linearGradient></defs>
-                            <path d={area} fill="url(#gm)" />
-                            <polyline points={pts.map(p => p.join(',')).join(' ')} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
-                          </g>
-                        )
-                      })()}
-                      {/* Contacts area */}
-                      {(() => {
-                        const n = chart.length
-                        const pts = chart.map((d, i) => {
-                          const x = (i / (n - 1)) * 700
-                          const y = 110 - ((d.contacts || 0) / chartConMax) * 100 + 5
-                          return [x, y]
-                        })
-                        const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ')
-                        const area = line + ` L${pts[n-1][0]},115 L0,115 Z`
-                        return (
-                          <g key="con">
-                            <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#D8B16A" stopOpacity="0.2" /><stop offset="100%" stopColor="#D8B16A" stopOpacity="0" /></linearGradient></defs>
-                            <path d={area} fill="url(#gc)" />
-                            <polyline points={pts.map(p => p.join(',')).join(' ')} fill="none" stroke="#D8B16A" strokeWidth="2" strokeLinejoin="round" />
-                          </g>
-                        )
-                      })()}
-                      {/* X-axis labels */}
-                      {chart.map((d, i) => {
-                        const x = (i / (chart.length - 1)) * 700
-                        const dt = new Date(d.date)
-                        return <text key={i} x={x} y={120} fontSize="9" fill="#475569" textAnchor="middle">{['Su','Mo','Tu','We','Th','Fr','Sa'][dt.getUTCDay()]}</text>
-                      })}
-                    </svg>
-                  </div>
-                  {/* Day totals */}
-                  <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
-                    {chart.map((d, i) => (
-                      <div key={i} style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '9px', color: '#3b82f6', fontWeight: '700' }}>{d.messages || 0}</div>
-                        <div style={{ fontSize: '9px', color: '#D8B16A' }}>{d.contacts || 0}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
+                  {sources.map(s => {
+                    const m = srcMeta(s.source)
+                    const pct = Math.round((s.count / sourceMax) * 100)
+                    const share = Math.round((s.count / sourceTotal) * 100)
+                    return (
+                      <div key={s.source}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '4px' }}>
+                          <span style={{ color: '#e2e8f0' }}>{m.icon} {m.label}</span>
+                          <span style={{ color: '#94a3b8', fontWeight: 700 }}>{s.count} <span style={{ color: '#475569', fontWeight: 400 }}>({share}%)</span></span>
+                        </div>
+                        <div style={{ height: '8px', background: '#0a0f1a', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', background: m.color, borderRadius: '4px', transition: 'width .4s' }} />
+                        </div>
                       </div>
-                    ))}
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Response + assignment */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #1a2235' }}>
+                {[
+                  { label: 'Awaiting reply', value: leadStats.openConvs ?? 0, color: '#f97316' },
+                  { label: 'Assigned', value: leadStats.assignedOpen ?? 0, color: '#D8B16A' },
+                  { label: 'Unassigned', value: leadStats.unassignedOpen ?? 0, color: '#ef4444' },
+                ].map(x => (
+                  <div key={x.label} style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '19px', fontWeight: 800, color: x.color }}>{loading ? <Skeleton width={28} height={19} /> : x.value}</div>
+                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '3px' }}>{x.label}</div>
                   </div>
-                </>
+                ))}
+              </div>
+              {leadStats.avgResponseMin != null && !loading && (
+                <div style={{ textAlign: 'center', fontSize: '11px', color: '#64748b', marginTop: '10px' }}>
+                  Avg. first response: <span style={{ color: '#D8B16A', fontWeight: 700 }}>{leadStats.avgResponseMin < 60 ? `${leadStats.avgResponseMin}m` : `${Math.round(leadStats.avgResponseMin/60*10)/10}h`}</span>
+                </div>
               )}
             </div>
 
             {/* Pipeline Funnel */}
             <div style={{ background: '#111622', border: '1px solid #1a2235', borderRadius: '8px', padding: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ fontWeight: '700', fontSize: '14px' }}>Pipeline</div>
+                <div style={{ fontWeight: '700', fontSize: '14px' }}>Leads by Stage</div>
                 <a href="/pipeline" style={{ fontSize: '11px', color: '#3b82f6', textDecoration: 'none' }}>Open →</a>
               </div>
               {loading ? (

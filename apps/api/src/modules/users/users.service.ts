@@ -54,20 +54,22 @@ export class UsersService {
     return this.prisma.orgSettings.findUnique({ where: { orgId } })
   }
 
-  async updateOrgSettings(orgId: string, dto: {
-    aiEnabled?: boolean
-    aiModel?: string
-    autoReply?: boolean
-    autoReplyMsg?: string
-    language?: string
-    workingHours?: any
-    emailNotifs?: boolean
-    pushNotifs?: boolean
-  }) {
+  async updateOrgSettings(orgId: string, dto: any) {
+    // Whitelist real OrgSettings columns so unrelated keys (businessName, waToken…)
+    // can't crash the upsert.
+    const ALLOWED = ['aiEnabled', 'aiModel', 'autoReply', 'autoReplyMsg', 'language', 'rtlEnabled', 'workingHours', 'emailNotifs', 'pushNotifs', 'leadServices']
+    const data: any = {}
+    for (const k of ALLOWED) if (k in (dto || {})) data[k] = dto[k]
+    if (Array.isArray(data.leadServices)) {
+      // Industry-agnostic service tags, cleaned + de-duped + capped.
+      data.leadServices = Array.from(new Set(
+        data.leadServices.map((s: any) => String(s).trim()).filter(Boolean)
+      )).slice(0, 40)
+    }
     return this.prisma.orgSettings.upsert({
       where: { orgId },
-      update: dto,
-      create: { orgId, ...dto },
+      update: data,
+      create: { orgId, ...data },
     })
   }
 

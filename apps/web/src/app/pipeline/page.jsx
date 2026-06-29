@@ -8,7 +8,6 @@ const STAGES = [
   { key: 'CONTACTED',    label: 'Contacted',       color: '#3b82f6', emoji: '📞' },
   { key: 'QUALIFYING',   label: 'Qualifying',      color: '#f97316', emoji: '🔍' },
   { key: 'QUALIFIED',    label: 'Qualified',       color: '#D8B16A', emoji: '✅' },
-  { key: 'PROPOSAL',     label: 'Proposal Sent',   color: '#8b5cf6', emoji: '📄' },
   { key: 'NEGOTIATION',  label: 'Negotiation',     color: '#fbbf24', emoji: '🤝' },
   { key: 'WON',          label: 'Won',             color: '#22c55e', emoji: '🏆' },
   { key: 'LOST',         label: 'Lost',            color: '#ef4444', emoji: '❌' },

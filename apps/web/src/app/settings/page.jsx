@@ -110,6 +110,8 @@ export default function Settings() {
   const [orgPhone, setOrgPhone] = useState('')
   const [orgEmail, setOrgEmail] = useState('')
   const [orgCity,  setOrgCity]  = useState('Doha')
+  const [leadServices, setLeadServices] = useState([])
+  const [newService, setNewService]     = useState('')
   const [aiEnabled, setAiEnabled]   = useState(true)
   const [aiLang, setAiLang]         = useState('en')
   const [autoReply, setAutoReply]   = useState(true)
@@ -144,6 +146,7 @@ export default function Settings() {
       setOrgPhone(s.phone || '')
       setOrgEmail(s.email || '')
       setOrgCity(s.city || 'Doha')
+      if (Array.isArray(s.leadServices)) setLeadServices(s.leadServices)
       if (s.aiEnabled !== undefined) setAiEnabled(s.aiEnabled)
       if (s.aiLanguage) setAiLang(s.aiLanguage)
       if (s.autoReply !== undefined) setAutoReply(s.autoReply)
@@ -670,6 +673,34 @@ export default function Settings() {
                     saveMsg('Profile saved!')
                   } catch { saveMsg('Save failed — try again') }
                 }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save Profile</button>
+              </div>
+
+              {/* Lead Services — industry-agnostic tags used in the contact form + inbox filter */}
+              <div style={{background:'#0f1520', border:'1px solid #1a2235', padding:'24px', borderRadius:'4px', display:'flex', flexDirection:'column', gap:'12px'}}>
+                <div>
+                  <div style={{fontWeight:'800', fontSize:'15px', marginBottom:'2px'}}>Lead Services</div>
+                  <div style={{fontSize:'12px', color:'#7a8fa6'}}>Your business's services/interests. Used when adding contacts and filtering the inbox. Works for any industry.</div>
+                </div>
+                <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
+                  {leadServices.length === 0 && <span style={{fontSize:'12px', color:'#475569'}}>No services yet — add your first below.</span>}
+                  {leadServices.map(s => (
+                    <span key={s} style={{display:'inline-flex', alignItems:'center', gap:'6px', padding:'6px 10px', background:'rgba(216,177,106,.12)', border:'1px solid rgba(216,177,106,.3)', borderRadius:'999px', fontSize:'12px', color:'#D8B16A'}}>
+                      {s}
+                      <button onClick={() => setLeadServices(prev => prev.filter(x => x !== s))} style={{background:'none', border:'none', color:'#D8B16A', cursor:'pointer', fontSize:'13px', lineHeight:1, padding:0}}>×</button>
+                    </span>
+                  ))}
+                </div>
+                <div style={{display:'flex', gap:'8px'}}>
+                  <input value={newService} onChange={e=>setNewService(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const v = newService.trim(); if (v && !leadServices.includes(v)) { setLeadServices(prev => [...prev, v]); setNewService('') } } }}
+                    placeholder="e.g. Consultation, Quote Request, Site Visit…" style={{...inp, flex:1}}/>
+                  <button onClick={() => { const v = newService.trim(); if (v && !leadServices.includes(v)) { setLeadServices(prev => [...prev, v]); setNewService('') } }}
+                    style={{padding:'9px 16px', background:'#1a2235', border:'1px solid #2a3650', borderRadius:'4px', color:'#e2e8f0', fontWeight:'700', fontSize:'12px', cursor:'pointer', whiteSpace:'nowrap'}}>+ Add</button>
+                </div>
+                <button onClick={async () => {
+                  try { await api.saveSettings({ leadServices }); saveMsg('Lead services saved!') }
+                  catch { saveMsg('Save failed — try again') }
+                }} style={{alignSelf:'flex-start', padding:'9px 20px', background:'#D8B16A', border:'none', borderRadius:'4px', color:'#07090f', fontWeight:'700', fontSize:'12px', cursor:'pointer'}}>Save Services</button>
               </div>
             </div>
           )}
