@@ -244,6 +244,12 @@ model Contact {
   avatar      String?
   source      String?   // instagram_ad, whatsapp, referral, website
   campaignId  String?
+  firstTouch  String?   // channel of first contact (attribution)
+  lastTouch   String?   // channel of most recent contact
+  utmSource   String?
+  utmCampaign String?
+  utmMedium   String?
+  landingPage String?   // URL the lead first arrived on
   status      LeadStatus @default(NEW)
   stage       String?   // pipeline stage
   score       Int        @default(0)

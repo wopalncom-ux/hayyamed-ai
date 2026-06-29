@@ -37,7 +37,7 @@ export class WebchatService {
   }
 
   // Find or create the conversation for a website chat session (keyed by sessionId).
-  private async getOrCreateConversation(orgId: string, sessionId: string, name?: string) {
+  private async getOrCreateConversation(orgId: string, sessionId: string, name?: string, attr?: { utm?: { source?: string; campaign?: string; medium?: string }; page?: string }) {
     let conv = await this.prisma.conversation.findFirst({
       where: { orgId, channel: { type: 'LIVE_CHAT' }, externalId: sessionId },
     })
@@ -45,11 +45,25 @@ export class WebchatService {
 
     const channel = await this.ensureChannel(orgId)
     const cName = name?.trim() || 'Website Visitor'
+    // Resolve UTM campaign name to a campaign id for attribution (best-effort)
+    let campaignId: string | undefined
+    const utmCamp = attr?.utm?.campaign?.trim()
+    if (utmCamp) {
+      const c = await this.prisma.campaign.findFirst({ where: { orgId, name: { equals: utmCamp, mode: 'insensitive' } }, select: { id: true } }).catch(() => null)
+      campaignId = c?.id
+    }
     const contact = await this.prisma.contact.create({
       data: {
         orgId,
         name: cName,
         source: 'website',
+        firstTouch: 'website',
+        lastTouch: 'website',
+        utmSource: attr?.utm?.source || null,
+        utmCampaign: utmCamp || null,
+        utmMedium: attr?.utm?.medium || null,
+        landingPage: attr?.page || null,
+        ...(campaignId ? { campaignId } : {}),
         status: 'NEW',
         score: computeLeadScore({ status: 'NEW', name: cName }),
         metadata: { webchatSession: sessionId },
@@ -63,7 +77,7 @@ export class WebchatService {
     return conv
   }
 
-  async receiveMessage(orgId: string, sessionId: string, text: string, name?: string) {
+  async receiveMessage(orgId: string, sessionId: string, text: string, name?: string, attr?: { utm?: { source?: string; campaign?: string; medium?: string }; page?: string }) {
     const org = await this.prisma.organization.findUnique({ where: { id: orgId }, select: { id: true, name: true, industry: true } })
     if (!org) return { error: 'Invalid workspace' }
     if (!text?.trim()) return { error: 'Empty message' }
@@ -72,7 +86,7 @@ export class WebchatService {
       return { error: 'Chat is currently unavailable.' }
     }
 
-    const conv = await this.getOrCreateConversation(orgId, sessionId, name)
+    const conv = await this.getOrCreateConversation(orgId, sessionId, name, attr)
 
     // Store the inbound (customer) message
     await this.prisma.message.create({

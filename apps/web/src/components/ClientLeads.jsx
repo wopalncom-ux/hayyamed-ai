@@ -133,7 +133,10 @@ export default function ClientLeads({ me }) {
             </div>
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'18px' }}>
-              {[['Status', sel.status],['Score', sel.score ?? 0],['Source', srcMeta(sel.source).l],['Campaign', campName(sel.campaignId) || '—'],['Phone', sel.phone || '—'],['Email', sel.email || '—'],['Value', sel.value ? `${sel.value} ${sel.currency||'QAR'}` : '—'],['City', sel.city || '—']].map(([k,v]) => (
+              {[['Status', sel.status],['Score', sel.score ?? 0],['Source', srcMeta(sel.source).l],['Campaign', campName(sel.campaignId) || '—'],
+                ...(sel.firstTouch ? [['First touch', sel.firstTouch],['Last touch', sel.lastTouch || sel.firstTouch]] : []),
+                ...(sel.utmSource || sel.utmCampaign ? [['UTM source', sel.utmSource || '—'],['UTM campaign', sel.utmCampaign || '—']] : []),
+                ['Phone', sel.phone || '—'],['Email', sel.email || '—'],['Value', sel.value ? `${sel.value} ${sel.currency||'QAR'}` : '—'],['City', sel.city || '—']].map(([k,v]) => (
                 <div key={k} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px' }}><div style={{ fontSize:'9px', color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em' }}>{k}</div><div style={{ fontSize:'13px', fontWeight:700, marginTop:'2px' }}>{String(v)}</div></div>
               ))}
             </div>

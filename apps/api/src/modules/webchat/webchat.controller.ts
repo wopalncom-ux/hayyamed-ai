@@ -14,13 +14,13 @@ export class WebchatController {
   @Post(':orgId/message')
   message(
     @Param('orgId') orgId: string,
-    @Body() body: { sessionId: string; text: string; name?: string },
+    @Body() body: { sessionId: string; text: string; name?: string; utm?: { source?: string; campaign?: string; medium?: string }; page?: string },
   ) {
-    const { sessionId, text, name } = body || {}
+    const { sessionId, text, name, utm, page } = body || {}
     if (!sessionId || !text) {
       throw new BadRequestException('sessionId and text are required')
     }
-    return this.svc.receiveMessage(orgId, sessionId, text, name)
+    return this.svc.receiveMessage(orgId, sessionId, text, name, { utm, page })
   }
 
   @Get(':orgId/session/:sessionId')

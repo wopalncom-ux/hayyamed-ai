@@ -16,6 +16,19 @@
   var sessionId = localStorage.getItem('hm_webchat_sid')
   if (!sessionId) { sessionId = 'web-' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('hm_webchat_sid', sessionId) }
 
+  // Capture UTM params + landing page once (persisted for first-touch attribution)
+  var utm = {}, landingPage = ''
+  try {
+    var stored = localStorage.getItem('hm_webchat_attr')
+    if (stored) { var a = JSON.parse(stored); utm = a.utm || {}; landingPage = a.page || '' }
+    else {
+      var qs = new URLSearchParams(location.search)
+      utm = { source: qs.get('utm_source') || '', campaign: qs.get('utm_campaign') || '', medium: qs.get('utm_medium') || '' }
+      landingPage = location.href
+      localStorage.setItem('hm_webchat_attr', JSON.stringify({ utm: utm, page: landingPage }))
+    }
+  } catch (e) {}
+
   var open = false, sent = false
   var css = document.createElement('style')
   css.textContent =
@@ -69,7 +82,7 @@
     var typing = document.createElement('div'); typing.className = 'hmw-msg hmw-b'; typing.innerHTML = '<span class="hmw-typing"><span></span><span></span><span></span></span>'; body.appendChild(typing); body.scrollTop = body.scrollHeight
     fetch(API + '/api/v1/webchat/' + ORG + '/message', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: sessionId, text: text }),
+      body: JSON.stringify({ sessionId: sessionId, text: text, utm: utm, page: landingPage }),
     }).then(function (r) { return r.json() }).then(function (d) {
       typing.remove(); add(d && d.reply ? d.reply : 'Thanks! A team member will reply shortly.', 'bot')
     }).catch(function () { typing.remove(); add('Connection issue — please try again.', 'bot') })
