@@ -5,6 +5,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { PrismaService } from '../../database/prisma.service'
 import { AIObservabilityService } from '../ai-observability/ai-observability.service'
+import { decryptJson } from '../../common/crypto/crypto.util'
 
 type Provider = 'openai' | 'anthropic' | 'gemini' | 'groq'
 
@@ -20,6 +21,25 @@ export class AIService {
 
   // Circuit breaker: a provider that fails with a hard error (no credit, bad key,
   // quota) is skipped for COOLDOWN_MS so we don't waste latency on it every call.
+  // Per-client provider keys (client's own OpenAI/Anthropic), cached 5 min.
+  private keyCache = new Map<string, { openai?: OpenAI; anthropic?: Anthropic; ts: number }>()
+  private async clientProviders(orgId?: string): Promise<{ openai?: OpenAI; anthropic?: Anthropic }> {
+    if (!orgId) return {}
+    const c = this.keyCache.get(orgId)
+    if (c && Date.now() - c.ts < 5 * 60 * 1000) return c
+    const out: { openai?: OpenAI; anthropic?: Anthropic; ts: number } = { ts: Date.now() }
+    try {
+      const rows = await this.prisma.integration.findMany({ where: { orgId, type: { in: ['openai', 'anthropic'] } }, select: { type: true, config: true } })
+      for (const r of rows) {
+        const cfg: any = decryptJson(r.config)
+        if (r.type === 'openai' && cfg?.openai_key) out.openai = new OpenAI({ apiKey: cfg.openai_key })
+        if (r.type === 'anthropic' && cfg?.anthropic_key) out.anthropic = new Anthropic({ apiKey: cfg.anthropic_key })
+      }
+    } catch { /* fall back to platform keys */ }
+    this.keyCache.set(orgId, out)
+    return out
+  }
+
   private readonly downUntil: Partial<Record<Provider, number>> = {}
   private static readonly COOLDOWN_MS = 5 * 60 * 1000
   private isHardFailure(msg: string) {
@@ -75,6 +95,11 @@ export class AIService {
   ): Promise<string> {
     const { provider, model, fallbackModel, maxTokens = 400, temperature = 0.7, orgId, module = 'ai', action = 'complete' } = opts
 
+    // Use the client's own OpenAI/Anthropic key if they connected one, else platform.
+    const ck = await this.clientProviders(orgId)
+    const oai = ck.openai || this.openai
+    const ath = ck.anthropic || this.anthropic
+
     const systemMsg = messages.find(m => m.role === 'system')?.content || ''
     const chatMsgs  = messages.filter(m => m.role !== 'system')
 
@@ -105,9 +130,9 @@ export class AIService {
         let usedModel = model || ''
         let promptTokens = 0, completionTokens = 0
 
-        if (p === 'anthropic' && this.anthropic) {
+        if (p === 'anthropic' && ath) {
           usedModel = pickModel(p, 'claude-haiku-4-5-20251001')
-          const resp = await this.anthropic.messages.create({
+          const resp = await ath.messages.create({
             model: usedModel, max_tokens: maxTokens, system: systemMsg,
             messages: chatMsgs.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
           })
@@ -131,9 +156,9 @@ export class AIService {
           result = resp.choices[0]?.message?.content || ''
           promptTokens = resp.usage?.prompt_tokens ?? 0
           completionTokens = resp.usage?.completion_tokens ?? 0
-        } else if (p === 'openai' && this.openai) {
+        } else if (p === 'openai' && oai) {
           usedModel = pickModel(p, 'gpt-4o-mini')
-          const resp = await this.openai.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
+          const resp = await oai.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
           result = resp.choices[0]?.message?.content || ''
           promptTokens = resp.usage?.prompt_tokens ?? 0
           completionTokens = resp.usage?.completion_tokens ?? 0

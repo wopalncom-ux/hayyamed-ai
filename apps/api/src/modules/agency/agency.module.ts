@@ -8,9 +8,10 @@ import { UnipileModule } from '../unipile/unipile.module'
 import { WhatsAppModule } from '../whatsapp/whatsapp.module'
 import { InstagramModule } from '../instagram/instagram.module'
 import { WorkflowsModule } from '../workflows/workflows.module'
+import { IntegrationsModule } from '../integrations/integrations.module'
 
 @Module({
-  imports: [DatabaseModule, KnowledgeBaseModule, AIAgentsModule, UnipileModule, WhatsAppModule, InstagramModule, WorkflowsModule],
+  imports: [DatabaseModule, KnowledgeBaseModule, AIAgentsModule, UnipileModule, WhatsAppModule, InstagramModule, WorkflowsModule, IntegrationsModule],
   controllers: [AgencyController],
   providers: [AgencyService],
 })

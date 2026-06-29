@@ -7,6 +7,7 @@ import { UnipileService } from '../unipile/unipile.service'
 import { WhatsAppService } from '../whatsapp/whatsapp.service'
 import { InstagramService } from '../instagram/instagram.service'
 import { WorkflowsService } from '../workflows/workflows.service'
+import { IntegrationsService } from '../integrations/integrations.service'
 
 // One-click automation templates. Each maps to triggers/actions the engine
 // actually runs today. Time-based templates are flagged (need the scheduler).
@@ -50,7 +51,22 @@ export class AgencyService {
     private whatsapp: WhatsAppService,
     private instagram: InstagramService,
     private workflows: WorkflowsService,
+    private integrations: IntegrationsService,
   ) {}
+
+  // ── Per-client integrations (each client's own credentials) ────────────────
+  async clientIntegrations(agencyOrgId: string, clientId: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.integrations.list(clientId)
+  }
+  async upsertClientIntegration(agencyOrgId: string, clientId: string, type: string, dto: { name: string; credentials: Record<string, string> }) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.integrations.upsert(clientId, type, dto)
+  }
+  async removeClientIntegration(agencyOrgId: string, clientId: string, type: string) {
+    await this.assertOwns(agencyOrgId, clientId)
+    return this.integrations.disconnect(clientId, type)
+  }
 
   // Instagram DM (Meta) for a client.
   async connectClientInstagram(agencyOrgId: string, clientId: string, dto: { igAccountId: string; accessToken: string; username?: string }) {

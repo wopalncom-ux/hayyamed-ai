@@ -29,6 +29,13 @@ const PROVIDERS = [
   { id: 'groq', label: 'Groq', models: ['llama-3.3-70b-versatile'] },
 ]
 const EMPTY_AGENT = { name: '', role: 'support', knowledgeBaseId: '', aiProvider: 'openai', aiModel: 'gpt-4o-mini', fallbackModel: '', language: 'both', channels: [], isActive: false, escalationRules: { humanTakeover: true } }
+// Per-client integrations the owner can connect (each client's own credentials).
+const CLIENT_INTEG = [
+  { type: 'openai', label: "OpenAI (client's own key)", field: 'openai_key', ph: 'sk-...' },
+  { type: 'anthropic', label: 'Anthropic (Claude key)', field: 'anthropic_key', ph: 'sk-ant-...' },
+  { type: 'calendly', label: 'Calendly', field: 'calendly_token', ph: 'Personal access token' },
+  { type: 'sendgrid', label: 'SendGrid', field: 'sendgrid_key', ph: 'SG.xxxx' },
+]
 const card = { background: '#0f1520', border: '1px solid #1a2235', borderRadius: '10px', padding: '18px' }
 const input = { width: '100%', padding: '9px 11px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '6px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }
 const lbl = { fontSize: '10px', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }
@@ -48,6 +55,17 @@ export default function ClientsConsole() {
   const [msg, setMsg] = useState(null)
   const [portalEmail, setPortalEmail] = useState('')
   const [portalResult, setPortalResult] = useState(null)
+  const [clientInteg, setClientInteg] = useState([])
+  const [integType, setIntegType] = useState('openai')
+  const [integVal, setIntegVal] = useState('')
+  const loadClientInteg = (id) => api.getClientIntegrations(id).then(r => setClientInteg(Array.isArray(r) ? r : [])).catch(() => {})
+  const saveInteg = async () => {
+    if (!selected?.id || !integVal.trim()) return
+    const def = CLIENT_INTEG.find(x => x.type === integType)
+    try { await api.saveClientIntegration(selected.id, { type: integType, name: def.label, credentials: { [def.field]: integVal.trim() } }); setIntegVal(''); loadClientInteg(selected.id); setMsg({ ok: true, text: `${def.label} connected ✓` }) }
+    catch (e) { setMsg({ ok: false, text: e?.message || 'Credentials rejected' }) }
+  }
+  const removeInteg = async (type) => { if (!selected?.id) return; try { await api.removeClientIntegration(selected.id, type); loadClientInteg(selected.id) } catch {} }
   const createPortalLogin = async () => {
     if (!selected?.id || !portalEmail.trim()) return
     setPortalResult(null)
@@ -206,7 +224,7 @@ export default function ClientsConsole() {
 
   const openClient = async (id) => {
     setMsg(null)
-    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id); loadAutos(id); loadModules(id); loadBilling(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
+    try { const d = await api.getAgencyClient(id); setSelected(d); setEditing({ ...EMPTY, ...d, type: d.industry || '' }); setTab('profile'); loadBrains(id); loadAgents(id); loadChannels(id); loadAutos(id); loadModules(id); loadBilling(id); loadClientInteg(id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Could not load client' }) }
   }
   const newClient = () => { setSelected(null); setEditing({ ...EMPTY }); setTab('profile'); setMsg(null) }
   const set = (k, v) => setEditing(p => ({ ...p, [k]: v }))
@@ -563,6 +581,27 @@ export default function ClientsConsole() {
                     <pre style={{ background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '10px', fontSize: '11px', color: '#e2e8f0', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: 0 }}>{`<script src="https://www.hayyaai.com/widget.js" data-org="${selected.id}" data-name="${(editing.name || selected.name || 'Business').replace(/"/g, '')}"></script>`}</pre>
                     <button onClick={() => { try { navigator.clipboard?.writeText(`<script src="https://www.hayyaai.com/widget.js" data-org="${selected.id}" data-name="${(editing.name || selected.name || 'Business').replace(/"/g, '')}"></script>`); setMsg({ ok: true, text: 'Embed snippet copied ✓ — paste it on the client site.' }) } catch { setMsg({ ok: false, text: 'Copy failed — select the code manually.' }) } }}
                       style={{ marginTop: '10px', padding: '8px 16px', background: '#D8B16A', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>📋 Copy embed code</button>
+                  </div>
+
+                  {/* Per-client integrations (their own keys) */}
+                  <div style={card}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>🔌 Client Integrations <span style={{ fontSize: '10px', color: '#D8B16A' }}>· this client's own keys</span></div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>Connect this client's own credentials. Their OpenAI / Anthropic key, if set, is used for THEIR AI replies (so AI cost is on their account). Keys are encrypted &amp; never shown back.</div>
+                    {clientInteg.length > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        {clientInteg.map(i => (
+                          <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid #1a2235', fontSize: '12px' }}>
+                            <span>🔑 {i.name || i.type} <span style={{ color: i.status === 'active' ? '#16a34a' : '#fbbf24' }}>· {i.status}</span></span>
+                            <button onClick={() => removeInteg(i.type)} style={{ fontSize: '11px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>Remove</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <select value={integType} onChange={e => setIntegType(e.target.value)} style={{ ...input, width: 'auto', cursor: 'pointer' }}>{CLIENT_INTEG.map(x => <option key={x.type} value={x.type}>{x.label}</option>)}</select>
+                      <input type="password" value={integVal} onChange={e => setIntegVal(e.target.value)} placeholder={CLIENT_INTEG.find(x => x.type === integType)?.ph} style={{ ...input, flex: '1 1 180px' }} />
+                      <button onClick={saveInteg} disabled={!integVal.trim()} style={{ padding: '9px 16px', background: integVal.trim() ? '#D8B16A' : '#1a2235', border: 'none', borderRadius: '7px', color: integVal.trim() ? '#07090f' : '#64748b', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>Connect</button>
+                    </div>
                   </div>
 
                   {/* Option A: Unipile */}

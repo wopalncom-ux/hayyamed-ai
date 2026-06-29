@@ -63,6 +63,20 @@ export class AgencyController {
     return this.agency.createClientPortalUser(user.orgId, id, body)
   }
 
+  // Per-client integrations (each client's own credentials).
+  @Get('clients/:id/integrations')
+  clientIntegrations(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.agency.clientIntegrations(user.orgId, id)
+  }
+  @Post('clients/:id/integrations')
+  upsertClientIntegration(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { type: string; name: string; credentials: Record<string, string> }) {
+    return this.agency.upsertClientIntegration(user.orgId, id, body.type, { name: body.name, credentials: body.credentials })
+  }
+  @Delete('clients/:id/integrations/:type')
+  removeClientIntegration(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('type') type: string) {
+    return this.agency.removeClientIntegration(user.orgId, id, type)
+  }
+
   @Post('clients/:id/top-up')
   topUp(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { amount: number }) {
     return this.agency.topUp(user.orgId, id, Number(body.amount) || 0)
