@@ -20,6 +20,8 @@ export default function ClientLeads({ me }) {
   const [fStatus, setFStatus] = useState('All')
   const [fTag, setFTag] = useState('All')
   const [fPriority, setFPriority] = useState('All')
+  const [fFrom, setFFrom] = useState('')
+  const [fTo, setFTo] = useState('')
   const [sel, setSel] = useState(null)        // selected lead profile
   const [detail, setDetail] = useState(null)  // loaded profile
   const [aiSummary, setAiSummary] = useState('')
@@ -49,6 +51,9 @@ export default function ClientLeads({ me }) {
     if (fStatus !== 'All' && l.status !== fStatus) return false
     if (fTag !== 'All' && !(l.tags || []).includes(fTag)) return false
     if (fPriority !== 'All' && prio(l.score || 0) !== fPriority) return false
+    const ld = (l.createdAt || l.updatedAt || '').slice(0, 10)
+    if (fFrom && ld && ld < fFrom) return false
+    if (fTo && ld && ld > fTo) return false
     if (search && !((l.name||'')+(l.phone||'')+(l.email||'')).toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
@@ -69,7 +74,12 @@ export default function ClientLeads({ me }) {
         {tags.length>0 && <select value={fTag} onChange={e=>setFTag(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'9px 10px', color:'#e8eef5', fontSize:'12px', cursor:'pointer' }}>
           <option value="All">All tags</option>{tags.map(t => <option key={t} value={t}>{t}</option>)}
         </select>}
-        <span style={{ fontSize:'12px', color:'#7a8fa6' }}>{filtered.length} leads</span>
+        <span style={{ fontSize:'11px', color:'#64748b' }}>From</span>
+        <input type="date" value={fFrom} onChange={e=>setFFrom(e.target.value)} style={{ background:'#0a121e', border:`1px solid ${fFrom?'#D8B16A':'#1e2d42'}`, borderRadius:'8px', padding:'8px 9px', color:'#e8eef5', fontSize:'11px', cursor:'pointer' }} />
+        <span style={{ fontSize:'11px', color:'#64748b' }}>to</span>
+        <input type="date" value={fTo} onChange={e=>setFTo(e.target.value)} style={{ background:'#0a121e', border:`1px solid ${fTo?'#D8B16A':'#1e2d42'}`, borderRadius:'8px', padding:'8px 9px', color:'#e8eef5', fontSize:'11px', cursor:'pointer' }} />
+        {(fFrom||fTo) && <button onClick={()=>{ setFFrom(''); setFTo('') }} style={{ fontSize:'11px', background:'none', border:'none', color:'#ef4444', cursor:'pointer' }}>clear</button>}
+        <span style={{ fontSize:'12px', color:'#7a8fa6', marginLeft:'auto' }}>{filtered.length} leads</span>
       </div>
 
       <div style={{ ...card, overflow:'hidden' }}>
