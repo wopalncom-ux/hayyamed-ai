@@ -40,6 +40,7 @@ export default function ClientInbox({ me }) {
   const [fAssignee, setFAssignee] = useState('All')
   const [fTag, setFTag] = useState('All')
   const [loading, setLoading] = useState(true)
+  const [showHist, setShowHist] = useState(false)
   const bodyRef = useRef(null)
 
   const loadConvos = () => api.getConversations({ limit: 100 }).then(r => setConvos(Array.isArray(r) ? r : (r?.data || []))).catch(() => {}).finally(() => setLoading(false))
@@ -47,7 +48,7 @@ export default function ClientInbox({ me }) {
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight }, [msgs])
 
   const open = async (c) => {
-    setSel(c); setMsgs([]); setNotes([])
+    setSel(c); setMsgs([]); setNotes([]); setShowHist(false)
     api.getMessages(c.id).then(m => setMsgs(Array.isArray(m) ? m : (m?.data || []))).catch(() => {})
     if (can('add_notes')) api.getConversationNotes(c.id).then(n => setNotes(Array.isArray(n) ? n : [])).catch(() => {})
   }
@@ -129,6 +130,22 @@ export default function ClientInbox({ me }) {
                 {STATUS_OPTIONS.map(k => <option key={k} value={k}>{ST[k]?.l || k}</option>)}
                 {!STATUS_OPTIONS.includes(sel.status) && <option value={sel.status}>{ST[sel.status]?.l || sel.status}</option>}
               </select>
+            )}
+            {(sel.metadata?.statusHistory || []).length > 0 && (
+              <div style={{ position:'relative' }}>
+                <button onClick={()=>setShowHist(v=>!v)} title="Status history" style={{ background:'none', border:'1px solid #1e2d42', borderRadius:'7px', padding:'5px 8px', color:'#7a8fa6', fontSize:'11px', cursor:'pointer' }}>🕘</button>
+                {showHist && (
+                  <div style={{ position:'absolute', right:0, top:'32px', width:'220px', maxHeight:'240px', overflowY:'auto', background:'#0f1622', border:'1px solid #1e2d42', borderRadius:'10px', boxShadow:'0 12px 40px rgba(0,0,0,.5)', zIndex:50, padding:'8px' }}>
+                    <div style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:'6px' }}>Status history</div>
+                    {[...sel.metadata.statusHistory].reverse().map((h, i) => (
+                      <div key={i} style={{ fontSize:'11px', color:'#94a3b8', padding:'3px 0', borderBottom:'1px solid #141d2e' }}>
+                        <span style={{ color: ST[h.to]?.c || '#94a3b8', fontWeight:700 }}>{ST[h.to]?.l || h.to}</span> <span style={{ color:'#475569' }}>← {ST[h.from]?.l || h.from}</span>
+                        <div style={{ fontSize:'9px', color:'#3d4f63' }}>{h.at ? new Date(h.at).toLocaleString() : ''}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
             {can('assign_leads') && (
               <select value={sel.assigneeId || ''} onChange={e=>assign(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'7px', padding:'5px 8px', color:'#e8eef5', fontSize:'11px', cursor:'pointer', maxWidth:'130px' }}>
