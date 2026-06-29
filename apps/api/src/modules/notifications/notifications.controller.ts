@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Query, Body } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UnauthorizedException } from '@nestjs/common'
 import { NotificationsService } from './notifications.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
@@ -12,6 +12,14 @@ export class NotificationsController {
   @Get('vapid-key')
   vapidKey() {
     return this.svc.getVapidPublicKey()
+  }
+
+  // Scheduled reminders — follow-ups due + unanswered leads (Cloud Scheduler).
+  @Public()
+  @Post('cron/reminders')
+  runReminders(@Query('secret') secret: string) {
+    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) throw new UnauthorizedException()
+    return this.svc.runReminders()
   }
 
   @Post('subscribe')

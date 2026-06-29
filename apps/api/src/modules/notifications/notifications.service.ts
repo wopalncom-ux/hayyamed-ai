@@ -103,6 +103,46 @@ export class NotificationsService {
     } catch { /* best effort */ }
   }
 
+  // Scheduled reminders (called by Cloud Scheduler). Best-effort, idempotent via
+  // per-record flags so leads aren't re-notified.
+  async runReminders() {
+    const now = new Date()
+    const out = { followUps: 0, unanswered: 0 }
+    const today = now.toISOString().slice(0, 10)
+
+    // 1) Follow-ups due today or earlier (set in the lead detail), not yet pinged today.
+    try {
+      const due = await this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT id, "orgId", name, metadata FROM "contacts"
+         WHERE metadata->>'followUp' IS NOT NULL AND metadata->>'followUp' <= $1
+           AND COALESCE(metadata->>'followUpNotified','') <> $1 LIMIT 200`, today)
+      for (const c of due) {
+        await this.notifyOrg(c.orgId, { type: 'follow_up_due', title: '📅 Follow-up due', body: `Follow up with ${c.name || 'a lead'} today`, data: { contactId: c.id, url: '/client' } })
+        await this.prisma.contact.update({ where: { id: c.id }, data: { metadata: { ...(c.metadata || {}), followUpNotified: today } } }).catch(() => {})
+        out.followUps++
+      }
+    } catch { /* best effort */ }
+
+    // 2) Open conversations with no activity for >2h — a lead waiting for a reply.
+    try {
+      const cutoff = new Date(now.getTime() - 2 * 3600 * 1000)
+      const stale = await this.prisma.conversation.findMany({
+        where: { status: 'OPEN', lastMsgAt: { lt: cutoff } },
+        select: { id: true, orgId: true, metadata: true, contact: { select: { name: true } } },
+        take: 200,
+      })
+      for (const cv of stale) {
+        const md: any = cv.metadata || {}
+        if (md.unansweredNotified) continue
+        await this.notifyOrg(cv.orgId, { type: 'unanswered_lead', title: '⏰ Lead waiting', body: `${cv.contact?.name || 'A lead'} is waiting for a reply`, data: { conversationId: cv.id, url: '/client' } })
+        await this.prisma.conversation.update({ where: { id: cv.id }, data: { metadata: { ...md, unansweredNotified: true } } }).catch(() => {})
+        out.unanswered++
+      }
+    } catch { /* best effort */ }
+
+    return out
+  }
+
   async deleteOne(id: string, userId: string) {
     return this.prisma.notification.deleteMany({ where: { id, userId } })
   }
