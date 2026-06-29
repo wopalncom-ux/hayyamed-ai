@@ -22,10 +22,23 @@ export default function ClientLeads({ me }) {
   const [fPriority, setFPriority] = useState('All')
   const [sel, setSel] = useState(null)        // selected lead profile
   const [detail, setDetail] = useState(null)  // loaded profile
+  const [aiSummary, setAiSummary] = useState('')
+  const [summarizing, setSummarizing] = useState(false)
+  const [followUp, setFollowUp] = useState('')
+  const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
 
   useEffect(() => { api.getContacts({ limit: 200 }).then(r => setLeads((r?.data || r || []))).catch(() => {}).finally(() => setLoading(false)) }, [])
 
-  const openLead = async (l) => { setSel(l); setDetail(null); try { setDetail(await api.getContactProfile(l.id)) } catch {} }
+  const openLead = async (l) => { setSel(l); setDetail(null); setAiSummary(''); setFollowUp(l.metadata?.followUp || ''); try { setDetail(await api.getContactProfile(l.id)) } catch {} }
+  const genSummary = async () => {
+    const cid = detail?.conversations?.[0]?.id; if (!cid) { setAiSummary('No conversation to summarize yet.'); return }
+    setSummarizing(true)
+    try { const r = await api.summarizeConversation(cid); setAiSummary(r?.summary || 'No summary available.') } catch { setAiSummary('Could not generate a summary.') } finally { setSummarizing(false) }
+  }
+  const saveFollowUp = async (v) => {
+    setFollowUp(v); if (!sel) return
+    try { await api.updateContact(sel.id, { metadata: { ...(sel.metadata || {}), followUp: v } }); setLeads(p => p.map(x => x.id===sel.id ? { ...x, metadata: { ...(x.metadata||{}), followUp: v } } : x)) } catch {}
+  }
 
   const sources = Array.from(new Set(leads.map(l => l.source).filter(Boolean)))
   const statuses = Array.from(new Set(leads.map(l => l.status).filter(Boolean)))
@@ -106,6 +119,28 @@ export default function ClientLeads({ me }) {
             </div>
 
             {(sel.tags||[]).length>0 && <div style={{ marginBottom:'18px' }}><div style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase', marginBottom:'6px' }}>Tags</div><div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>{sel.tags.map(t => <span key={t} style={{ fontSize:'11px', padding:'3px 9px', borderRadius:'10px', background:'#1a2740', color:'#94a3b8' }}>{t}</span>)}</div></div>}
+
+            {/* AI summary */}
+            {can('use_ai_replies') && (
+              <div style={{ background:'#0a121e', border:'1px solid #2a3d5c', borderRadius:'10px', padding:'12px', marginBottom:'14px' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: aiSummary?'8px':'0' }}>
+                  <div style={{ fontSize:'12px', fontWeight:800, color:'#a78bfa' }}>✨ AI Summary</div>
+                  <button onClick={genSummary} disabled={summarizing} style={{ fontSize:'11px', padding:'4px 10px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'6px', color:'#a78bfa', fontWeight:700, cursor:'pointer' }}>{summarizing?'…':(aiSummary?'Regenerate':'Generate')}</button>
+                </div>
+                {aiSummary && <div style={{ fontSize:'12px', color:'#cbd5e1', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{aiSummary}</div>}
+              </div>
+            )}
+
+            {/* Schedule follow-up */}
+            {(can('change_status') || can('add_notes')) && (
+              <div style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'10px', padding:'12px', marginBottom:'14px' }}>
+                <div style={{ fontSize:'12px', fontWeight:800, marginBottom:'8px' }}>📅 Follow-up</div>
+                <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+                  <input type="date" value={followUp} onChange={e=>saveFollowUp(e.target.value)} style={{ background:'#0f1622', border:'1px solid #1e2d42', borderRadius:'7px', padding:'7px 10px', color:'#e8eef5', fontSize:'12px', outline:'none' }} />
+                  {followUp && <button onClick={()=>saveFollowUp('')} style={{ fontSize:'11px', background:'none', border:'none', color:'#ef4444', cursor:'pointer' }}>Clear</button>}
+                </div>
+              </div>
+            )}
 
             {!detail ? <div style={{ color:'#3d4f63', fontSize:'12px' }}>Loading history…</div> : (<>
               {detail.conversations?.length>0 && (
