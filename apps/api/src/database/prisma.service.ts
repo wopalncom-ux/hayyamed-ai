@@ -28,6 +28,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch {
       // already exists / older PG — best effort
     }
+    try {
+      // Client-portal team: sub-role + permissions on users, seat cap on orgs.
+      await this.$executeRawUnsafe('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "clientRole" TEXT')
+      await this.$executeRawUnsafe('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "permissions" JSONB')
+      await this.$executeRawUnsafe('ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "maxSeats" INTEGER DEFAULT 5')
+    } catch {
+      // best effort
+    }
   }
 
   async onModuleDestroy() {

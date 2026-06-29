@@ -26,6 +26,11 @@ export default function ClientPortal() {
   const [campaigns, setCampaigns] = useState([])
   const [convos,    setConvos]    = useState([])
   const [today,     setToday]     = useState(null)
+  const [me,        setMe]        = useState(null)   // portal identity + permissions
+  const [team,      setTeam]      = useState([])
+  const [teamMsg,   setTeamMsg]   = useState(null)
+  const [invite,    setInvite]    = useState({ email: '', name: '', clientRole: 'agent' })
+  const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
   const [loading,   setLoading]   = useState(true)
   const [showAiPanel, setShowAiPanel] = useState(false)
   const [aiMsg,     setAiMsg]     = useState('')
@@ -52,7 +57,24 @@ export default function ClientPortal() {
       setToday(td)
       setLoading(false)
     })
+    api.getPortalMe().then(setMe).catch(() => {})
   }, [])
+
+  const loadTeam = () => api.getPortalTeam().then(t => setTeam(Array.isArray(t) ? t : [])).catch(() => {})
+  useEffect(() => { if (activeTab === 'team') loadTeam() }, [activeTab])
+
+  const ROLE_LABEL = { owner: 'Client Owner', manager: 'Manager', agent: 'Agent', viewer: 'Viewer', billing: 'Billing Viewer' }
+  const submitInvite = async () => {
+    setTeamMsg(null)
+    try {
+      const r = await api.invitePortalMember(invite)
+      setTeamMsg({ ok: true, text: `Invited ${r.email} — temp password: ${r.password}` })
+      setInvite({ email: '', name: '', clientRole: 'agent' }); loadTeam()
+    } catch (e) { setTeamMsg({ ok: false, text: e?.message || 'Invite failed' }) }
+  }
+  const setMemberActive = async (m, isActive) => { try { await api.updatePortalMember(m.id, { isActive }); loadTeam() } catch (e) { setTeamMsg({ ok: false, text: e?.message || 'Update failed' }) } }
+  const setMemberRole = async (m, clientRole) => { try { await api.updatePortalMember(m.id, { clientRole }); loadTeam() } catch (e) { setTeamMsg({ ok: false, text: e?.message || 'Update failed' }) } }
+  const removeMember = async (m) => { if (!confirm(`Remove ${m.name || m.email}?`)) return; try { await api.removePortalMember(m.id); loadTeam() } catch (e) { setTeamMsg({ ok: false, text: e?.message || 'Remove failed' }) } }
 
   const sendAiMsg = async () => {
     if (!aiMsg.trim()) return
@@ -145,6 +167,7 @@ export default function ClientPortal() {
             { id:'overview',   label:'Overview' },
             { id:'campaigns',  label:'Campaigns' },
             { id:'inbox',      label:'Recent Messages' },
+            ...(can('manage_team') ? [{ id:'team', label:'Team' }] : []),
           ].map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
               style={{padding:'12px 18px', background:'none', border:'none', borderBottom: activeTab===t.id ? '2px solid #D8B16A' : '2px solid transparent', color: activeTab===t.id ? '#e2e8f0' : '#7a8fa6', fontSize:'13px', fontWeight: activeTab===t.id ? '700' : '400', cursor:'pointer', transition:'all .15s'}}>
@@ -294,6 +317,52 @@ export default function ClientPortal() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* ══════════ TAB: TEAM ══════════ */}
+        {activeTab === 'team' && (
+          <div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:'16px', flexWrap:'wrap', gap:'10px' }}>
+              <div>
+                <div style={{ fontSize:'18px', fontWeight:'800' }}>Team</div>
+                <div style={{ fontSize:'12px', color:'#7a8fa6' }}>{team.length} of {me?.org?.maxSeats ?? 5} seats used · invite teammates and set their access</div>
+              </div>
+            </div>
+
+            {teamMsg && <div style={{ marginBottom:'14px', padding:'10px 14px', borderRadius:'8px', fontSize:'12px', background: teamMsg.ok ? 'rgba(216,177,106,.1)' : 'rgba(239,68,68,.1)', border:`1px solid ${teamMsg.ok ? 'rgba(216,177,106,.3)' : 'rgba(239,68,68,.3)'}`, color: teamMsg.ok ? '#D8B16A' : '#ef4444' }}>{teamMsg.text}</div>}
+
+            {/* Invite */}
+            <div style={{ ...card, marginBottom:'16px' }}>
+              <div style={{ fontWeight:'800', fontSize:'13px', marginBottom:'10px' }}>Invite a team member</div>
+              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center' }}>
+                <input value={invite.email} onChange={e=>setInvite({ ...invite, email:e.target.value })} placeholder="email@business.com" style={{ flex:'1 1 200px', background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px 12px', color:'#e8eef5', fontSize:'13px', outline:'none' }} />
+                <input value={invite.name} onChange={e=>setInvite({ ...invite, name:e.target.value })} placeholder="Name (optional)" style={{ flex:'1 1 140px', background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px 12px', color:'#e8eef5', fontSize:'13px', outline:'none' }} />
+                <select value={invite.clientRole} onChange={e=>setInvite({ ...invite, clientRole:e.target.value })} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px 12px', color:'#e8eef5', fontSize:'13px', cursor:'pointer' }}>
+                  {['manager','agent','viewer','billing','owner'].map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                </select>
+                <button onClick={submitInvite} disabled={!invite.email.trim() || team.length >= (me?.org?.maxSeats ?? 5)} style={{ padding:'10px 18px', background: (invite.email.trim() && team.length < (me?.org?.maxSeats ?? 5)) ? '#D8B16A' : '#1a2235', border:'none', borderRadius:'8px', color:(invite.email.trim() && team.length < (me?.org?.maxSeats ?? 5)) ? '#07090f' : '#64748b', fontWeight:'800', fontSize:'13px', cursor:'pointer' }}>+ Invite</button>
+              </div>
+              {team.length >= (me?.org?.maxSeats ?? 5) && <div style={{ fontSize:'11px', color:'#fbbf24', marginTop:'8px' }}>Seat limit reached — ask your provider to add more seats.</div>}
+            </div>
+
+            {/* Members */}
+            <div style={card}>
+              {team.length === 0 ? <div style={{ fontSize:'13px', color:'#3d4f63', textAlign:'center', padding:'16px' }}>No team members yet.</div> : team.map(m => (
+                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 0', borderBottom:'1px solid #1a2235' }}>
+                  <div style={{ width:'38px', height:'38px', borderRadius:'50%', background:'linear-gradient(135deg,#D8B16A,#A07C3A)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'800', color:'#07090f', flexShrink:0 }}>{(m.name||m.email||'?')[0].toUpperCase()}</div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontWeight:'700', fontSize:'13px' }}>{m.name || m.email} {!m.isActive && <span style={{ fontSize:'10px', color:'#64748b' }}>· inactive</span>}</div>
+                    <div style={{ fontSize:'11px', color:'#7a8fa6', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{m.email}</div>
+                  </div>
+                  <select value={m.clientRole} onChange={e=>setMemberRole(m, e.target.value)} disabled={m.id===me?.id} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'7px', padding:'6px 8px', color:'#e8eef5', fontSize:'11px', cursor: m.id===me?.id?'not-allowed':'pointer' }}>
+                    {['owner','manager','agent','viewer','billing'].map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                  </select>
+                  <button onClick={()=>setMemberActive(m, !m.isActive)} disabled={m.id===me?.id} title={m.isActive?'Deactivate':'Activate'} style={{ fontSize:'11px', background:'none', border:'1px solid #1e2d42', borderRadius:'6px', padding:'5px 9px', color: m.isActive?'#fbbf24':'#16a34a', cursor: m.id===me?.id?'not-allowed':'pointer' }}>{m.isActive?'Pause':'Activate'}</button>
+                  <button onClick={()=>removeMember(m)} disabled={m.id===me?.id} style={{ fontSize:'11px', background:'none', border:'none', color: m.id===me?.id?'#3d4f63':'#ef4444', cursor: m.id===me?.id?'not-allowed':'pointer' }}>Remove</button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -605,4 +605,12 @@ export const api = {
     request(`/master-admin/feature-flags/orgs/${orgId}/${key}`, { method: 'DELETE' }),
   getOrgFeatureFlagOverrides: (orgId) =>
     request(`/master-admin/feature-flags/orgs/${orgId}`),
+
+  // ── Client Portal (self-service, scoped to the caller's org) ──────────────
+  getPortalMe: () => request('/portal/me'),
+  getPortalTeamCatalog: () => request('/portal/team/catalog'),
+  getPortalTeam: () => request('/portal/team'),
+  invitePortalMember: (dto) => request('/portal/team', { method: 'POST', body: JSON.stringify(dto) }),
+  updatePortalMember: (id, dto) => request(`/portal/team/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  removePortalMember: (id) => request(`/portal/team/${id}`, { method: 'DELETE' }),
 }

@@ -423,6 +423,7 @@ export class AgencyService {
     const u = await this.prisma.user.create({
       data: {
         orgId: clientId, email, password: hash, role: 'CLIENT' as any, isActive: true,
+        clientRole: 'owner', // first portal user is the Client Owner (full access)
         name: dto.name?.trim() || `${client?.name || 'Client'} Portal`,
       },
       select: { id: true, email: true, name: true },

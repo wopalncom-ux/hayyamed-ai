@@ -73,6 +73,7 @@ model Organization {
   clientEmail          String?
   businessType         String?
   storageLimitMb       Int      @default(500)
+  maxSeats             Int      @default(5)    // client-portal team seat cap (owner-controlled)
   paymentResponsibility String  @default("client")  // client | owner | hybrid
   profitPercent        Float    @default(0)
   campaignBilling      String   @default("")
@@ -157,6 +158,8 @@ model User {
   name         String
   avatar       String?
   role         UserRole @default(AGENT)
+  clientRole   String?  // client-portal sub-role: owner|manager|agent|viewer|billing
+  permissions  Json?    // explicit permission overrides (else derived from clientRole)
   isActive     Boolean  @default(true)
   lastSeen     DateTime?
 

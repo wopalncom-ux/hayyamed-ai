@@ -27,6 +27,7 @@ import { BookingsModule } from './modules/bookings/bookings.module'
 import { MasterAdminModule } from './modules/master-admin/master-admin.module'
 import { WorkflowsModule } from './modules/workflows/workflows.module'
 import { AgencyModule } from './modules/agency/agency.module'
+import { PortalModule } from './modules/portal/portal.module'
 import { IntegrationsModule } from './modules/integrations/integrations.module'
 import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module'
 import { AIObservabilityModule } from './modules/ai-observability/ai-observability.module'
@@ -77,6 +78,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     MasterAdminModule,
     WorkflowsModule,
     AgencyModule,
+    PortalModule,
     IntegrationsModule,
     FeatureFlagsModule,
     AIObservabilityModule,
