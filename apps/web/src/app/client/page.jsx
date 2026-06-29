@@ -6,6 +6,7 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import ClientInbox from '@/components/ClientInbox'
 import ClientLeads from '@/components/ClientLeads'
 import ClientReports from '@/components/ClientReports'
+import ClientCampaigns from '@/components/ClientCampaigns'
 
 const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'10px', padding:'20px' }
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -200,7 +201,7 @@ export default function ClientPortal() {
             ...(can('view_inbox') && feat('portal_chat') ? [{ id:'fullinbox', label:'Inbox' }] : []),
             ...((can('view_inbox') || can('view_dashboard')) ? [{ id:'leads', label:'Leads' }] : []),
             ...(can('view_reports') && feat('portal_reports') ? [{ id:'reports', label:'Reports' }] : []),
-            { id:'campaigns',  label:'Campaigns' },
+            ...(feat('campaigns') ? [{ id:'campaigns', label:'Campaigns' }] : []),
             { id:'inbox',      label:'Recent Messages' },
             ...(can('manage_team') ? [{ id:'team', label:'Team' }] : []),
           ].map(t => (
@@ -281,39 +282,7 @@ export default function ClientPortal() {
         {/* ══════════════════════════════════════════════════════════════════
             TAB: CAMPAIGNS
         ══════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'campaigns' && (
-          <div style={{display:'flex', flexDirection:'column', gap:'14px'}}>
-            {loading ? (
-              <div style={{...card, textAlign:'center', color:'#3d4f63', fontSize:'13px'}}>Loading campaigns…</div>
-            ) : campaigns.length === 0 ? (
-              <div style={{...card, textAlign:'center', color:'#3d4f63', fontSize:'13px'}}>No campaigns yet</div>
-            ) : campaigns.map((c) => {
-              const st = (c.status || 'DRAFT').toUpperCase()
-              const stColor = st === 'RUNNING' ? '#D8B16A' : st === 'COMPLETED' ? '#3b82f6' : st === 'PAUSED' ? '#fbbf24' : '#64748b'
-              return (
-                <div key={c.id} style={{...card, display:'flex', alignItems:'center', gap:'20px'}}>
-                  <div style={{width:'44px', height:'44px', borderRadius:'10px', background:stColor+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0}}>📣</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontWeight:'800', fontSize:'14px', marginBottom:'4px'}}>{c.name}</div>
-                    <div style={{fontSize:'11px', color:'#7a8fa6'}}>{c.channel || c.channelType || 'WhatsApp'} · <span style={{color:stColor, fontWeight:'700'}}>{st}</span></div>
-                  </div>
-                  <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:'20px', textAlign:'center'}}>
-                    {[
-                      { label:'SENT',      value:(c.sentCount ?? c.sent ?? 0).toLocaleString(), color:'#e2e8f0' },
-                      { label:'READ',      value:(c.readCount ?? 0).toLocaleString(),            color:'#3b82f6' },
-                      { label:'RECIPIENTS',value:(c.totalRecipients ?? 0).toLocaleString(),      color:'#D8B16A' },
-                    ].map(s => (
-                      <div key={s.label}>
-                        <div style={{fontSize:'17px', fontWeight:'900', color:s.color}}>{s.value}</div>
-                        <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1px'}}>{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        {activeTab === 'campaigns' && <ClientCampaigns me={me} />}
 
         {/* ══════════════════════════════════════════════════════════════════
             TAB: INBOX

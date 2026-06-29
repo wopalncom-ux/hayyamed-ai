@@ -524,6 +524,8 @@ export const api = {
   updateCampaign: (id, body) => request(`/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   getCampaignAnalytics: (id) => request(`/campaigns/${id}/analytics`),
   getCampaignContacts: (id, params = {}) => request(`/campaigns/${id}/contacts?` + new URLSearchParams(params)),
+  addCampaignAudience: (id, filter) => request(`/campaigns/${id}/contacts/filter`, { method: 'POST', body: JSON.stringify(filter) }),
+  getCampaignAnalytics: (id) => request(`/campaigns/${id}/analytics`),
   addContactsByFilter: (id, body) => request(`/campaigns/${id}/contacts/filter`, { method: 'POST', body: JSON.stringify(body) }),
   addContactsToCampaign: (id, body) => request(`/campaigns/${id}/contacts`, { method: 'POST', body: JSON.stringify(body) }),
   launchCampaign: (id) => request(`/campaigns/${id}/launch`, { method: 'POST' }),

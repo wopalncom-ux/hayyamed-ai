@@ -22,6 +22,8 @@ export default function ClientLeads({ me }) {
   const [fPriority, setFPriority] = useState('All')
   const [fFrom, setFFrom] = useState('')
   const [fTo, setFTo] = useState('')
+  const [fCampaign, setFCampaign] = useState('All')
+  const [campMap, setCampMap] = useState({})
   const [sel, setSel] = useState(null)        // selected lead profile
   const [detail, setDetail] = useState(null)  // loaded profile
   const [aiSummary, setAiSummary] = useState('')
@@ -29,7 +31,11 @@ export default function ClientLeads({ me }) {
   const [followUp, setFollowUp] = useState('')
   const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
 
-  useEffect(() => { api.getContacts({ limit: 200 }).then(r => setLeads((r?.data || r || []))).catch(() => {}).finally(() => setLoading(false)) }, [])
+  useEffect(() => {
+    api.getContacts({ limit: 200 }).then(r => setLeads((r?.data || r || []))).catch(() => {}).finally(() => setLoading(false))
+    api.getCampaigns({ limit: 100 }).then(r => { const a = r?.data || r || []; setCampMap(Object.fromEntries(a.map(c => [c.id, c.name]))) }).catch(() => {})
+  }, [])
+  const campName = (id) => id ? (campMap[id] || 'Campaign') : null
 
   const openLead = async (l) => { setSel(l); setDetail(null); setAiSummary(''); setFollowUp(l.metadata?.followUp || ''); try { setDetail(await api.getContactProfile(l.id)) } catch {} }
   const genSummary = async () => {
@@ -50,6 +56,7 @@ export default function ClientLeads({ me }) {
     if (fSource !== 'All' && l.source !== fSource) return false
     if (fStatus !== 'All' && l.status !== fStatus) return false
     if (fTag !== 'All' && !(l.tags || []).includes(fTag)) return false
+    if (fCampaign !== 'All' && l.campaignId !== fCampaign) return false
     if (fPriority !== 'All' && prio(l.score || 0) !== fPriority) return false
     const ld = (l.createdAt || l.updatedAt || '').slice(0, 10)
     if (fFrom && ld && ld < fFrom) return false
@@ -73,6 +80,9 @@ export default function ClientLeads({ me }) {
         </select>
         {tags.length>0 && <select value={fTag} onChange={e=>setFTag(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'9px 10px', color:'#e8eef5', fontSize:'12px', cursor:'pointer' }}>
           <option value="All">All tags</option>{tags.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>}
+        {Object.keys(campMap).length>0 && <select value={fCampaign} onChange={e=>setFCampaign(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'9px 10px', color:'#e8eef5', fontSize:'12px', cursor:'pointer' }}>
+          <option value="All">All campaigns</option>{Object.entries(campMap).map(([id,n]) => <option key={id} value={id}>{n}</option>)}
         </select>}
         <span style={{ fontSize:'11px', color:'#64748b' }}>From</span>
         <input type="date" value={fFrom} onChange={e=>setFFrom(e.target.value)} style={{ background:'#0a121e', border:`1px solid ${fFrom?'#D8B16A':'#1e2d42'}`, borderRadius:'8px', padding:'8px 9px', color:'#e8eef5', fontSize:'11px', cursor:'pointer' }} />
@@ -123,7 +133,7 @@ export default function ClientLeads({ me }) {
             </div>
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'18px' }}>
-              {[['Status', sel.status],['Score', sel.score ?? 0],['Phone', sel.phone || '—'],['Email', sel.email || '—'],['Value', sel.value ? `${sel.value} ${sel.currency||'QAR'}` : '—'],['City', sel.city || '—']].map(([k,v]) => (
+              {[['Status', sel.status],['Score', sel.score ?? 0],['Source', srcMeta(sel.source).l],['Campaign', campName(sel.campaignId) || '—'],['Phone', sel.phone || '—'],['Email', sel.email || '—'],['Value', sel.value ? `${sel.value} ${sel.currency||'QAR'}` : '—'],['City', sel.city || '—']].map(([k,v]) => (
                 <div key={k} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px' }}><div style={{ fontSize:'9px', color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em' }}>{k}</div><div style={{ fontSize:'13px', fontWeight:700, marginTop:'2px' }}>{String(v)}</div></div>
               ))}
             </div>
