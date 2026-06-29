@@ -27,11 +27,13 @@ export default function ClientReports({ me }) {
   const [full, setFull] = useState(null)
   const [days, setDays] = useState([])
   const [team, setTeam] = useState([])
+  const [camps, setCamps] = useState([])
+  const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([api.getFullStats().catch(()=>null), api.getAnalytics('7days').catch(()=>null), api.getTeam().catch(()=>[])])
-      .then(([f, a, t]) => { setFull(f); setDays(a?.days || []); setTeam(Array.isArray(t)?t:[]); setLoading(false) })
+    Promise.all([api.getFullStats().catch(()=>null), api.getAnalytics('7days').catch(()=>null), api.getTeam().catch(()=>[]), api.getCampaigns({ limit: 100 }).catch(()=>({data:[]})), api.getContacts({ limit: 500 }).catch(()=>({data:[]}))])
+      .then(([f, a, t, c, ct]) => { setFull(f); setDays(a?.days || []); setTeam(Array.isArray(t)?t:[]); setCamps(c?.data||c||[]); setContacts(ct?.data||ct||[]); setLoading(false) })
   }, [])
 
   if (loading) return <div style={{ padding:'30px', textAlign:'center', color:'#3d4f63' }}>Loading reports…</div>
@@ -44,12 +46,25 @@ export default function ClientReports({ me }) {
   const ls = full?.leadStats || {}
   const dayMax = Math.max(...days.map(d=>d.contacts||0), 1)
 
+  // Campaign performance + ROI (leads counted from attributed contacts; revenue = won leads' value)
+  const isWon = (s) => ['WON','CONVERTED','CLOSED'].includes(String(s||'').toUpperCase())
+  const campRows = camps.map(c => {
+    const leads = contacts.filter(ct => ct.campaignId === c.id)
+    const won = leads.filter(ct => isWon(ct.status))
+    const revenue = won.reduce((a,ct)=>a+(Number(ct.value)||0),0)
+    const cost = Number(c.cost)||0
+    return { id:c.id, name:c.name, leads:leads.length, converted: won.length || c.converted || 0, cost, cpl: leads.length&&cost?+(cost/leads.length).toFixed(1):null, revenue, roi: cost? Math.round((revenue-cost)/cost*100) : null }
+  }).filter(r => r.leads>0 || r.cost>0).sort((a,b)=>b.leads-a.leads)
+  const campTotals = campRows.reduce((a,r)=>({ leads:a.leads+r.leads, converted:a.converted+r.converted, cost:a.cost+r.cost, revenue:a.revenue+r.revenue }), { leads:0, converted:0, cost:0, revenue:0 })
+  const totalRoi = campTotals.cost ? Math.round((campTotals.revenue-campTotals.cost)/campTotals.cost*100) : null
+
   const exportCsv = () => {
     const rows = [['Metric','Value'],
       ['Total leads', k.totalContacts ?? 0],['New (7d)', k.newContacts7d ?? 0],['Won', k.wonContacts ?? 0],['Lost', k.lostContacts ?? 0],
       ['Win rate %', k.winRate ?? 0],['Open conversations', k.openConvs ?? 0],['Avg response (min)', k.avgResponseMin ?? ''],
       [], ['Source','Leads'], ...sources.map(s=>[srcL(s.source), s.count]),
       [], ['Stage','Leads'], ...(full?.pipeline||[]).map(s=>[s.status, s.count]),
+      [], ['Campaign','Leads','Converted','Cost','Cost/Lead','Revenue','ROI %'], ...campRows.map(r=>[r.name, r.leads, r.converted, r.cost, r.cpl??'', r.revenue, r.roi??'']),
     ]
     const csv = rows.map(r => r.map(c => `"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n')
     const url = URL.createObjectURL(new Blob([csv], { type:'text/csv' }))
@@ -107,6 +122,45 @@ export default function ClientReports({ me }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Campaign performance + ROI */}
+      <div style={{ ...card, marginBottom:'16px' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
+          <div style={{ fontWeight:800, fontSize:'13px' }}>Campaign Performance &amp; ROI</div>
+          {totalRoi!=null && <span style={{ fontSize:'12px', fontWeight:800, color: totalRoi>=0?'#16a34a':'#ef4444' }}>Overall ROI {totalRoi>=0?'+':''}{totalRoi}%</span>}
+        </div>
+        {campRows.length===0 ? <div style={{ color:'#3d4f63', fontSize:'12px' }}>No campaign leads yet. Set a cost on a campaign and attribute leads to see ROI.</div> : (
+          <div style={{ overflowX:'auto' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'12px' }}>
+              <thead><tr style={{ textAlign:'left', color:'#64748b', fontSize:'10px', textTransform:'uppercase' }}>
+                {['Campaign','Leads','Won','Cost','Cost/Lead','Revenue','ROI'].map((h,i)=><th key={h} style={{ padding:'6px 8px', textAlign: i===0?'left':'right' }}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {campRows.map(r => (
+                  <tr key={r.id} style={{ borderTop:'1px solid #1a2235' }}>
+                    <td style={{ padding:'8px', fontWeight:700 }}>{r.name}</td>
+                    <td style={{ padding:'8px', textAlign:'right', color:'#06b6d4', fontWeight:700 }}>{r.leads}</td>
+                    <td style={{ padding:'8px', textAlign:'right', color:'#16a34a', fontWeight:700 }}>{r.converted}</td>
+                    <td style={{ padding:'8px', textAlign:'right' }}>{r.cost?`${r.cost} QAR`:'—'}</td>
+                    <td style={{ padding:'8px', textAlign:'right', color:'#D8B16A' }}>{r.cpl!=null?`${r.cpl}`:'—'}</td>
+                    <td style={{ padding:'8px', textAlign:'right' }}>{r.revenue?`${r.revenue} QAR`:'—'}</td>
+                    <td style={{ padding:'8px', textAlign:'right', fontWeight:800, color: r.roi==null?'#64748b':r.roi>=0?'#16a34a':'#ef4444' }}>{r.roi==null?'—':`${r.roi>=0?'+':''}${r.roi}%`}</td>
+                  </tr>
+                ))}
+                <tr style={{ borderTop:'2px solid #2a3d5c', color:'#94a3b8' }}>
+                  <td style={{ padding:'8px', fontWeight:800 }}>Total</td>
+                  <td style={{ padding:'8px', textAlign:'right', fontWeight:800 }}>{campTotals.leads}</td>
+                  <td style={{ padding:'8px', textAlign:'right', fontWeight:800 }}>{campTotals.converted}</td>
+                  <td style={{ padding:'8px', textAlign:'right', fontWeight:800 }}>{campTotals.cost?`${campTotals.cost} QAR`:'—'}</td>
+                  <td style={{ padding:'8px' }}></td>
+                  <td style={{ padding:'8px', textAlign:'right', fontWeight:800 }}>{campTotals.revenue?`${campTotals.revenue} QAR`:'—'}</td>
+                  <td style={{ padding:'8px', textAlign:'right', fontWeight:800, color: totalRoi==null?'#64748b':totalRoi>=0?'#16a34a':'#ef4444' }}>{totalRoi==null?'—':`${totalRoi>=0?'+':''}${totalRoi}%`}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Status funnel */}
