@@ -184,23 +184,27 @@ export class ConversationsService {
   async updateStatus(id: string, orgId: string, status: string) {
     const conv = await this.prisma.conversation.findFirst({
       where: { id, orgId },
-      select: { id: true, metadata: true, channel: { select: { type: true } } },
+      select: { id: true, status: true, metadata: true, channel: { select: { type: true } } },
     })
     if (!conv) return null
-    const data: any = { status: status as any }
-    // Resolving ends any human takeover (AI resumes for future messages) and,
-    // on website chat, asks the visitor for a quick satisfaction rating.
-    if (status === 'RESOLVED') {
-      const md: any = { ...((conv.metadata as any) || {}), aiPaused: false, escalated: false, negative: false }
-      if (conv.channel?.type === 'LIVE_CHAT' && !md.rating) {
+    const md: any = { ...((conv.metadata as any) || {}) }
+    // Status-change history (append, keep last 50).
+    if (status !== conv.status) {
+      const hist = Array.isArray(md.statusHistory) ? md.statusHistory : []
+      hist.push({ from: conv.status, to: status, at: new Date().toISOString() })
+      md.statusHistory = hist.slice(-50)
+    }
+    // Resolving/closing ends any human takeover; website chat asks for a rating.
+    if (status === 'RESOLVED' || status === 'CLOSED' || status === 'CONVERTED') {
+      md.aiPaused = false; md.escalated = false; md.negative = false
+      if (conv.channel?.type === 'LIVE_CHAT' && !md.rating && status === 'RESOLVED') {
         md.awaitingRating = true
         await this.prisma.message.create({
           data: { conversationId: id, senderId: null, isAI: true, isFromBot: true, type: 'TEXT', content: 'Glad we could help! How would you rate this conversation from 1 to 5? ⭐' },
         })
       }
-      data.metadata = md
     }
-    return this.prisma.conversation.update({ where: { id }, data })
+    return this.prisma.conversation.update({ where: { id }, data: { status: status as any, metadata: md } })
   }
 
   // Plain-text transcript of a conversation (for records / export).

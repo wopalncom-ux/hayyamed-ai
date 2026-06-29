@@ -36,6 +36,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch {
       // best effort
     }
+    // Extended conversation statuses (additive enum values; each in its own try).
+    for (const v of ['NEW', 'WAITING_CLIENT', 'WAITING_LEAD', 'QUALIFIED', 'FOLLOW_UP', 'CONVERTED', 'LOST', 'CLOSED']) {
+      try { await this.$executeRawUnsafe(`ALTER TYPE "ConvStatus" ADD VALUE IF NOT EXISTS '${v}'`) } catch { /* exists */ }
+    }
   }
 
   async onModuleDestroy() {

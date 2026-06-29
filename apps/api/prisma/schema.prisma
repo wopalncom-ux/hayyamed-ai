@@ -318,6 +318,14 @@ enum ConvStatus {
   RESOLVED
   SNOOZED
   SPAM
+  NEW
+  WAITING_CLIENT
+  WAITING_LEAD
+  QUALIFIED
+  FOLLOW_UP
+  CONVERTED
+  LOST
+  CLOSED
 }
 
 enum Priority {

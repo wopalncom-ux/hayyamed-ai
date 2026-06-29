@@ -11,7 +11,15 @@ const SRC = {
   email:{i:'📧',l:'Email',c:'#fbbf24'}, EMAIL:{i:'📧',l:'Email',c:'#fbbf24'},
 }
 const srcOf = (c) => SRC[c?.channel?.type] || SRC[c?.contact?.source] || SRC[c?.channelType] || { i:'•', l: c?.channel?.type || 'Channel', c:'#64748b' }
-const ST = { OPEN:{l:'Open',c:'#3b82f6'}, PENDING:{l:'Waiting',c:'#f97316'}, RESOLVED:{l:'Closed',c:'#16a34a'}, SNOOZED:{l:'Snoozed',c:'#a78bfa'}, SPAM:{l:'Spam',c:'#ef4444'} }
+const ST = {
+  NEW:{l:'New',c:'#3b82f6'}, OPEN:{l:'Open',c:'#06b6d4'},
+  WAITING_CLIENT:{l:'Waiting on us',c:'#f97316'}, WAITING_LEAD:{l:'Waiting on lead',c:'#fbbf24'},
+  QUALIFIED:{l:'Qualified',c:'#D8B16A'}, FOLLOW_UP:{l:'Follow-up',c:'#a78bfa'},
+  CONVERTED:{l:'Converted',c:'#16a34a'}, LOST:{l:'Lost',c:'#ef4444'},
+  SPAM:{l:'Spam',c:'#ef4444'}, CLOSED:{l:'Closed',c:'#64748b'},
+  PENDING:{l:'Waiting',c:'#f97316'}, RESOLVED:{l:'Resolved',c:'#16a34a'}, SNOOZED:{l:'Snoozed',c:'#a78bfa'},
+}
+const STATUS_OPTIONS = ['NEW','OPEN','WAITING_CLIENT','WAITING_LEAD','QUALIFIED','FOLLOW_UP','CONVERTED','LOST','SPAM','CLOSED']
 const card = { background:'#0f1622', border:'1px solid #1e2d42', borderRadius:'12px' }
 const selStyle = (v) => ({ flex:1, minWidth:0, maxWidth:'33%', background:'#0a121e', border:`1px solid ${v!=='All'?'#D8B16A':'#1e2d42'}`, borderRadius:'6px', padding:'4px 6px', color: v!=='All'?'#D8B16A':'#7a8fa6', fontSize:'10px', cursor:'pointer', outline:'none' })
 
@@ -118,7 +126,8 @@ export default function ClientInbox({ me }) {
             </div>
             {can('change_status') && (
               <select value={sel.status} onChange={e=>setStatus(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'7px', padding:'5px 8px', color:'#e8eef5', fontSize:'11px', cursor:'pointer' }}>
-                {Object.entries(ST).map(([k,v]) => <option key={k} value={k}>{v.l}</option>)}
+                {STATUS_OPTIONS.map(k => <option key={k} value={k}>{ST[k]?.l || k}</option>)}
+                {!STATUS_OPTIONS.includes(sel.status) && <option value={sel.status}>{ST[sel.status]?.l || sel.status}</option>}
               </select>
             )}
             {can('assign_leads') && (
