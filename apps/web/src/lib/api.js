@@ -10,7 +10,36 @@ function getAuth() {
   }
 }
 
-async function request(path, options = {}) {
+function patchAuth(patch) {
+  if (typeof window === 'undefined') return
+  try { localStorage.setItem('hayyamed_auth', JSON.stringify({ ...getAuth(), ...patch })) } catch {}
+}
+
+// Single-flight refresh: the 15-min access token is renewed with the 7-day
+// refresh token. Concurrent 401s share one in-flight refresh. Returns the new
+// access token, or null if refresh isn't possible.
+let _refreshPromise = null
+function refreshAccessToken() {
+  const { userId, refreshToken } = getAuth()
+  if (!userId || !refreshToken) return Promise.resolve(null)
+  if (!_refreshPromise) {
+    _refreshPromise = fetch(`${BASE}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, refreshToken }),
+    })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (d?.accessToken) { patchAuth({ accessToken: d.accessToken, refreshToken: d.refreshToken || refreshToken }); return d.accessToken }
+        return null
+      })
+      .catch(() => null)
+      .finally(() => { setTimeout(() => { _refreshPromise = null }, 0) })
+  }
+  return _refreshPromise
+}
+
+async function request(path, options = {}, _retried = false) {
   const auth = getAuth()
   const headers = {
     'Content-Type': 'application/json',
@@ -21,6 +50,18 @@ async function request(path, options = {}) {
   }
 
   const res = await fetch(`${BASE}/api/v1${path}`, { ...options, headers })
+
+  // Transparently refresh an expired/invalid token once, then retry. Never for
+  // the auth endpoints themselves.
+  if (res.status === 401 && !_retried && !path.startsWith('/auth/')) {
+    const newToken = await refreshAccessToken()
+    if (newToken) return request(path, options, true)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('hayyamed_auth')
+      if (!window.location.pathname.startsWith('/login')) window.location.href = '/login'
+    }
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: 'Request failed' }))
     throw new Error(err.message || 'Request failed')
