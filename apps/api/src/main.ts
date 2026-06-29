@@ -6,6 +6,7 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
+import helmet from 'helmet'
 import { AppModule } from './app.module'
 import { ThrottlerExceptionFilter } from './common/filters/throttler.filter'
 
@@ -17,6 +18,11 @@ async function bootstrap() {
   // Health check (outside global prefix — Cloud Run pings this)
   const httpAdapter = app.getHttpAdapter()
   httpAdapter.get('/health', (_req: any, res: any) => res.json({ status: 'ok', ts: Date.now() }))
+
+  // Security headers (HSTS, noSniff, frameguard, referrer-policy, etc.).
+  // CSP is disabled because this is a JSON API consumed cross-origin by the
+  // embeddable widget and the Swagger UI; a restrictive CSP would break both.
+  app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 
   // Global prefix
   app.setGlobalPrefix('api/v1')
