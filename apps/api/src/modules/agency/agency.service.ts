@@ -454,6 +454,7 @@ export class AgencyService {
       profitPercent: c.profitPercent, campaignBilling: c.campaignBilling,
       adminNotes: c.adminNotes, notes: c.agencyNotes, balance: c.agencyBalance,
       monthlyRev: c.agencyMonthlyRev, customMargin: c.agencyCustomMgn, aiScore: c.agencyAiScore,
+      maxSeats: (c as any).maxSeats, chargeLimit: (c as any).chargeLimit,
       counts: {
         contacts: c._count.contacts, agents: c._count.aiAgents,
         knowledgeBases: c._count.knowledgeBases, automations: c._count.workflows,
@@ -496,6 +497,7 @@ export class AgencyService {
     }
     if (dto.storageLimitMb != null) data.storageLimitMb = dto.storageLimitMb
     if ((dto as any).maxSeats != null) data.maxSeats = Math.max(1, Math.min(50, Number((dto as any).maxSeats) || 5))
+    if ((dto as any).chargeLimit !== undefined) data.chargeLimit = (dto as any).chargeLimit === null || (dto as any).chargeLimit === '' ? null : Math.max(0, Number((dto as any).chargeLimit) || 0)
     if (dto.profitPercent != null) data.profitPercent = dto.profitPercent
     // Strip undefined so we only update provided fields.
     Object.keys(data).forEach(k => data[k] === undefined && delete data[k])
@@ -527,8 +529,18 @@ export class AgencyService {
   // Debit a client's wallet for a campaign/usage (applies the profit markup).
   async chargeClient(agencyOrgId: string, clientId: string, providerCost: number, description: string) {
     await this.assertOwns(agencyOrgId, clientId)
-    const org = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { profitPercent: true } })
+    const org = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { profitPercent: true, chargeLimit: true } })
     const calc = this.computeCharge(providerCost, org?.profitPercent ?? 0)
+    // Enforce the per-client monthly charge cap (if set).
+    const limit = Number(org?.chargeLimit || 0)
+    if (limit > 0) {
+      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
+      const agg = await this.prisma.walletTransaction.aggregate({ where: { orgId: clientId, type: 'debit', createdAt: { gte: monthStart } }, _sum: { amount: true } })
+      const chargedThisMonth = Number(agg._sum.amount || 0)
+      if (chargedThisMonth + calc.clientCharge > limit) {
+        throw new BadRequestException(`Monthly charge limit reached: ${chargedThisMonth.toFixed(2)} of ${limit} QAR used. This charge (${calc.clientCharge.toFixed(2)}) would exceed it.`)
+      }
+    }
     const res = await this.walletAdjust(clientId, 'debit', calc.clientCharge, description || 'Usage charge', { providerCost: calc.providerCost, profit: calc.profit })
     return { ...calc, ...res }
   }

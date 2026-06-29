@@ -74,6 +74,7 @@ model Organization {
   businessType         String?
   storageLimitMb       Int      @default(500)
   maxSeats             Int      @default(5)    // client-portal team seat cap (owner-controlled)
+  chargeLimit          Float?                  // monthly charge cap (QAR); null/0 = unlimited
   paymentResponsibility String  @default("client")  // client | owner | hybrid
   profitPercent        Float    @default(0)
   campaignBilling      String   @default("")

@@ -28,7 +28,7 @@ const PROVIDERS = [
   { id: 'gemini', label: 'Gemini', models: ['gemini-2.0-flash', 'gemini-1.5-pro'] },
   { id: 'groq', label: 'Groq', models: ['llama-3.3-70b-versatile'] },
 ]
-const EMPTY_AGENT = { name: '', role: 'support', knowledgeBaseId: '', aiProvider: 'openai', aiModel: 'gpt-4o-mini', channels: [], isActive: false, escalationRules: { humanTakeover: true } }
+const EMPTY_AGENT = { name: '', role: 'support', knowledgeBaseId: '', aiProvider: 'openai', aiModel: 'gpt-4o-mini', fallbackModel: '', language: 'both', channels: [], isActive: false, escalationRules: { humanTakeover: true } }
 const card = { background: '#0f1520', border: '1px solid #1a2235', borderRadius: '10px', padding: '18px' }
 const input = { width: '100%', padding: '9px 11px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '6px', color: '#e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }
 const lbl = { fontSize: '10px', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }
@@ -78,7 +78,7 @@ export default function ClientsConsole() {
   const saveAgent = async () => {
     if (!agentForm?.name?.trim() || !selected) { setMsg({ ok: false, text: 'Agent name is required' }); return }
     setAgentBusy(true); setMsg(null)
-    const dto = { name: agentForm.name.trim(), role: agentForm.role, knowledgeBaseId: agentForm.knowledgeBaseId || null, aiProvider: agentForm.aiProvider, aiModel: agentForm.aiModel, channels: agentForm.channels, escalationRules: agentForm.escalationRules }
+    const dto = { name: agentForm.name.trim(), role: agentForm.role, knowledgeBaseId: agentForm.knowledgeBaseId || null, aiProvider: agentForm.aiProvider, aiModel: agentForm.aiModel, fallbackModel: agentForm.fallbackModel || null, language: agentForm.language || 'both', channels: agentForm.channels, escalationRules: agentForm.escalationRules }
     try {
       if (agentForm.id) await api.updateClientAgent(selected.id, agentForm.id, dto)
       else await api.createClientAgent(selected.id, dto)
@@ -157,6 +157,7 @@ export default function ClientsConsole() {
     try { await api.chargeClient(selected.id, Number(campCost), campDesc || 'Campaign / usage'); setCampCost(''); setCampDesc(''); loadBilling(selected.id); openClient(selected.id) } catch (e) { setMsg({ ok: false, text: e?.message || 'Charge failed' }) }
   }
   const saveThreshold = async () => { if (!selected) return; try { await api.setClientLowBalance(selected.id, Number(threshold) || 0); loadBilling(selected.id) } catch {} }
+  const saveChargeLimit = async (v) => { if (!selected) return; try { await api.updateAgencyClient(selected.id, { chargeLimit: v === '' ? null : Number(v) }); setMsg({ ok: true, text: v === '' ? 'Charge limit removed' : `Monthly charge cap set to ${Number(v)} QAR` }) } catch (e) { setMsg({ ok: false, text: e?.message || 'Failed' }) } }
 
   const loadBrains = async (id) => {
     try {
@@ -500,6 +501,8 @@ export default function ClientsConsole() {
                           <Field label="AI Brain (knowledge base)"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.knowledgeBaseId || ''} onChange={e => aset('knowledgeBaseId', e.target.value)}><option value="">— none —</option>{brains.map(kb => <option key={kb.id} value={kb.id}>{kb.name}</option>)}</select></Field>
                           <Field label="AI Provider"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.aiProvider} onChange={e => { const p = PROVIDERS.find(x => x.id === e.target.value); aset('aiProvider', e.target.value); aset('aiModel', p?.models[0]) }}>{PROVIDERS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></Field>
                           <Field label="Model"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.aiModel} onChange={e => aset('aiModel', e.target.value)}>{(PROVIDERS.find(p => p.id === agentForm.aiProvider)?.models || []).map(m => <option key={m} value={m}>{m}</option>)}</select></Field>
+                          <Field label="Fallback model (if primary fails)"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.fallbackModel || ''} onChange={e => aset('fallbackModel', e.target.value)}><option value="">— auto (try all providers) —</option>{PROVIDERS.flatMap(p => p.models).map(m => <option key={m} value={m}>{m}</option>)}</select></Field>
+                          <Field label="AI language"><select style={{ ...input, cursor: 'pointer' }} value={agentForm.language || 'both'} onChange={e => aset('language', e.target.value)}><option value="en">English</option><option value="ar">Arabic</option><option value="both">Both (English &amp; Arabic)</option></select></Field>
                         </div>
                         <div style={{ marginTop: '12px' }}>
                           <label style={lbl}>Channels</label>
@@ -727,6 +730,11 @@ export default function ClientsConsole() {
                       <button onClick={topUp} style={{ padding: '9px 16px', background: '#3b82f6', border: 'none', borderRadius: '7px', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Top up</button>
                       <span style={{ fontSize: '11px', color: '#64748b', marginLeft: 'auto' }}>Alert under</span>
                       <input type="number" style={{ ...input, width: '80px' }} value={threshold} onChange={e => setThreshold(e.target.value)} onBlur={saveThreshold} placeholder="50" />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #1a2235' }}>
+                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>🚦 Monthly charge cap (QAR):</span>
+                      <input type="number" min="0" style={{ ...input, width: '110px' }} defaultValue={selected.chargeLimit ?? ''} onBlur={e => saveChargeLimit(e.target.value)} placeholder="No limit" />
+                      <span style={{ fontSize: '10px', color: '#64748b' }}>charges blocked once exceeded this month</span>
                     </div>
                   </div>
 

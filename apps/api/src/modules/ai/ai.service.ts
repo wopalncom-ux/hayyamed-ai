@@ -55,30 +55,42 @@ export class AIService {
   // Use the requested model only for the provider it belongs to; otherwise fall
   // back to that provider's default. Prevents e.g. a Claude model being sent to
   // OpenAI during failover (which would 400 and make the whole chain fail).
-  private modelFor(p: Provider, model: string | undefined, def: string): string {
-    if (!model) return def
+  private providerOf(model?: string): Provider | undefined {
+    if (!model) return undefined
     const m = model.toLowerCase()
-    const belongs =
-      (p === 'openai' && (m.startsWith('gpt') || m.startsWith('o1') || m.startsWith('o3') || m.startsWith('chatgpt'))) ||
-      (p === 'anthropic' && m.startsWith('claude')) ||
-      (p === 'gemini' && m.startsWith('gemini')) ||
-      (p === 'groq' && (m.startsWith('llama') || m.startsWith('mixtral') || m.startsWith('gemma') || m.startsWith('qwen')))
-    return belongs ? model : def
+    if (m.startsWith('gpt') || m.startsWith('o1') || m.startsWith('o3') || m.startsWith('chatgpt')) return 'openai'
+    if (m.startsWith('claude')) return 'anthropic'
+    if (m.startsWith('gemini')) return 'gemini'
+    if (m.startsWith('llama') || m.startsWith('mixtral') || m.startsWith('gemma') || m.startsWith('qwen')) return 'groq'
+    return undefined
+  }
+  private modelFor(p: Provider, model: string | undefined, def: string): string {
+    return model && this.providerOf(model) === p ? model : def
   }
 
   // ─── Multi-provider router ────────────────────────────────────────────────
   async complete(
     messages: ChatMessage[],
-    opts: { provider?: Provider; model?: string; maxTokens?: number; temperature?: number; orgId?: string; module?: string; action?: string } = {},
+    opts: { provider?: Provider; model?: string; fallbackModel?: string; maxTokens?: number; temperature?: number; orgId?: string; module?: string; action?: string } = {},
   ): Promise<string> {
-    const { provider, model, maxTokens = 400, temperature = 0.7, orgId, module = 'ai', action = 'complete' } = opts
+    const { provider, model, fallbackModel, maxTokens = 400, temperature = 0.7, orgId, module = 'ai', action = 'complete' } = opts
 
     const systemMsg = messages.find(m => m.role === 'system')?.content || ''
     const chatMsgs  = messages.filter(m => m.role !== 'system')
 
-    const ordered: Provider[] = provider
-      ? [provider, 'openai', 'anthropic', 'gemini', 'groq']
-      : ['openai', 'anthropic', 'gemini', 'groq']
+    // Per-provider model: the requested primary if it belongs to that provider,
+    // else the explicit fallback model if it does, else the provider default.
+    const pickModel = (p: Provider, def: string) =>
+      (model && this.providerOf(model) === p) ? model
+        : (fallbackModel && this.providerOf(fallbackModel) === p) ? fallbackModel
+        : def
+
+    // Order: requested/primary provider, then the fallback model's provider, then the rest.
+    const fbProvider = this.providerOf(fallbackModel)
+    const ordered: Provider[] = (provider
+      ? [provider, fbProvider, 'openai', 'anthropic', 'gemini', 'groq']
+      : [this.providerOf(model), fbProvider, 'openai', 'anthropic', 'gemini', 'groq']
+    ).filter(Boolean) as Provider[]
     // De-dupe, then drop providers currently in cooldown (unless ALL are down,
     // in which case keep them so we still attempt — a key may have recovered).
     const uniq = [...new Set(ordered)]
@@ -94,7 +106,7 @@ export class AIService {
         let promptTokens = 0, completionTokens = 0
 
         if (p === 'anthropic' && this.anthropic) {
-          usedModel = this.modelFor(p, model, 'claude-haiku-4-5-20251001')
+          usedModel = pickModel(p, 'claude-haiku-4-5-20251001')
           const resp = await this.anthropic.messages.create({
             model: usedModel, max_tokens: maxTokens, system: systemMsg,
             messages: chatMsgs.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
@@ -103,7 +115,7 @@ export class AIService {
           promptTokens = resp.usage.input_tokens
           completionTokens = resp.usage.output_tokens
         } else if (p === 'gemini' && this.gemini) {
-          usedModel = this.modelFor(p, model, 'gemini-1.5-flash')
+          usedModel = pickModel(p, 'gemini-1.5-flash')
           const genModel = this.gemini.getGenerativeModel({ model: usedModel })
           const history = chatMsgs.slice(0, -1).map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
           const lastMsg = chatMsgs.at(-1)?.content || ''
@@ -114,13 +126,13 @@ export class AIService {
           promptTokens = meta?.promptTokenCount ?? 0
           completionTokens = meta?.candidatesTokenCount ?? 0
         } else if (p === 'groq' && this.groq) {
-          usedModel = this.modelFor(p, model, 'llama-3.1-8b-instant')
+          usedModel = pickModel(p, 'llama-3.1-8b-instant')
           const resp = await this.groq.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
           result = resp.choices[0]?.message?.content || ''
           promptTokens = resp.usage?.prompt_tokens ?? 0
           completionTokens = resp.usage?.completion_tokens ?? 0
         } else if (p === 'openai' && this.openai) {
-          usedModel = this.modelFor(p, model, 'gpt-4o-mini')
+          usedModel = pickModel(p, 'gpt-4o-mini')
           const resp = await this.openai.chat.completions.create({ model: usedModel, messages: messages as any, max_tokens: maxTokens, temperature })
           result = resp.choices[0]?.message?.content || ''
           promptTokens = resp.usage?.prompt_tokens ?? 0

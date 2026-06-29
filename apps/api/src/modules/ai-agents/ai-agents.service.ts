@@ -70,7 +70,7 @@ export class AIAgentsService {
     }
 
     // 2. Build the system prompt from the agent's persona + knowledge
-    const lang = agent.language === 'ar' ? 'Reply in Arabic.' : agent.language === 'en' ? 'Reply in English.' : `Reply in the customer's language (${agent.language}).`
+    const lang = agent.language === 'ar' ? 'Always reply in Arabic.' : agent.language === 'en' ? 'Always reply in English.' : "Reply in the customer's language — English or Arabic — matching whatever they wrote in."
     const knowledgeBlock = knowledgeSnippets.length
       ? `\n\nUse ONLY the following business knowledge to answer. If the answer is not here, say you will check and follow up — do not invent details.\n\n--- KNOWLEDGE ---\n${knowledgeSnippets.join('\n\n---\n\n')}\n--- END KNOWLEDGE ---`
       : `\n\n(No knowledge base is attached. Answer helpfully and, for specific business details you are unsure of, offer to follow up.)`
@@ -99,6 +99,7 @@ export class AIAgentsService {
       reply = await this.ai.complete(messages, {
         provider: agent.aiProvider as any,
         model: agent.aiModel,
+        fallbackModel: agent.fallbackModel || undefined,
         temperature: agent.temperature,
         maxTokens: agent.maxTokens,
         orgId,
