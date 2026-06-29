@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseFloatPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, ParseFloatPipe, UseInterceptors, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { AgencyService } from './agency.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
+import { OwnerGuard } from '../../common/guards/owner.guard'
 import { extractText } from '../../common/util/extract-text.util'
 
+// Agency / Client AI Operating Center — platform-owner only. Clients use /portal.
+@UseGuards(OwnerGuard)
 @Controller('agency')
 export class AgencyController {
   constructor(private agency: AgencyService) {}
