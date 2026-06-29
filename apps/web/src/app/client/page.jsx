@@ -25,6 +25,7 @@ export default function ClientPortal() {
   const [analytics, setAnalytics] = useState(null)
   const [campaigns, setCampaigns] = useState([])
   const [convos,    setConvos]    = useState([])
+  const [today,     setToday]     = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [showAiPanel, setShowAiPanel] = useState(false)
   const [aiMsg,     setAiMsg]     = useState('')
@@ -42,11 +43,13 @@ export default function ClientPortal() {
       api.getAnalytics('7days').catch(() => null),
       api.getCampaigns({ limit: 5 }).catch(() => ({ data: [] })),
       api.getConversations({ limit: 5 }).catch(() => ({ data: [] })),
-    ]).then(([s, an, c, cv]) => {
+      api.getToday().catch(() => null),
+    ]).then(([s, an, c, cv, td]) => {
       setStats(s)
       setAnalytics(an)
       setCampaigns(Array.isArray(c) ? c : (c?.data || []))
       setConvos(Array.isArray(cv) ? cv : (cv?.data || []))
+      setToday(td)
       setLoading(false)
     })
   }, [])
@@ -111,7 +114,7 @@ export default function ClientPortal() {
             </div>
           </div>
           <button onClick={() => setShowAiPanel(true)}
-            style={{background:'linear-gradient(135deg,#D8B16A,#00c98a)', border:'none', borderRadius:'10px', color:'#07090f', fontWeight:'800', fontSize:'13px', padding:'12px 20px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px'}}>
+            style={{background:'linear-gradient(135deg,#D8B16A,#A07C3A)', border:'none', borderRadius:'10px', color:'#07090f', fontWeight:'800', fontSize:'13px', padding:'12px 20px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px'}}>
             🤖 Ask AI Assistant
           </button>
         </div>
@@ -202,10 +205,10 @@ export default function ClientPortal() {
               <div style={card}>
                 <div style={{fontSize:'9px', color:'#3d4f63', letterSpacing:'1.5px', marginBottom:'12px'}}>TODAY AT A GLANCE</div>
                 {[
-                  { label:'Messages sent',   value:'47',  color:'#D8B16A' },
-                  { label:'AI handled',      value:'44',  color:'#a78bfa' },
-                  { label:'New leads',       value:'8',   color:'#3b82f6' },
-                  { label:'Appointments',    value:'3',   color:'#f97316' },
+                  { label:'Messages today',     value: today ? String(today.messages ?? 0) : '—', color:'#D8B16A' },
+                  { label:'New conversations',  value: today ? String(today.newConvs ?? 0) : '—', color:'#a78bfa' },
+                  { label:'New leads',          value: today ? String(today.newLeads ?? 0) : '—', color:'#3b82f6' },
+                  { label:'Appointments',       value: today ? String(today.bookings ?? 0) : '—', color:'#f97316' },
                 ].map(s => (
                   <div key={s.label} style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
                     <div style={{fontSize:'12px', color:'#7a8fa6'}}>{s.label}</div>
@@ -310,7 +313,7 @@ export default function ClientPortal() {
             <div style={{flex:1, overflowY:'auto', padding:'20px', display:'flex', flexDirection:'column', gap:'12px'}}>
               {aiChat.map((m, i) => (
                 <div key={i} style={{display:'flex', justifyContent: m.from==='user' ? 'flex-end' : 'flex-start'}}>
-                  <div style={{maxWidth:'80%', padding:'10px 14px', borderRadius: m.from==='user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px', background: m.from==='user' ? 'linear-gradient(135deg,#D8B16A,#00c98a)' : '#111622', color: m.from==='user' ? '#07090f' : '#e2e8f0', fontSize:'12px', lineHeight:'1.5', border: m.from==='ai' ? '1px solid #1e2d42' : 'none'}}>
+                  <div style={{maxWidth:'80%', padding:'10px 14px', borderRadius: m.from==='user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px', background: m.from==='user' ? 'linear-gradient(135deg,#D8B16A,#A07C3A)' : '#111622', color: m.from==='user' ? '#07090f' : '#e2e8f0', fontSize:'12px', lineHeight:'1.5', border: m.from==='ai' ? '1px solid #1e2d42' : 'none'}}>
                     {m.text}
                   </div>
                 </div>
@@ -326,7 +329,7 @@ export default function ClientPortal() {
                 placeholder="Ask about your performance, campaigns, leads…"
                 style={{flex:1, background:'#111622', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px 14px', color:'#e2e8f0', fontSize:'12px', outline:'none'}}/>
               <button onClick={sendAiMsg} disabled={aiLoading}
-                style={{background: aiLoading ? '#1a2235' : 'linear-gradient(135deg,#D8B16A,#00c98a)', border:'none', borderRadius:'8px', color: aiLoading ? '#7a8fa6' : '#07090f', fontWeight:'800', fontSize:'12px', padding:'10px 18px', cursor: aiLoading ? 'not-allowed' : 'pointer'}}>
+                style={{background: aiLoading ? '#1a2235' : 'linear-gradient(135deg,#D8B16A,#A07C3A)', border:'none', borderRadius:'8px', color: aiLoading ? '#7a8fa6' : '#07090f', fontWeight:'800', fontSize:'12px', padding:'10px 18px', cursor: aiLoading ? 'not-allowed' : 'pointer'}}>
                 Send
               </button>
             </div>
