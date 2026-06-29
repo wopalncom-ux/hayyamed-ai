@@ -520,6 +520,15 @@ export default function ClientsConsole() {
                       ))}
                   </div>
 
+                  {/* Website Chatbot — live instantly, zero credentials */}
+                  <div style={{ ...card, border: '1px solid rgba(216,177,106,.3)' }}>
+                    <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>🌐 Website Chatbot <span style={{ fontSize: '10px', color: '#D8B16A' }}>· live instantly · no credentials</span></div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>Paste this one line before <code style={{ color: '#94a3b8' }}>&lt;/body&gt;</code> on the client&apos;s website. Visitors chat, the AI replies from this client&apos;s brain, and conversations land in the inbox — no Meta/WhatsApp setup needed.</div>
+                    <pre style={{ background: '#0a0f1a', border: '1px solid #1a2235', borderRadius: '6px', padding: '10px', fontSize: '11px', color: '#e2e8f0', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: 0 }}>{`<script src="https://www.hayyaai.com/widget.js" data-org="${selected.id}" data-name="${(editing.name || selected.name || 'Business').replace(/"/g, '')}"></script>`}</pre>
+                    <button onClick={() => { try { navigator.clipboard?.writeText(`<script src="https://www.hayyaai.com/widget.js" data-org="${selected.id}" data-name="${(editing.name || selected.name || 'Business').replace(/"/g, '')}"></script>`); setMsg({ ok: true, text: 'Embed snippet copied ✓ — paste it on the client site.' }) } catch { setMsg({ ok: false, text: 'Copy failed — select the code manually.' }) } }}
+                      style={{ marginTop: '10px', padding: '8px 16px', background: '#D8B16A', border: 'none', borderRadius: '7px', color: '#07090f', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>📋 Copy embed code</button>
+                  </div>
+
                   {/* Option A: Unipile */}
                   <div style={card}>
                     <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '3px' }}>💚 WhatsApp via Unipile (QR / code) <span style={{ fontSize: '10px', color: '#D8B16A' }}>· no Meta approval</span></div>
