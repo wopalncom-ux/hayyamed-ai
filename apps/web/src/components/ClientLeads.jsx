@@ -18,6 +18,8 @@ export default function ClientLeads({ me }) {
   const [search, setSearch] = useState('')
   const [fSource, setFSource] = useState('All')
   const [fStatus, setFStatus] = useState('All')
+  const [fTag, setFTag] = useState('All')
+  const [fPriority, setFPriority] = useState('All')
   const [sel, setSel] = useState(null)        // selected lead profile
   const [detail, setDetail] = useState(null)  // loaded profile
 
@@ -27,9 +29,13 @@ export default function ClientLeads({ me }) {
 
   const sources = Array.from(new Set(leads.map(l => l.source).filter(Boolean)))
   const statuses = Array.from(new Set(leads.map(l => l.status).filter(Boolean)))
+  const tags = Array.from(new Set(leads.flatMap(l => l.tags || []).filter(Boolean)))
+  const prio = (s) => (s>=70 ? 'High' : s>=40 ? 'Medium' : 'Low')
   const filtered = leads.filter(l => {
     if (fSource !== 'All' && l.source !== fSource) return false
     if (fStatus !== 'All' && l.status !== fStatus) return false
+    if (fTag !== 'All' && !(l.tags || []).includes(fTag)) return false
+    if (fPriority !== 'All' && prio(l.score || 0) !== fPriority) return false
     if (search && !((l.name||'')+(l.phone||'')+(l.email||'')).toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
@@ -44,6 +50,12 @@ export default function ClientLeads({ me }) {
         <select value={fStatus} onChange={e=>setFStatus(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'9px 10px', color:'#e8eef5', fontSize:'12px', cursor:'pointer' }}>
           <option value="All">All statuses</option>{statuses.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
+        <select value={fPriority} onChange={e=>setFPriority(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'9px 10px', color:'#e8eef5', fontSize:'12px', cursor:'pointer' }}>
+          <option value="All">All priority</option><option>High</option><option>Medium</option><option>Low</option>
+        </select>
+        {tags.length>0 && <select value={fTag} onChange={e=>setFTag(e.target.value)} style={{ background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'9px 10px', color:'#e8eef5', fontSize:'12px', cursor:'pointer' }}>
+          <option value="All">All tags</option>{tags.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>}
         <span style={{ fontSize:'12px', color:'#7a8fa6' }}>{filtered.length} leads</span>
       </div>
 

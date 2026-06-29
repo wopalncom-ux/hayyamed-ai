@@ -13,6 +13,7 @@ const SRC = {
 const srcOf = (c) => SRC[c?.channel?.type] || SRC[c?.contact?.source] || SRC[c?.channelType] || { i:'•', l: c?.channel?.type || 'Channel', c:'#64748b' }
 const ST = { OPEN:{l:'Open',c:'#3b82f6'}, PENDING:{l:'Waiting',c:'#f97316'}, RESOLVED:{l:'Closed',c:'#16a34a'}, SNOOZED:{l:'Snoozed',c:'#a78bfa'}, SPAM:{l:'Spam',c:'#ef4444'} }
 const card = { background:'#0f1622', border:'1px solid #1e2d42', borderRadius:'12px' }
+const selStyle = (v) => ({ flex:1, minWidth:0, maxWidth:'33%', background:'#0a121e', border:`1px solid ${v!=='All'?'#D8B16A':'#1e2d42'}`, borderRadius:'6px', padding:'4px 6px', color: v!=='All'?'#D8B16A':'#7a8fa6', fontSize:'10px', cursor:'pointer', outline:'none' })
 
 export default function ClientInbox({ me }) {
   const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
@@ -27,6 +28,9 @@ export default function ClientInbox({ me }) {
   const [suggesting, setSuggesting] = useState(false)
   const [search, setSearch] = useState('')
   const [fStatus, setFStatus] = useState('All')
+  const [fSource, setFSource] = useState('All')
+  const [fAssignee, setFAssignee] = useState('All')
+  const [fTag, setFTag] = useState('All')
   const [loading, setLoading] = useState(true)
   const bodyRef = useRef(null)
 
@@ -55,8 +59,14 @@ export default function ClientInbox({ me }) {
   const toggleAi = async () => { if (!sel) return; const paused = !(sel.metadata?.aiPaused); try { await api.setConversationAi(sel.id, paused); setSel({ ...sel, metadata: { ...(sel.metadata||{}), aiPaused: paused } }) } catch (e) { alert(e?.message) } }
   const addNote = async () => { const t = noteText.trim(); if (!t || !sel) return; try { await api.addConversationNote(sel.id, t); setNoteText(''); api.getConversationNotes(sel.id).then(n => setNotes(Array.isArray(n)?n:[])) } catch (e) { alert(e?.message) } }
 
+  const convSrc = (c) => (c?.channel?.type || c?.contact?.source || c?.channelType || '')
+  const allSources = Array.from(new Set(convos.map(convSrc).filter(Boolean)))
+  const allTags = Array.from(new Set(convos.flatMap(c => c.tags || []).filter(Boolean)))
   const filtered = convos.filter(c => {
     if (fStatus !== 'All' && c.status !== fStatus) return false
+    if (fSource !== 'All' && convSrc(c) !== fSource) return false
+    if (fAssignee !== 'All' && (fAssignee === 'unassigned' ? c.assigneeId : c.assigneeId !== fAssignee)) return false
+    if (fTag !== 'All' && !(c.tags || []).includes(fTag)) return false
     if (search && !((c.contact?.name||'') + (c.contact?.phone||'')).toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
@@ -73,6 +83,13 @@ export default function ClientInbox({ me }) {
               <button key={s} onClick={()=>setFStatus(s)} style={{ padding:'3px 9px', borderRadius:'12px', fontSize:'10px', fontWeight:700, cursor:'pointer', background: fStatus===s?'rgba(216,177,106,.15)':'transparent', border:`1px solid ${fStatus===s?'#D8B16A':'#1e2d42'}`, color: fStatus===s?'#D8B16A':'#7a8fa6' }}>{s==='All'?'All':(ST[s]?.l||s)}</button>
             ))}
           </div>
+          {(allSources.length>0 || team.length>0 || allTags.length>0) && (
+            <div style={{ display:'flex', gap:'5px', marginTop:'7px', flexWrap:'wrap' }}>
+              {allSources.length>0 && <select value={fSource} onChange={e=>setFSource(e.target.value)} style={selStyle(fSource)}><option value="All">All sources</option>{allSources.map(s => <option key={s} value={s}>{(SRC[s]?.l)||s}</option>)}</select>}
+              {team.length>0 && <select value={fAssignee} onChange={e=>setFAssignee(e.target.value)} style={selStyle(fAssignee)}><option value="All">Anyone</option><option value="unassigned">Unassigned</option>{team.map(t => <option key={t.id} value={t.id}>{t.name||t.email}</option>)}</select>}
+              {allTags.length>0 && <select value={fTag} onChange={e=>setFTag(e.target.value)} style={selStyle(fTag)}><option value="All">All tags</option>{allTags.map(t => <option key={t} value={t}>{t}</option>)}</select>}
+            </div>
+          )}
         </div>
         <div style={{ overflowY:'auto', flex:1 }}>
           {loading ? <div style={{ padding:'20px', textAlign:'center', color:'#3d4f63', fontSize:'12px' }}>Loading…</div>
