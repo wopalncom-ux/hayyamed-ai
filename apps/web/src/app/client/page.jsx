@@ -5,6 +5,7 @@ import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/useIsMobile'
 import ClientInbox from '@/components/ClientInbox'
 import ClientLeads from '@/components/ClientLeads'
+import ClientReports from '@/components/ClientReports'
 
 const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'10px', padding:'20px' }
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -169,6 +170,7 @@ export default function ClientPortal() {
             { id:'overview',   label:'Overview' },
             ...(can('view_inbox') ? [{ id:'fullinbox', label:'Inbox' }] : []),
             ...((can('view_inbox') || can('view_dashboard')) ? [{ id:'leads', label:'Leads' }] : []),
+            ...(can('view_reports') ? [{ id:'reports', label:'Reports' }] : []),
             { id:'campaigns',  label:'Campaigns' },
             { id:'inbox',      label:'Recent Messages' },
             ...(can('manage_team') ? [{ id:'team', label:'Team' }] : []),
@@ -329,6 +331,9 @@ export default function ClientPortal() {
 
         {/* ══════════ TAB: LEADS ══════════ */}
         {activeTab === 'leads' && <ClientLeads me={me} />}
+
+        {/* ══════════ TAB: REPORTS ══════════ */}
+        {activeTab === 'reports' && <ClientReports me={me} />}
 
         {/* ══════════ TAB: TEAM ══════════ */}
         {activeTab === 'team' && (
