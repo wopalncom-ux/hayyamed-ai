@@ -412,6 +412,7 @@ model Campaign {
   message     String
   mediaUrl    String?
   templateId  String?
+  channelType String?        // whatsapp | instagram | facebook | website | email (builder choice)
   cost        Float?         // total campaign spend (QAR) — for cost-per-lead / ROI
   scheduledAt DateTime?
   sentAt      DateTime?

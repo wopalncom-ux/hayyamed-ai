@@ -4,7 +4,7 @@ import { api } from '@/lib/api'
 
 const card = { background:'#0f1622', border:'1px solid #1e2d42', borderRadius:'12px', padding:'16px' }
 const inp = { background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', padding:'10px 12px', color:'#e8eef5', fontSize:'13px', outline:'none' }
-const CH = [['whatsapp','💬 WhatsApp'],['website','🌐 Website Chatbot'],['instagram','📸 Instagram'],['email','📧 Email']]
+const CH = [['whatsapp','💬 WhatsApp'],['website','🌐 Website Chatbot'],['instagram','📸 Instagram'],['facebook','👍 Facebook Messenger'],['email','📧 Email']]
 const ST_C = { DRAFT:'#64748b', SCHEDULED:'#a78bfa', RUNNING:'#16a34a', PAUSED:'#fbbf24', COMPLETED:'#3b82f6' }
 
 export default function ClientCampaigns({ me }) {
@@ -19,11 +19,26 @@ export default function ClientCampaigns({ me }) {
   const set = (k,v) => setF(p => ({ ...p, [k]:v }))
 
   const [leadsByCamp, setLeadsByCamp] = useState({})
+  const [contacts, setContacts] = useState([])
   const load = () => api.getCampaigns({ limit: 50 }).then(r => setList(r?.data || r || [])).catch(()=>{}).finally(()=>setLoading(false))
   useEffect(() => {
     load()
-    api.getContacts({ limit: 500 }).then(r => { const a = r?.data || r || []; const m = {}; a.forEach(c => { if (c.campaignId) m[c.campaignId] = (m[c.campaignId]||0)+1 }); setLeadsByCamp(m) }).catch(()=>{})
+    api.getContacts({ limit: 500 }).then(r => { const a = r?.data || r || []; setContacts(a); const m = {}; a.forEach(c => { if (c.campaignId) m[c.campaignId] = (m[c.campaignId]||0)+1 }); setLeadsByCamp(m) }).catch(()=>{})
   }, [])
+
+  // Estimated send cost (QAR/message; rough — WhatsApp business-initiated has real per-conversation pricing)
+  const RATE = { whatsapp:0.10, instagram:0, facebook:0, website:0, email:0.005 }
+  const audienceSize = (f.audience === 'all') ? contacts.length
+    : (f.audience === 'tag') ? contacts.filter(c => (c.tags||[]).includes(f.tag)).length
+    : contacts.filter(c => String(c.status||'').toUpperCase() === f.audience).length
+  const estCost = +(audienceSize * (RATE[f.channel] ?? 0)).toFixed(2)
+  const TEMPLATES = {
+    '': '',
+    'Appointment reminder': 'Hi {{name}}, a friendly reminder about your upcoming appointment. Reply here to confirm or reschedule. 🦷',
+    'Seasonal promotion': 'Hi {{name}}! For a limited time we have a special offer just for you. Reply to learn more and book your spot. ✨',
+    'Re-engagement': 'Hi {{name}}, we miss you! It has been a while — is there anything we can help you with today?',
+    'New service': 'Hi {{name}}, exciting news! We just launched a new service we think you will love. Want the details?',
+  }
 
   const leadsOf = (c) => leadsByCamp[c.id] || c.replied || 0
   const respRate = (c) => c.totalRecipients ? Math.round((c.replied||0)/c.totalRecipients*100) : 0
@@ -52,7 +67,7 @@ export default function ClientCampaigns({ me }) {
     if (!f.name.trim() || !f.message.trim()) { setMsg({ ok:false, text:'Name and message are required' }); return }
     setBusy(true); setMsg(null)
     try {
-      const c = await api.createCampaign({ name: f.name.trim(), message: f.message.trim(), type:'BROADCAST', status:'DRAFT' })
+      const c = await api.createCampaign({ name: f.name.trim(), message: f.message.trim(), type:'BROADCAST', status:'DRAFT', channelType: f.channel, ...(estCost > 0 ? { cost: estCost } : {}) })
       // audience
       const filter = f.audience === 'all' ? { all:true } : f.audience === 'tag' ? { tag: f.tag } : { status: f.audience }
       await api.addCampaignAudience(c.id, filter).catch(()=>{})
@@ -94,9 +109,14 @@ export default function ClientCampaigns({ me }) {
             <div><label style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>Channel</label><select value={f.channel} onChange={e=>set('channel',e.target.value)} style={{ ...inp, width:'100%', cursor:'pointer' }}>{CH.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
           </div>
           <div>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px', gap:'8px' }}>
               <label style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>Message</label>
-              <button onClick={genMsg} disabled={genBusy} style={{ fontSize:'11px', padding:'3px 10px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'6px', color:'#a78bfa', fontWeight:700, cursor:'pointer' }}>{genBusy?'…':'✨ AI write'}</button>
+              <div style={{ display:'flex', gap:'6px' }}>
+                <select onChange={e=>{ if (TEMPLATES[e.target.value]) set('message', TEMPLATES[e.target.value]); e.target.value='' }} defaultValue="" style={{ ...inp, padding:'4px 8px', fontSize:'11px', cursor:'pointer' }}>
+                  <option value="">📋 Template…</option>{Object.keys(TEMPLATES).filter(Boolean).map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <button onClick={genMsg} disabled={genBusy} style={{ fontSize:'11px', padding:'3px 10px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'6px', color:'#a78bfa', fontWeight:700, cursor:'pointer' }}>{genBusy?'…':'✨ AI write'}</button>
+              </div>
             </div>
             <textarea value={f.message} onChange={e=>set('message',e.target.value)} rows={3} placeholder="Use {{name}} for the lead's name…" style={{ ...inp, width:'100%', boxSizing:'border-box', resize:'vertical' }} />
           </div>
@@ -111,6 +131,13 @@ export default function ClientCampaigns({ me }) {
               <select value={f.when} onChange={e=>set('when',e.target.value)} style={{ ...inp, width:'100%', cursor:'pointer' }}><option value="now">Send now</option><option value="schedule">Schedule</option></select>
               {f.when === 'schedule' && <input type="datetime-local" value={f.scheduledAt} onChange={e=>set('scheduledAt',e.target.value)} style={{ ...inp, width:'100%', boxSizing:'border-box', marginTop:'6px' }} />}
             </div>
+          </div>
+          {/* Estimated cost preview */}
+          <div style={{ display:'flex', alignItems:'center', gap:'14px', padding:'10px 14px', background:'#0a121e', border:'1px solid #1e2d42', borderRadius:'8px', fontSize:'12px', flexWrap:'wrap' }}>
+            <span style={{ color:'#7a8fa6' }}>📊 <b style={{ color:'#e8eef5' }}>{audienceSize}</b> recipients</span>
+            <span style={{ color:'#7a8fa6' }}>·</span>
+            <span style={{ color:'#7a8fa6' }}>Est. send cost: <b style={{ color:'#D8B16A' }}>{estCost > 0 ? `${estCost} QAR` : 'Free'}</b></span>
+            {f.channel === 'whatsapp' && <span style={{ fontSize:'10px', color:'#475569' }}>(~0.10 QAR/msg estimate)</span>}
           </div>
           <div style={{ display:'flex', gap:'8px' }}>
             <button onClick={create} disabled={busy} style={{ padding:'9px 20px', background: busy?'#1a2235':'#D8B16A', border:'none', borderRadius:'8px', color: busy?'#64748b':'#07090f', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>{busy?'Working…':(f.when==='schedule'?'Schedule':'Send now')}</button>
