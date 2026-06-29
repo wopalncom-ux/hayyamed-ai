@@ -388,6 +388,17 @@ export class AgencyService {
             channels: [], allowedActions: [] },
         ],
       })
+
+      // If the client gave a website, pre-load their AI Brain by crawling it
+      // (async chunk + embed; status moves pending → ready in the brain view).
+      let site = String(dto.website || '').trim()
+      if (site && !/^https?:\/\//i.test(site)) site = 'https://' + site
+      if (/^https?:\/\/[^\s.]+\.[^\s]+$/i.test(site)) {
+        const src = await this.prisma.knowledgeSource.create({
+          data: { knowledgeBaseId: kb.id, type: 'url', name: 'Website', url: site, status: 'pending' },
+        })
+        this.rag.indexSource(src.id).catch(() => {})
+      }
     } catch {
       // non-fatal: the client is created even if default provisioning fails
     }
