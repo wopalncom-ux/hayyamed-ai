@@ -369,6 +369,29 @@ export class AgencyService {
         ...(dto.adminNotes ? { adminNotes: dto.adminNotes } : {}),
       },
     })
+
+    // Auto-provision the standard package so the client is ready to configure:
+    // a Knowledge Brain + the two agents the setup fee covers (Receptionist +
+    // Analyzer). Left inactive until the owner trains the brain & connects a
+    // channel. Non-fatal — the client is created regardless.
+    try {
+      const kb = await this.prisma.knowledgeBase.create({
+        data: { orgId: client.id, name: 'Business Knowledge', description: "Train on the client's business — website, documents, FAQs, price lists." },
+      })
+      await this.prisma.aIAgent.createMany({
+        data: [
+          { orgId: client.id, name: 'AI Receptionist', role: 'receptionist', knowledgeBaseId: kb.id, isActive: false,
+            objective: 'Greet customers, answer questions, qualify leads and book appointments 24/7 in Arabic & English.',
+            channels: [], allowedActions: [] },
+          { orgId: client.id, name: 'AI Analyzer', role: 'analyzer', knowledgeBaseId: kb.id, isActive: false,
+            objective: 'Analyze conversations for sentiment, intent and lead score; flag chats that need a human.',
+            channels: [], allowedActions: [] },
+        ],
+      })
+    } catch {
+      // non-fatal: the client is created even if default provisioning fails
+    }
+
     return { id: client.id, name: client.name }
   }
 
