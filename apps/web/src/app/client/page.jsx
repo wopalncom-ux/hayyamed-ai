@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { getAuth } from '@/lib/auth'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/useIsMobile'
+import ClientInbox from '@/components/ClientInbox'
 
 const card = { background:'#0f1520', border:'1px solid #1e2d42', borderRadius:'10px', padding:'20px' }
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -165,6 +166,7 @@ export default function ClientPortal() {
         <div style={{borderBottom:'1px solid #1e2d42', marginBottom:'24px', display:'flex', gap:'4px'}}>
           {[
             { id:'overview',   label:'Overview' },
+            ...(can('view_inbox') ? [{ id:'fullinbox', label:'Inbox' }] : []),
             { id:'campaigns',  label:'Campaigns' },
             { id:'inbox',      label:'Recent Messages' },
             ...(can('manage_team') ? [{ id:'team', label:'Team' }] : []),
@@ -319,6 +321,9 @@ export default function ClientPortal() {
             })}
           </div>
         )}
+
+        {/* ══════════ TAB: INBOX (functional chat) ══════════ */}
+        {activeTab === 'fullinbox' && <ClientInbox me={me} />}
 
         {/* ══════════ TAB: TEAM ══════════ */}
         {activeTab === 'team' && (
