@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { RealtimeGateway } from '../../common/gateways/websocket.gateway'
 import { AIService } from '../ai/ai.service'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class ConversationsService {
@@ -9,13 +10,18 @@ export class ConversationsService {
     private prisma: PrismaService,
     private ai: AIService,
     @Optional() private gateway?: RealtimeGateway,
+    @Optional() private notifications?: NotificationsService,
   ) {}
 
   // Assign the conversation to a team member (scoped to org).
   async assign(id: string, orgId: string, assigneeId: string | null) {
-    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId } })
+    const conv = await this.prisma.conversation.findFirst({ where: { id, orgId }, include: { contact: { select: { name: true } } } })
     if (!conv) return null
-    return this.prisma.conversation.update({ where: { id }, data: { assigneeId: assigneeId || null } })
+    const updated = await this.prisma.conversation.update({ where: { id }, data: { assigneeId: assigneeId || null } })
+    if (assigneeId && assigneeId !== conv.assigneeId) {
+      this.notifications?.notifyOrg(orgId, { type: 'lead_assigned', title: '📌 Lead assigned to you', body: `${(conv as any).contact?.name || 'A lead'} was assigned to you`, data: { conversationId: id, url: '/client' }, assigneeId }).catch(() => {})
+    }
+    return updated
   }
 
   // Pause/resume the AI for a single conversation (human takeover / handoff).

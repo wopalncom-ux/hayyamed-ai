@@ -59,6 +59,7 @@ export class WebchatService {
       data: { orgId, channelId: channel.id, contactId: contact.id, externalId: sessionId, status: 'OPEN', subject: 'Website chat' },
     })
     this.webhooks?.dispatch(orgId, 'contact.created', { id: contact.id, name: contact.name, source: 'website', status: 'NEW' }).catch(() => {})
+    this.notifications?.notifyOrg(orgId, { type: 'new_lead', title: '🟢 New lead', body: `${contact.name || 'A visitor'} started a chat on your website`, data: { conversationId: conv.id, contactId: contact.id, url: '/client' } }).catch(() => {})
     return conv
   }
 

@@ -33,6 +33,9 @@ export default function ClientPortal() {
   const [team,      setTeam]      = useState([])
   const [teamMsg,   setTeamMsg]   = useState(null)
   const [invite,    setInvite]    = useState({ email: '', name: '', clientRole: 'agent' })
+  const [notifs,    setNotifs]    = useState([])
+  const [showNotifs, setShowNotifs] = useState(false)
+  const unreadNotifs = notifs.filter(n => !n.isRead && !n.readAt).length
   const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
   // Owner-controlled per-client portal feature flags (default on).
   const feat = (key) => me?.org?.modules?.[key]?.enabled !== false
@@ -63,7 +66,13 @@ export default function ClientPortal() {
       setLoading(false)
     })
     api.getPortalMe().then(setMe).catch(() => {})
+    api.getNotifications({ limit: 30 }).then(d => setNotifs(Array.isArray(d) ? d : (d?.data || []))).catch(() => {})
   }, [])
+
+  const openNotifs = () => {
+    setShowNotifs(v => !v)
+    if (!showNotifs && unreadNotifs > 0) { api.markAllNotificationsRead().catch(() => {}); setNotifs(p => p.map(n => ({ ...n, isRead: true }))) }
+  }
 
   const loadTeam = () => api.getPortalTeam().then(t => setTeam(Array.isArray(t) ? t : [])).catch(() => {})
   useEffect(() => { if (activeTab === 'team') loadTeam() }, [activeTab])
@@ -116,6 +125,24 @@ export default function ClientPortal() {
         <div style={{fontWeight:'900', fontSize:'17px', letterSpacing:'-0.5px'}}>Hayya<span style={{color:'#D8B16A'}}> AI</span></div>
         <div style={{fontSize:'11px', color:'#3d4f63'}}>/ Client Portal</div>
         <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'12px'}}>
+          {/* Notifications bell */}
+          <div style={{ position:'relative' }}>
+            <button onClick={openNotifs} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'18px', position:'relative', padding:'4px' }}>
+              🔔{unreadNotifs > 0 && <span style={{ position:'absolute', top:0, right:0, minWidth:'15px', height:'15px', background:'#ef4444', borderRadius:'8px', fontSize:'9px', fontWeight:800, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', padding:'0 3px' }}>{unreadNotifs>9?'9+':unreadNotifs}</span>}
+            </button>
+            {showNotifs && (
+              <div style={{ position:'absolute', right:0, top:'40px', width:'320px', maxHeight:'400px', overflowY:'auto', background:'#0f1622', border:'1px solid #1e2d42', borderRadius:'12px', boxShadow:'0 16px 50px rgba(0,0,0,.5)', zIndex:100 }}>
+                <div style={{ padding:'12px 14px', borderBottom:'1px solid #1e2d42', fontWeight:800, fontSize:'13px' }}>Notifications</div>
+                {notifs.length===0 ? <div style={{ padding:'24px', textAlign:'center', color:'#3d4f63', fontSize:'12px' }}>No notifications yet</div> : notifs.map(n => (
+                  <div key={n.id} style={{ padding:'11px 14px', borderBottom:'1px solid #141d2e' }}>
+                    <div style={{ fontSize:'12px', fontWeight:700, color:'#e8eef5' }}>{n.title}</div>
+                    <div style={{ fontSize:'11px', color:'#7a8fa6', marginTop:'2px' }}>{n.body}</div>
+                    <div style={{ fontSize:'9px', color:'#3d4f63', marginTop:'3px' }}>{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <div style={{fontSize:'12px', color:'#7a8fa6'}}>
             Welcome, <strong style={{color:'#e2e8f0'}}>{orgName}</strong>
           </div>

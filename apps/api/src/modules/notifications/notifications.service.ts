@@ -91,6 +91,18 @@ export class NotificationsService {
     return notif
   }
 
+  // Notify members of an org (or a single assignee). Best-effort, never throws.
+  async notifyOrg(orgId: string, opts: { type: string; title: string; body: string; data?: any; assigneeId?: string | null }) {
+    try {
+      if (opts.assigneeId) {
+        await this.create(opts.assigneeId, opts.type, opts.title, opts.body, opts.data ?? undefined)
+        return
+      }
+      const users = await this.prisma.user.findMany({ where: { orgId, isActive: true }, select: { id: true } })
+      await Promise.all(users.map(u => this.create(u.id, opts.type, opts.title, opts.body, opts.data ?? undefined).catch(() => {})))
+    } catch { /* best effort */ }
+  }
+
   async deleteOne(id: string, userId: string) {
     return this.prisma.notification.deleteMany({ where: { id, userId } })
   }
