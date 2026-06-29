@@ -18,17 +18,28 @@ export default function ClientCampaigns({ me }) {
   const [genBusy, setGenBusy] = useState(false)
   const set = (k,v) => setF(p => ({ ...p, [k]:v }))
 
+  const [leadsByCamp, setLeadsByCamp] = useState({})
   const load = () => api.getCampaigns({ limit: 50 }).then(r => setList(r?.data || r || [])).catch(()=>{}).finally(()=>setLoading(false))
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    api.getContacts({ limit: 500 }).then(r => { const a = r?.data || r || []; const m = {}; a.forEach(c => { if (c.campaignId) m[c.campaignId] = (m[c.campaignId]||0)+1 }); setLeadsByCamp(m) }).catch(()=>{})
+  }, [])
+
+  const leadsOf = (c) => leadsByCamp[c.id] || c.replied || 0
+  const respRate = (c) => c.totalRecipients ? Math.round((c.replied||0)/c.totalRecipients*100) : 0
+  const convRate = (c) => { const l = leadsOf(c); return l ? Math.round((c.converted||0)/l*100) : 0 }
+  const costPerLead = (c) => { const l = leadsOf(c); return (c.cost && l) ? +(c.cost/l).toFixed(1) : null }
+  const saveCost = async (c, v) => { try { await api.updateCampaign(c.id, { cost: v === '' ? null : Number(v) }); load() } catch {} }
 
   const stats = {
     total: list.length,
     active: list.filter(c => c.status === 'RUNNING').length,
     scheduled: list.filter(c => c.status === 'SCHEDULED').length,
     recipients: list.reduce((s,c)=>s+(c.totalRecipients||0),0),
-    replied: list.reduce((s,c)=>s+(c.replied||0),0),
+    leads: list.reduce((s,c)=>s+leadsOf(c),0),
     converted: list.reduce((s,c)=>s+(c.converted||0),0),
   }
+  const best = list.filter(c => leadsOf(c) > 0).sort((a,b) => (b.converted||0)-(a.converted||0))[0]
 
   const genMsg = async () => {
     if (!f.name.trim()) { setMsg({ ok:false, text:'Give the campaign a name/goal first.' }); return }
@@ -58,11 +69,17 @@ export default function ClientCampaigns({ me }) {
       {msg && <div style={{ marginBottom:'12px', padding:'10px 14px', borderRadius:'8px', fontSize:'12px', background: msg.ok?'rgba(216,177,106,.1)':'rgba(239,68,68,.1)', border:`1px solid ${msg.ok?'rgba(216,177,106,.3)':'rgba(239,68,68,.3)'}`, color: msg.ok?'#D8B16A':'#ef4444' }}>{msg.text}</div>}
 
       {/* Stats */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(110px,1fr))', gap:'10px', marginBottom:'16px' }}>
-        {[['Campaigns',stats.total,'#D8B16A'],['Active',stats.active,'#16a34a'],['Scheduled',stats.scheduled,'#a78bfa'],['Recipients',stats.recipients,'#3b82f6'],['Replies',stats.replied,'#06b6d4'],['Converted',stats.converted,'#16a34a']].map(([l,v,c]) => (
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(110px,1fr))', gap:'10px', marginBottom:'12px' }}>
+        {[['Campaigns',stats.total,'#D8B16A'],['Active',stats.active,'#16a34a'],['Scheduled',stats.scheduled,'#a78bfa'],['Recipients',stats.recipients,'#3b82f6'],['Leads',stats.leads,'#06b6d4'],['Converted',stats.converted,'#16a34a']].map(([l,v,c]) => (
           <div key={l} style={{ ...card, padding:'12px', textAlign:'center' }}><div style={{ fontSize:'22px', fontWeight:900, color:c }}>{v}</div><div style={{ fontSize:'10px', color:'#7a8fa6' }}>{l}</div></div>
         ))}
       </div>
+      {best && (
+        <div style={{ ...card, marginBottom:'16px', display:'flex', alignItems:'center', gap:'12px', borderColor:'rgba(22,163,74,.3)' }}>
+          <span style={{ fontSize:'22px' }}>🏆</span>
+          <div><div style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>Best performing campaign</div><div style={{ fontSize:'14px', fontWeight:800 }}>{best.name} <span style={{ color:'#16a34a', fontSize:'12px' }}>· {best.converted||0} converted · {convRate(best)}% conv.</span></div></div>
+        </div>
+      )}
 
       {can('launch_campaigns') && !show && (
         <button onClick={()=>{ setShow(true); setMsg(null) }} style={{ padding:'10px 20px', background:'#D8B16A', border:'none', borderRadius:'8px', color:'#07090f', fontWeight:800, fontSize:'13px', cursor:'pointer', marginBottom:'16px' }}>+ New Campaign</button>
@@ -108,12 +125,17 @@ export default function ClientCampaigns({ me }) {
           : list.length === 0 ? <div style={{ color:'#3d4f63', fontSize:'12px', textAlign:'center', padding:'16px' }}>No campaigns yet.</div>
           : list.map(c => (
             <div key={c.id} style={{ padding:'12px 0', borderBottom:'1px solid #1a2235' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'6px' }}>
                 <span style={{ fontWeight:700, fontSize:'13px' }}>{c.name}</span>
                 <span style={{ fontSize:'10px', padding:'2px 9px', borderRadius:'10px', background:(ST_C[c.status]||'#64748b')+'22', color:ST_C[c.status]||'#64748b', fontWeight:700 }}>{c.status}</span>
               </div>
-              <div style={{ display:'flex', gap:'14px', fontSize:'11px', color:'#7a8fa6' }}>
-                <span>👥 {c.totalRecipients||0} recipients</span><span>✓ {c.delivered||0} delivered</span><span>💬 {c.replied||0} replies</span><span style={{ color:'#16a34a' }}>🎯 {c.converted||0} converted</span>
+              <div style={{ display:'flex', gap:'14px', fontSize:'11px', color:'#7a8fa6', flexWrap:'wrap', marginBottom:'6px' }}>
+                <span>👥 {c.totalRecipients||0} sent</span><span>💬 {respRate(c)}% replied</span><span>🧲 {leadsOf(c)} leads</span><span style={{ color:'#16a34a' }}>🎯 {c.converted||0} won · {convRate(c)}%</span>
+              </div>
+              <div style={{ display:'flex', gap:'8px', alignItems:'center', fontSize:'11px', color:'#64748b' }}>
+                <span>💰 Cost (QAR):</span>
+                <input type="number" min="0" defaultValue={c.cost ?? ''} onBlur={e=>saveCost(c, e.target.value)} placeholder="—" style={{ ...inp, width:'80px', padding:'5px 8px', fontSize:'11px' }} />
+                {costPerLead(c) != null && <span style={{ color:'#D8B16A', fontWeight:700 }}>= {costPerLead(c)} QAR / lead</span>}
               </div>
             </div>
           ))}
