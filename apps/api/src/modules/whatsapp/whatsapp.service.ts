@@ -328,13 +328,29 @@ export class WhatsAppService {
 
     try {
       const org = await this.prisma.organization.findUnique({ where: { id: orgId }, select: { name: true, industry: true } })
+
+      // Use the client's configured WhatsApp agent (persona/model/language/fallback/brain)
+      // if one is active; otherwise fall back to a generic assistant.
+      const agent = await this.prisma.aIAgent.findFirst({ where: { orgId, isActive: true, channels: { has: 'whatsapp' } }, orderBy: { updatedAt: 'desc' } })
+        || await this.prisma.aIAgent.findFirst({ where: { orgId, isActive: true }, orderBy: { updatedAt: 'desc' } })
+
       let knowledge = ''
-      try { knowledge = await this.rag.getContextForQuery(orgId, text, 4) } catch { knowledge = '' }
+      try {
+        knowledge = agent?.knowledgeBaseId
+          ? (await this.rag.semanticSearch(orgId, agent.knowledgeBaseId, text, 4)).join('\n\n---\n\n')
+          : await this.rag.getContextForQuery(orgId, text, 4)
+      } catch { knowledge = '' }
       if (!knowledge && isSubstantiveQuestion(text)) this.rag.logGap(orgId, text, 'whatsapp').catch(() => {})
-      const system = `You are the WhatsApp assistant for ${org?.name || 'our business'}${org?.industry ? `, a ${org.industry} business` : ''}. Be concise, warm and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the customer with the team.${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
+
+      const lang = agent?.language === 'ar' ? 'Always reply in Arabic.' : agent?.language === 'en' ? 'Always reply in English.' : "Reply in the customer's language — English or Arabic — matching what they wrote."
+      const persona = agent
+        ? [`You are ${agent.name}, a ${agent.role} for ${org?.name || 'our business'}.`, agent.personality ? `Personality: ${agent.personality}.` : '', agent.objective ? `Objective: ${agent.objective}.` : ''].filter(Boolean).join(' ')
+        : `You are the WhatsApp assistant for ${org?.name || 'our business'}${org?.industry ? `, a ${org.industry} business` : ''}.`
+      const system = `${persona} ${lang} Be concise, warm and helpful. Answer using ONLY the business knowledge below when relevant; if you don't know, offer to connect the customer with the team.${knowledge ? `\n\n--- BUSINESS KNOWLEDGE ---\n${knowledge}\n--- END ---` : ''}`
+
       const reply = await this.ai.complete(
         [{ role: 'system', content: system }, { role: 'user', content: text }],
-        { maxTokens: 300, temperature: 0.5, orgId, module: 'whatsapp', action: 'reply' },
+        { provider: agent?.aiProvider as any, model: agent?.aiModel, fallbackModel: agent?.fallbackModel || undefined, maxTokens: agent?.maxTokens || 300, temperature: agent?.temperature ?? 0.5, orgId, module: 'whatsapp', action: 'reply' },
       )
       if (reply) {
         await this.sendFromOrg(orgId, contact.phone, reply)
