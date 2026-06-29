@@ -283,7 +283,7 @@ export class AgencyService {
   // Storage across ALL clients (owner Storage page) + a simple backup snapshot count.
   async agencyStorage(agencyOrgId: string) {
     const clients = await this.prisma.organization.findMany({
-      where: { parentOrgId: agencyOrgId },
+      where: { parentOrgId: agencyOrgId, isActive: true },
       select: { id: true, name: true, logo: true, storageLimitMb: true },
       orderBy: { name: 'asc' },
     })
