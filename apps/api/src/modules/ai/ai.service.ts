@@ -18,6 +18,15 @@ export class AIService {
   private gemini?: GoogleGenerativeAI
   private groq?: OpenAI // Groq uses OpenAI-compatible SDK
 
+  // Circuit breaker: a provider that fails with a hard error (no credit, bad key,
+  // quota) is skipped for COOLDOWN_MS so we don't waste latency on it every call.
+  private readonly downUntil: Partial<Record<Provider, number>> = {}
+  private static readonly COOLDOWN_MS = 5 * 60 * 1000
+  private isHardFailure(msg: string) {
+    const m = (msg || '').toLowerCase()
+    return /credit|billing|quota|insufficient|401|403|invalid api key|incorrect api key|authentication|unauthor/.test(m)
+  }
+
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
@@ -67,9 +76,15 @@ export class AIService {
     const systemMsg = messages.find(m => m.role === 'system')?.content || ''
     const chatMsgs  = messages.filter(m => m.role !== 'system')
 
-    const priority: Provider[] = provider
+    const ordered: Provider[] = provider
       ? [provider, 'openai', 'anthropic', 'gemini', 'groq']
       : ['openai', 'anthropic', 'gemini', 'groq']
+    // De-dupe, then drop providers currently in cooldown (unless ALL are down,
+    // in which case keep them so we still attempt — a key may have recovered).
+    const uniq = [...new Set(ordered)]
+    const now = Date.now()
+    const healthy = uniq.filter(p => !(this.downUntil[p] && this.downUntil[p]! > now))
+    const priority = healthy.length ? healthy : uniq
 
     for (const p of priority) {
       try {
@@ -115,12 +130,19 @@ export class AIService {
         }
 
         const latencyMs = Date.now() - start
+        delete this.downUntil[p] // recovered — clear any cooldown
         if (orgId) {
           this.obs.log({ orgId, module, action, provider: p, model: usedModel, promptTokens, completionTokens, latencyMs, success: true }).catch(() => {})
         }
         return result
       } catch (err: any) {
         this.logger.warn(`AI provider ${p} failed: ${err.message}`)
+        // Hard failures (no credit / bad key / quota) → cool the provider down so
+        // we stop wasting latency retrying it on every call.
+        if (this.isHardFailure(err?.message)) {
+          this.downUntil[p] = Date.now() + AIService.COOLDOWN_MS
+          this.logger.warn(`AI provider ${p} cooled down for 5m (hard failure)`)
+        }
         if (orgId) {
           this.obs.log({ orgId, module, action, provider: p, model: model || p, latencyMs: 0, success: false, errorType: err.message?.slice(0, 100) }).catch(() => {})
         }
