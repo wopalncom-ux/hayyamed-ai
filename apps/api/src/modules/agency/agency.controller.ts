@@ -54,6 +54,12 @@ export class AgencyController {
     return this.agency.updateClient(user.orgId, id, dto)
   }
 
+  // Create a client-portal login (role CLIENT, scoped to the client org).
+  @Post('clients/:id/portal-user')
+  createPortalUser(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { email: string; name?: string; password?: string }) {
+    return this.agency.createClientPortalUser(user.orgId, id, body)
+  }
+
   @Post('clients/:id/top-up')
   topUp(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { amount: number }) {
     return this.agency.topUp(user.orgId, id, Number(body.amount) || 0)

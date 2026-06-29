@@ -188,6 +188,7 @@ enum UserRole {
   MANAGER
   AGENT
   VIEWER
+  CLIENT
 }
 
 // ============================================

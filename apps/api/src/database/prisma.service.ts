@@ -22,6 +22,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch {
       // never block startup on a best-effort DDL
     }
+    try {
+      // Client-portal role (ADD VALUE can't run in a tx; IF NOT EXISTS is idempotent)
+      await this.$executeRawUnsafe(`ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'CLIENT'`)
+    } catch {
+      // already exists / older PG — best effort
+    }
   }
 
   async onModuleDestroy() {

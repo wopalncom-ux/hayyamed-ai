@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../../database/prisma.service'
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service'
 import { RagService } from '../knowledge-base/rag.service'
@@ -404,6 +404,30 @@ export class AgencyService {
     }
 
     return { id: client.id, name: client.name }
+  }
+
+  // Provision a client-portal login (role CLIENT) scoped to the client org.
+  // Returns the password once so the owner can hand it to the client.
+  async createClientPortalUser(agencyOrgId: string, clientId: string, dto: { email: string; name?: string; password?: string }) {
+    await this.assertOwns(agencyOrgId, clientId)
+    const email = String(dto?.email || '').trim().toLowerCase()
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new BadRequestException('A valid email is required')
+    const exists = await this.prisma.user.findUnique({ where: { email } })
+    if (exists) throw new BadRequestException('A user with that email already exists')
+
+    const bcrypt = require('bcryptjs')
+    const password = String(dto.password || '').trim() || Math.random().toString(36).slice(-4) + 'A' + Math.random().toString(36).slice(-4) + '!'
+    const hash = await bcrypt.hash(password, 12)
+    const client = await this.prisma.organization.findUnique({ where: { id: clientId }, select: { name: true } })
+
+    const u = await this.prisma.user.create({
+      data: {
+        orgId: clientId, email, password: hash, role: 'CLIENT' as any, isActive: true,
+        name: dto.name?.trim() || `${client?.name || 'Client'} Portal`,
+      },
+      select: { id: true, email: true, name: true },
+    })
+    return { id: u.id, email: u.email, name: u.name, password, portalUrl: 'https://www.hayyaai.com/login' }
   }
 
   // Full client profile + resource counts for the Client AI Operating Center.
