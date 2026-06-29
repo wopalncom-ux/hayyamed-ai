@@ -28,9 +28,11 @@ export default function ClientCampaigns({ me }) {
 
   // Estimated send cost (QAR/message; rough — WhatsApp business-initiated has real per-conversation pricing)
   const RATE = { whatsapp:0.10, instagram:0, facebook:0, website:0, email:0.005 }
-  const audienceSize = (f.audience === 'all') ? contacts.length
-    : (f.audience === 'tag') ? contacts.filter(c => (c.tags||[]).includes(f.tag)).length
-    : contacts.filter(c => String(c.status||'').toUpperCase() === f.audience).length
+  // Broadcast currently sends via WhatsApp → only contacts with a phone are reachable (matches backend filter)
+  const reachable = contacts.filter(c => c.phone)
+  const audienceSize = (f.audience === 'all') ? reachable.length
+    : (f.audience === 'tag') ? reachable.filter(c => (c.tags||[]).includes(f.tag)).length
+    : reachable.filter(c => String(c.status||'').toUpperCase() === f.audience).length
   const estCost = +(audienceSize * (RATE[f.channel] ?? 0)).toFixed(2)
   const TEMPLATES = {
     '': '',
@@ -139,6 +141,16 @@ export default function ClientCampaigns({ me }) {
             <span style={{ color:'#7a8fa6' }}>Est. send cost: <b style={{ color:'#D8B16A' }}>{estCost > 0 ? `${estCost} QAR` : 'Free'}</b></span>
             {f.channel === 'whatsapp' && <span style={{ fontSize:'10px', color:'#475569' }}>(~0.10 QAR/msg estimate)</span>}
           </div>
+          {f.channel !== 'whatsapp' && (
+            <div style={{ fontSize:'11px', color:'#d97706', background:'rgba(217,119,6,.08)', border:'1px solid rgba(217,119,6,.25)', borderRadius:'8px', padding:'8px 12px' }}>
+              ⚠️ Outbound broadcast currently sends via <b>WhatsApp</b>. {f.channel === 'website' ? 'Website' : f.channel === 'instagram' ? 'Instagram' : f.channel === 'facebook' ? 'Facebook' : 'Email'} captures inbound leads + attribution today; live outbound on this channel activates once it is connected.
+            </div>
+          )}
+          {f.channel === 'whatsapp' && audienceSize === 0 && (
+            <div style={{ fontSize:'11px', color:'#d97706', background:'rgba(217,119,6,.08)', border:'1px solid rgba(217,119,6,.25)', borderRadius:'8px', padding:'8px 12px' }}>
+              ⚠️ No reachable recipients — this audience has no contacts with a WhatsApp number yet.
+            </div>
+          )}
           <div style={{ display:'flex', gap:'8px' }}>
             <button onClick={create} disabled={busy} style={{ padding:'9px 20px', background: busy?'#1a2235':'#D8B16A', border:'none', borderRadius:'8px', color: busy?'#64748b':'#07090f', fontWeight:800, fontSize:'13px', cursor:'pointer' }}>{busy?'Working…':(f.when==='schedule'?'Schedule':'Send now')}</button>
             <button onClick={()=>setShow(false)} style={{ padding:'9px 16px', background:'transparent', border:'1px solid #1e2d42', borderRadius:'8px', color:'#7a8fa6', fontSize:'13px', cursor:'pointer' }}>Cancel</button>

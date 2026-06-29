@@ -93,6 +93,7 @@ export class CampaignsService {
     const where: any = { orgId, phone: { not: null } }
     if (filter.status) where.status = filter.status
     if (filter.source) where.source = filter.source
+    if (filter.tag) where.tags = { has: filter.tag }
     if (filter.search) where.name = { contains: filter.search, mode: 'insensitive' }
 
     const contacts = await this.prisma.contact.findMany({ where, select: { id: true } })
