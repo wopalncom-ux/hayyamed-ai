@@ -165,7 +165,7 @@ export class CampaignsService {
     this.audit.log({ orgId, action: 'campaign.launch', category: 'campaign', resource: 'campaign', resourceId: campaignId })
 
     // Run async — don't block the HTTP response
-    this.executeCampaign(campaignId, orgId, campaign.message).catch(err => {
+    this.executeCampaign(campaignId, orgId, campaign.message, campaign.mediaUrl).catch(err => {
       this.logger.error(`Campaign ${campaignId} execution failed: ${err.message}`)
     })
 
@@ -190,7 +190,7 @@ export class CampaignsService {
     await this.prisma.campaign.update({ where: { id: campaignId }, data: { status: 'RUNNING' } })
     this.audit.log({ orgId, action: 'campaign.resume', category: 'campaign', resource: 'campaign', resourceId: campaignId })
 
-    this.executeCampaign(campaignId, orgId, campaign.message).catch(err => {
+    this.executeCampaign(campaignId, orgId, campaign.message, campaign.mediaUrl).catch(err => {
       this.logger.error(`Campaign ${campaignId} resume failed: ${err.message}`)
     })
     return { resumed: true }
@@ -253,7 +253,7 @@ export class CampaignsService {
 
   // ─── PRIVATE ENGINE ───────────────────────────────────────────────────────
 
-  private async executeCampaign(campaignId: string, orgId: string, message: string) {
+  private async executeCampaign(campaignId: string, orgId: string, message: string, mediaUrl?: string | null) {
     let sentTotal = 0
     let failedTotal = 0
     const total = await this.prisma.campaignContact.count({ where: { campaignId } })
@@ -297,7 +297,8 @@ export class CampaignsService {
         }
 
         try {
-          await this.whatsapp.sendFromOrg(orgId, cc.contact.phone, message)
+          if (mediaUrl) await this.whatsapp.sendMediaFromOrg(orgId, cc.contact.phone, mediaUrl, message)
+          else await this.whatsapp.sendFromOrg(orgId, cc.contact.phone, message)
 
           await this.prisma.campaignContact.update({
             where: { id: cc.id },

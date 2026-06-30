@@ -182,6 +182,21 @@ export class WhatsAppService {
     }, token)
   }
 
+  async sendVideo(phoneNumberId: string, to: string, videoUrl: string, caption: string, token: string) {
+    return this.send(`${this.baseUrl}/${phoneNumberId}/messages`, {
+      messaging_product: 'whatsapp', to, type: 'video', video: { link: videoUrl, caption },
+    }, token)
+  }
+
+  // Org-level media send: picks image vs video from the URL extension; caption carries the text.
+  async sendMediaFromOrg(orgId: string, to: string, mediaUrl: string, caption: string) {
+    const channel = await this.getActiveChannel(orgId)
+    const isVideo = /\.(mp4|mov|3gp|m4v|webm)(\?|$)/i.test(mediaUrl)
+    return isVideo
+      ? this.sendVideo(channel.identifier, to, mediaUrl, caption, channel.accessToken!)
+      : this.sendImage(channel.identifier, to, mediaUrl, caption, channel.accessToken!)
+  }
+
   async sendButtons(phoneNumberId: string, to: string, body: string, buttons: string[], token: string) {
     return this.send(`${this.baseUrl}/${phoneNumberId}/messages`, {
       messaging_product: 'whatsapp', to, type: 'interactive',

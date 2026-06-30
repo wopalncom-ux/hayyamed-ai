@@ -14,7 +14,7 @@ export default function ClientCampaigns({ me }) {
   const [show, setShow] = useState(false)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
-  const [f, setF] = useState({ name:'', channel:'whatsapp', message:'', audience:'all', tag:'', tone:'friendly', when:'now', scheduledAt:'' })
+  const [f, setF] = useState({ name:'', channel:'whatsapp', message:'', mediaType:'none', media:'', audience:'all', tag:'', tone:'friendly', when:'now', scheduledAt:'' })
   const [genBusy, setGenBusy] = useState(false)
   const set = (k,v) => setF(p => ({ ...p, [k]:v }))
 
@@ -67,9 +67,15 @@ export default function ClientCampaigns({ me }) {
 
   const create = async () => {
     if (!f.name.trim() || !f.message.trim()) { setMsg({ ok:false, text:'Name and message are required' }); return }
+    if ((f.mediaType === 'image' || f.mediaType === 'video' || f.mediaType === 'link') && !f.media.trim()) { setMsg({ ok:false, text:`Add the ${f.mediaType} URL or pick "Text only"` }); return }
     setBusy(true); setMsg(null)
     try {
-      const c = await api.createCampaign({ name: f.name.trim(), message: f.message.trim(), type:'BROADCAST', status:'DRAFT', channelType: f.channel, ...(estCost > 0 ? { cost: estCost } : {}) })
+      // image/video → mediaUrl (sent as attachment + caption); link → appended to the text (WhatsApp previews it)
+      let message = f.message.trim()
+      let mediaUrl
+      if (f.mediaType === 'image' || f.mediaType === 'video') mediaUrl = f.media.trim()
+      else if (f.mediaType === 'link' && f.media.trim()) message = `${message}\n${f.media.trim()}`
+      const c = await api.createCampaign({ name: f.name.trim(), message, type:'BROADCAST', status:'DRAFT', channelType: f.channel, ...(mediaUrl ? { mediaUrl } : {}), ...(estCost > 0 ? { cost: estCost } : {}) })
       // audience
       const filter = f.audience === 'all' ? { all:true } : f.audience === 'tag' ? { tag: f.tag } : { status: f.audience }
       await api.addCampaignAudience(c.id, filter).catch(()=>{})
@@ -77,7 +83,7 @@ export default function ClientCampaigns({ me }) {
       if (f.when === 'schedule' && f.scheduledAt) await api.scheduleCampaign(c.id, { scheduledAt: new Date(f.scheduledAt).toISOString() })
       else await api.launchCampaign(c.id)
       setMsg({ ok:true, text: f.when === 'schedule' ? 'Campaign scheduled ✓' : 'Campaign launched ✓' })
-      setShow(false); setF({ name:'', channel:'whatsapp', message:'', audience:'all', tag:'', tone:'friendly', when:'now', scheduledAt:'' }); load()
+      setShow(false); setF({ name:'', channel:'whatsapp', message:'', mediaType:'none', media:'', audience:'all', tag:'', tone:'friendly', when:'now', scheduledAt:'' }); load()
     } catch (e) { setMsg({ ok:false, text: e?.message || 'Failed (channel may not be connected)' }) } finally { setBusy(false) }
   }
 
@@ -122,6 +128,20 @@ export default function ClientCampaigns({ me }) {
             </div>
             <textarea value={f.message} onChange={e=>set('message',e.target.value)} rows={3} placeholder="Use {{name}} for the lead's name…" style={{ ...inp, width:'100%', boxSizing:'border-box', resize:'vertical' }} />
           </div>
+          {/* Attachment: text-only / image / video / link */}
+          <div style={{ display:'grid', gridTemplateColumns:'150px 1fr', gap:'10px' }}>
+            <div><label style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>Attachment</label>
+              <select value={f.mediaType} onChange={e=>set('mediaType',e.target.value)} style={{ ...inp, width:'100%', cursor:'pointer' }}>
+                <option value="none">📝 Text only</option><option value="image">🖼️ Image</option><option value="video">🎥 Video</option><option value="link">🔗 Link</option>
+              </select>
+            </div>
+            {f.mediaType !== 'none' && (
+              <div><label style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>{f.mediaType === 'link' ? 'Link URL' : `${f.mediaType} URL (public)`}</label>
+                <input value={f.media} onChange={e=>set('media',e.target.value)} placeholder={f.mediaType==='image' ? 'https://…/photo.jpg' : f.mediaType==='video' ? 'https://…/clip.mp4' : 'https://…'} style={{ ...inp, width:'100%', boxSizing:'border-box' }} />
+              </div>
+            )}
+          </div>
+          {(f.mediaType === 'image' || f.mediaType === 'video') && <div style={{ fontSize:'10px', color:'#475569', marginTop:'-4px' }}>WhatsApp sends the {f.mediaType} with your message as the caption. URL must be public (https). Image: jpg/png · Video: mp4.</div>}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
             <div><label style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>Audience</label>
               <select value={f.audience} onChange={e=>set('audience',e.target.value)} style={{ ...inp, width:'100%', cursor:'pointer' }}>

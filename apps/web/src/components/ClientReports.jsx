@@ -124,6 +124,27 @@ export default function ClientReports({ me }) {
         </div>
       </div>
 
+      {/* Leads by Campaign — visual bar chart */}
+      {campRows.length > 0 && (
+        <div style={{ ...card, marginBottom:'16px' }}>
+          <div style={{ fontWeight:800, fontSize:'13px', marginBottom:'14px' }}>Leads by Campaign</div>
+          {campRows.map(r => {
+            const max = Math.max(...campRows.map(x => x.leads), 1)
+            return (
+              <div key={r.id} style={{ marginBottom:'11px' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'12px', marginBottom:'4px' }}>
+                  <span style={{ color:'#e8eef5' }}>{r.name}</span>
+                  <span style={{ color:'#7a8fa6' }}><b style={{ color:'#06b6d4' }}>{r.leads}</b> leads · <b style={{ color:'#16a34a' }}>{r.converted}</b> won{r.roi!=null && <> · <b style={{ color: r.roi>=0?'#16a34a':'#ef4444' }}>{r.roi>=0?'+':''}{r.roi}% ROI</b></>}</span>
+                </div>
+                <div style={{ height:'14px', background:'#0a121e', borderRadius:'7px', overflow:'hidden' }}>
+                  <div style={{ width:`${r.leads/max*100}%`, height:'100%', background:'linear-gradient(90deg,#06b6d4,#D8B16A)', borderRadius:'7px', minWidth: r.leads>0?'6px':'0' }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {/* Campaign performance + ROI */}
       <div style={{ ...card, marginBottom:'16px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
