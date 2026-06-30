@@ -43,6 +43,20 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch {
       // best effort
     }
+    try {
+      // Campaign media storage (bytea, stays in me-central1 for data residency).
+      await this.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "media_assets" (
+        "id" uuid PRIMARY KEY,
+        "orgId" text NOT NULL,
+        "filename" text,
+        "mimeType" text,
+        "data" bytea NOT NULL,
+        "size" integer,
+        "createdAt" timestamptz DEFAULT now()
+      )`)
+    } catch {
+      // best effort
+    }
     // Extended conversation statuses (additive enum values; each in its own try).
     for (const v of ['NEW', 'WAITING_CLIENT', 'WAITING_LEAD', 'QUALIFIED', 'FOLLOW_UP', 'CONVERTED', 'LOST', 'CLOSED']) {
       try { await this.$executeRawUnsafe(`ALTER TYPE "ConvStatus" ADD VALUE IF NOT EXISTS '${v}'`) } catch { /* exists */ }

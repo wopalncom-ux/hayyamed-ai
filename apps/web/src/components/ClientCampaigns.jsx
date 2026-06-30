@@ -16,7 +16,14 @@ export default function ClientCampaigns({ me }) {
   const [msg, setMsg] = useState(null)
   const [f, setF] = useState({ name:'', channel:'whatsapp', message:'', mediaType:'none', media:'', audience:'all', tag:'', tone:'friendly', when:'now', scheduledAt:'' })
   const [genBusy, setGenBusy] = useState(false)
+  const [upBusy, setUpBusy] = useState(false)
   const set = (k,v) => setF(p => ({ ...p, [k]:v }))
+  const uploadMedia = async (file) => {
+    if (!file) return
+    setUpBusy(true); setMsg(null)
+    try { const r = await api.uploadMedia(file); set('media', r.url) }
+    catch (e) { setMsg({ ok:false, text: e.message || 'Upload failed' }) } finally { setUpBusy(false) }
+  }
 
   const [leadsByCamp, setLeadsByCamp] = useState({})
   const [contacts, setContacts] = useState([])
@@ -136,8 +143,17 @@ export default function ClientCampaigns({ me }) {
               </select>
             </div>
             {f.mediaType !== 'none' && (
-              <div><label style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>{f.mediaType === 'link' ? 'Link URL' : `${f.mediaType} URL (public)`}</label>
-                <input value={f.media} onChange={e=>set('media',e.target.value)} placeholder={f.mediaType==='image' ? 'https://…/photo.jpg' : f.mediaType==='video' ? 'https://…/clip.mp4' : 'https://…'} style={{ ...inp, width:'100%', boxSizing:'border-box' }} />
+              <div><label style={{ fontSize:'10px', color:'#64748b', textTransform:'uppercase' }}>{f.mediaType === 'link' ? 'Link URL' : `${f.mediaType} (paste URL or upload)`}</label>
+                <div style={{ display:'flex', gap:'6px' }}>
+                  <input value={f.media} onChange={e=>set('media',e.target.value)} placeholder={f.mediaType==='image' ? 'https://…/photo.jpg' : f.mediaType==='video' ? 'https://…/clip.mp4' : 'https://…'} style={{ ...inp, flex:1, boxSizing:'border-box' }} />
+                  {(f.mediaType==='image' || f.mediaType==='video') && (
+                    <label style={{ display:'flex', alignItems:'center', padding:'0 12px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'8px', color:'#D8B16A', fontSize:'11px', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
+                      {upBusy ? '…' : '⬆ Upload'}
+                      <input type="file" accept={f.mediaType==='image' ? 'image/*' : 'video/*'} onChange={e=>uploadMedia(e.target.files?.[0])} style={{ display:'none' }} />
+                    </label>
+                  )}
+                </div>
+                {f.media && (f.mediaType==='image') && <img src={f.media} alt="" style={{ marginTop:'6px', maxHeight:'70px', borderRadius:'6px', border:'1px solid #1e2d42' }} />}
               </div>
             )}
           </div>
