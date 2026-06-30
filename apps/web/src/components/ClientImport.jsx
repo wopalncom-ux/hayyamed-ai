@@ -35,6 +35,12 @@ export default function ClientImport({ onClose, onDone }) {
     } catch (e) { setErr(e.message || 'Could not read file') } finally { setBusy(false) }
   }
 
+  const downloadTemplate = () => {
+    const csv = 'name,phone,email,city,source,status,tags,notes\nAhmed Ali,+97455512345,ahmed@example.com,Doha,referral,NEW,vip,"Asked about pricing"\n'
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+    const a = document.createElement('a'); a.href = url; a.download = 'hayya-leads-template.csv'; a.click(); URL.revokeObjectURL(url)
+  }
+
   const run = async () => {
     if (!mapping.name) { setErr('Map the Name column first'); return }
     if (!mapping.phone && !mapping.email) { setErr('Map a Phone or Email column (needed to reach leads)'); return }
@@ -61,6 +67,7 @@ export default function ClientImport({ onClose, onDone }) {
               <input type="file" accept=".csv,.tsv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onChange={e=>pick(e.target.files?.[0])} style={{ display:'none' }} />
             </label>
             <div style={{ fontSize:'11px', color:'#64748b', marginTop:'10px' }}>Accepts <b>.csv</b> and <b>Excel (.xlsx)</b>. Tip: for WhatsApp campaigns, include a <b>phone</b> column with country code (e.g. +974…). PDF isn't supported — export it to Excel/CSV first.</div>
+            <button onClick={downloadTemplate} style={{ marginTop:'10px', background:'none', border:'none', color:'#D8B16A', fontSize:'12px', fontWeight:700, cursor:'pointer', textDecoration:'underline', padding:0 }}>⬇ Download a sample template</button>
           </div>
         )}
 
