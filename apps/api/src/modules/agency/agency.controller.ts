@@ -81,6 +81,17 @@ export class AgencyController {
   removeClientIntegration(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('type') type: string) {
     return this.agency.removeClientIntegration(user.orgId, id, type)
   }
+  // Connect a client's WhatsApp (Meta Cloud API) — verifies creds with Meta, encrypts, creates the
+  // sending channel on the client org. This is the link that lets client campaigns actually send.
+  // (Route name matches the existing COC UI, which previously hit a non-existent endpoint → 404.)
+  @Post('clients/:id/channels/meta')
+  connectClientMetaChannel(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { name?: string; phoneNumberId: string; accessToken: string; businessId?: string; webhookSecret?: string }) {
+    return this.agency.connectClientMeta(user.orgId, id, body)
+  }
+  @Post('clients/:id/channels/manual')
+  connectClientManualChannel(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { name?: string; type?: string; webhookUrl?: string }) {
+    return this.agency.connectClientManual(user.orgId, id, body)
+  }
 
   @Post('clients/:id/top-up')
   topUp(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() body: { amount: number }) {
