@@ -31,7 +31,16 @@ export default function ClientLeads({ me }) {
   const [summarizing, setSummarizing] = useState(false)
   const [followUp, setFollowUp] = useState('')
   const [importing, setImporting] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const can = (p) => !!me && Array.isArray(me.permissions) && me.permissions.includes(p)
+  const exportCsv = async () => {
+    setExporting(true)
+    try {
+      const blob = await api.exportContactsCsv({ status: fStatus, search })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a'); a.href = url; a.download = `leads-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url)
+    } catch {} finally { setExporting(false) }
+  }
   const loadLeads = () => api.getContacts({ limit: 200 }).then(r => setLeads((r?.data || r || []))).catch(() => {}).finally(() => setLoading(false))
 
   useEffect(() => {
@@ -92,8 +101,9 @@ export default function ClientLeads({ me }) {
         <span style={{ fontSize:'11px', color:'#64748b' }}>to</span>
         <input type="date" value={fTo} onChange={e=>setFTo(e.target.value)} style={{ background:'#0a121e', border:`1px solid ${fTo?'#D8B16A':'#1e2d42'}`, borderRadius:'8px', padding:'8px 9px', color:'#e8eef5', fontSize:'11px', cursor:'pointer' }} />
         {(fFrom||fTo) && <button onClick={()=>{ setFFrom(''); setFTo('') }} style={{ fontSize:'11px', background:'none', border:'none', color:'#ef4444', cursor:'pointer' }}>clear</button>}
-        {can('launch_campaigns') && <button onClick={()=>setImporting(true)} style={{ marginLeft:'auto', padding:'8px 14px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'8px', color:'#D8B16A', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>⬆ Import CSV</button>}
-        <span style={{ fontSize:'12px', color:'#7a8fa6', marginLeft: can('launch_campaigns') ? '0' : 'auto' }}>{filtered.length} leads</span>
+        {can('export_reports') && <button onClick={exportCsv} disabled={exporting} style={{ marginLeft:'auto', padding:'8px 14px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'8px', color:'#94a3b8', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>{exporting?'…':'⬇ Export'}</button>}
+        {can('launch_campaigns') && <button onClick={()=>setImporting(true)} style={{ marginLeft: can('export_reports') ? '0' : 'auto', padding:'8px 14px', background:'#1a2740', border:'1px solid #2a3d5c', borderRadius:'8px', color:'#D8B16A', fontWeight:700, fontSize:'12px', cursor:'pointer' }}>⬆ Import CSV</button>}
+        <span style={{ fontSize:'12px', color:'#7a8fa6', marginLeft: (can('launch_campaigns')||can('export_reports')) ? '0' : 'auto' }}>{filtered.length} leads</span>
       </div>
 
       {importing && <ClientImport onClose={()=>setImporting(false)} onDone={loadLeads} />}

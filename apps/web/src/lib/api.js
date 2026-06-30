@@ -101,6 +101,12 @@ export const api = {
     request(`/contacts/${id}`, { method: 'DELETE' }),
   bulkContacts: (ids, action, value) =>
     request('/contacts/bulk', { method: 'POST', body: JSON.stringify({ ids, action, value }) }),
+  exportContactsCsv: async (params = {}) => {
+    const qs = new URLSearchParams(Object.entries(params).filter(([,v]) => v && v !== 'All')).toString()
+    const r = await authFetch('/contacts/export/csv' + (qs ? '?' + qs : ''), { method: 'GET' })
+    if (!r.ok) throw new Error('Export failed')
+    return r.blob()
+  },
   previewImport: async (file) => {
     const fd = new FormData(); fd.append('file', file)
     const r = await authFetch('/contacts/import/preview', { method: 'POST', body: fd })
