@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { parse } from 'csv-parse/sync'
+import * as ExcelJS from 'exceljs'
 import { PrismaService } from '../../database/prisma.service'
 import { AuditService } from '../audit/audit.service'
 
@@ -32,9 +33,11 @@ export class ContactsImportService {
 
   constructor(private prisma: PrismaService, private audit: AuditService) {}
 
-  // Parse CSV/TSV buffer → rows array
-  parseFile(buffer: Buffer, filename: string): ImportRow[] {
-    const delimiter = filename.endsWith('.tsv') ? '\t' : ','
+  // Parse CSV/TSV/XLSX buffer → rows array
+  async parseFile(buffer: Buffer, filename: string): Promise<ImportRow[]> {
+    const fn = (filename || '').toLowerCase()
+    if (fn.endsWith('.xlsx') || fn.endsWith('.xls')) return this.parseExcel(buffer)
+    const delimiter = fn.endsWith('.tsv') ? '\t' : ','
     const records = parse(buffer, {
       columns: true,
       skip_empty_lines: true,
@@ -46,16 +49,57 @@ export class ContactsImportService {
     return records
   }
 
+  // Parse an .xlsx/.xls workbook (first sheet) → rows keyed by header row
+  private async parseExcel(buffer: Buffer): Promise<ImportRow[]> {
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.load(buffer as any)
+    const ws = wb.worksheets[0]
+    if (!ws) return []
+    const rows: ImportRow[] = []
+    let headers: string[] = []
+    ws.eachRow((row, rowNumber) => {
+      const vals = row.values as any[]   // exceljs: index 0 is empty
+      if (rowNumber === 1) {
+        headers = []
+        for (let i = 1; i < vals.length; i++) headers[i] = this.cellText(vals[i]).trim()
+        return
+      }
+      const obj: ImportRow = {}
+      let any = false
+      for (let i = 1; i < headers.length; i++) {
+        const h = headers[i]
+        if (!h) continue
+        const v = this.cellText(vals[i])
+        obj[h] = v
+        if (v) any = true
+      }
+      if (any) rows.push(obj)
+    })
+    return rows
+  }
+
+  // Normalize an exceljs cell value (string | number | Date | hyperlink | formula | richText) to text
+  private cellText(v: any): string {
+    if (v == null) return ''
+    if (typeof v === 'object') {
+      if (v instanceof Date) return v.toISOString().slice(0, 10)
+      if (typeof v.text === 'string') return v.text                          // hyperlink
+      if (v.result != null) return String(v.result)                          // formula result
+      if (Array.isArray(v.richText)) return v.richText.map((r: any) => r.text).join('')
+    }
+    return String(v).trim()
+  }
+
   // Return column headers from first row so frontend can build mapping UI
-  getHeaders(buffer: Buffer, filename: string): string[] {
-    const records = this.parseFile(buffer, filename)
+  async getHeaders(buffer: Buffer, filename: string): Promise<string[]> {
+    const records = await this.parseFile(buffer, filename)
     if (!records[0]) return []
     return Object.keys(records[0])
   }
 
   // Preview first 5 rows
-  preview(buffer: Buffer, filename: string): { headers: string[]; rows: ImportRow[] } {
-    const records = this.parseFile(buffer, filename)
+  async preview(buffer: Buffer, filename: string): Promise<{ headers: string[]; rows: ImportRow[] }> {
+    const records = await this.parseFile(buffer, filename)
     return {
       headers: records[0] ? Object.keys(records[0]) : [],
       rows: records.slice(0, 5),
@@ -71,7 +115,7 @@ export class ContactsImportService {
     mapping: MappingConfig,
     options: { overwriteDuplicates?: boolean; defaultSource?: string; defaultStatus?: string } = {},
   ): Promise<ImportResult> {
-    const records = this.parseFile(buffer, filename)
+    const records = await this.parseFile(buffer, filename)
     const result: ImportResult = { total: records.length, imported: 0, skipped: 0, failed: 0, errors: [], duplicates: 0 }
 
     // Pre-load existing phones and emails for dedup (per-org)

@@ -57,10 +57,10 @@ export default function ClientImport({ onClose, onDone }) {
         {step === 1 && (
           <div>
             <label style={{ display:'block', padding:'28px', border:'2px dashed #2a3d5c', borderRadius:'12px', textAlign:'center', cursor:'pointer', color:'#7a8fa6', fontSize:'13px' }}>
-              {busy ? 'Reading…' : '📄 Choose a CSV file (name + phone/email columns)'}
-              <input type="file" accept=".csv,text/csv" onChange={e=>pick(e.target.files?.[0])} style={{ display:'none' }} />
+              {busy ? 'Reading…' : '📄 Choose a CSV or Excel file (name + phone/email columns)'}
+              <input type="file" accept=".csv,.tsv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onChange={e=>pick(e.target.files?.[0])} style={{ display:'none' }} />
             </label>
-            <div style={{ fontSize:'11px', color:'#64748b', marginTop:'10px' }}>Tip: for WhatsApp campaigns, include a <b>phone</b> column with country code (e.g. +974…).</div>
+            <div style={{ fontSize:'11px', color:'#64748b', marginTop:'10px' }}>Accepts <b>.csv</b> and <b>Excel (.xlsx)</b>. Tip: for WhatsApp campaigns, include a <b>phone</b> column with country code (e.g. +974…). PDF isn't supported — export it to Excel/CSV first.</div>
           </div>
         )}
 
