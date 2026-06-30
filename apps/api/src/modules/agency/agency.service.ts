@@ -174,6 +174,9 @@ export class AgencyService {
   // WhatsApp via Meta Cloud API for a client.
   async connectClientMeta(agencyOrgId: string, clientId: string, dto: { name?: string; phoneNumberId: string; accessToken: string; businessId?: string; webhookSecret?: string }) {
     await this.assertOwns(agencyOrgId, clientId)
+    if (!dto?.phoneNumberId?.trim() || !dto?.accessToken?.trim()) {
+      throw new BadRequestException('phoneNumberId and accessToken are required')
+    }
     return this.whatsapp.connectChannel(clientId, {
       name: dto.name || 'WhatsApp (Meta Cloud API)',
       phoneNumberId: dto.phoneNumberId, accessToken: dto.accessToken,
