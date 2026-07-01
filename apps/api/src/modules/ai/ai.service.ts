@@ -140,7 +140,7 @@ export class AIService {
           promptTokens = resp.usage.input_tokens
           completionTokens = resp.usage.output_tokens
         } else if (p === 'gemini' && this.gemini) {
-          usedModel = pickModel(p, 'gemini-2.0-flash')
+          usedModel = pickModel(p, 'gemini-2.0-flash-lite')
           const genModel = this.gemini.getGenerativeModel({ model: usedModel })
           const history = chatMsgs.slice(0, -1).map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
           const lastMsg = chatMsgs.at(-1)?.content || ''
@@ -212,7 +212,7 @@ export class AIService {
         const r = await this.anthropic.messages.create({ model: usedModel, max_tokens: 120, messages: [{ role: 'user', content: prompt }] })
         reply = (r.content[0] as any)?.text || ''
       } else if (provider === 'gemini' && this.gemini) {
-        usedModel = model || 'gemini-2.0-flash'
+        usedModel = model || 'gemini-2.0-flash-lite'
         const m = this.gemini.getGenerativeModel({ model: usedModel })
         const r = await m.generateContent(prompt)
         reply = r.response.text()
@@ -254,7 +254,7 @@ Never promise specific prices without confirmation. Always end with a clear call
       })).filter(m => m.content),
     ]
 
-    return this.complete(chatMessages, { provider: 'gemini', model: 'gemini-2.0-flash', maxTokens: 300, temperature: 0.7, orgId, module: 'chatbot', action: 'reply' })
+    return this.complete(chatMessages, { provider: 'gemini', model: 'gemini-2.0-flash-lite', maxTokens: 300, temperature: 0.7, orgId, module: 'chatbot', action: 'reply' })
   }
 
   // ─── SCORE LEAD ───────────────────────────────────────────────────────────
@@ -358,7 +358,7 @@ Return JSON: {"intent":"booking|pricing|info|complaint|greeting|farewell|other",
 
     const result = await this.complete(
       [{ role: 'user', content: prompt }],
-      { provider: 'gemini', model: 'gemini-2.0-flash', maxTokens: 120 },
+      { provider: 'gemini', model: 'gemini-2.0-flash-lite', maxTokens: 120 },
     )
     try { return JSON.parse(result) }
     catch { return { intent: 'other', language: 'ar', sentiment: 'neutral', topics: [] } }
@@ -372,7 +372,7 @@ Keep under 300 characters. Include 1-2 relevant emojis. End with a clear CTA.`
 
     return this.complete(
       [{ role: 'system', content: system }, { role: 'user', content: prompt }],
-      { provider: 'gemini', model: 'gemini-2.0-flash', maxTokens: 200, temperature: 0.8 },
+      { provider: 'gemini', model: 'gemini-2.0-flash-lite', maxTokens: 200, temperature: 0.8 },
     )
   }
 
@@ -384,7 +384,7 @@ Return JSON array of exactly 3 insights: ["<insight1>","<insight2>","<insight3>"
 
     const result = await this.complete(
       [{ role: 'user', content: prompt }],
-      { provider: 'gemini', model: 'gemini-2.0-flash', maxTokens: 300 },
+      { provider: 'gemini', model: 'gemini-2.0-flash-lite', maxTokens: 300 },
     )
     try {
       const parsed = JSON.parse(result)
@@ -396,7 +396,7 @@ Return JSON array of exactly 3 insights: ["<insight1>","<insight2>","<insight3>"
   async translate(text: string, targetLang: 'ar' | 'en'): Promise<string> {
     return this.complete(
       [{ role: 'user', content: `Translate to ${targetLang === 'ar' ? 'Arabic' : 'English'}. Return only the translation:\n${text}` }],
-      { provider: 'gemini', model: 'gemini-2.0-flash', maxTokens: 300 },
+      { provider: 'gemini', model: 'gemini-2.0-flash-lite', maxTokens: 300 },
     )
   }
 
