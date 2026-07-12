@@ -13,7 +13,7 @@ const PUBLIC = new Set([
   '/login', '/register', '/forgot-password', '/reset-password',
   '/terms', '/privacy', '/legal',
 ])
-const isPublic = (p) => PUBLIC.has(p) || p.startsWith('/blog') || p.startsWith('/legal')
+const isPublic = (p) => PUBLIC.has(p) || p.startsWith('/blog') || p.startsWith('/legal') || p.startsWith('/features')
 
 export default function AuthGuard({ children }) {
   useEffect(() => {

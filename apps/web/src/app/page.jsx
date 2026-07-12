@@ -3,6 +3,7 @@ import PricingSection from '@/components/PricingSection'
 import Reveal from '@/components/Reveal'
 import HeroVideo from '@/components/HeroVideo'
 import HomeSections from '@/components/HomeSections'
+import { FEATURES_CONTENT } from '@/lib/features-content'
 
 export const metadata = {
   title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
@@ -14,44 +15,7 @@ export const metadata = {
   },
 }
 
-const FEATURES = [
-  {
-    icon: '💬',
-    title: 'Omnichannel Inbox',
-    desc: 'WhatsApp, Instagram, Facebook, Telegram, Email — one unified inbox. Never miss a message again.',
-    color: '#D8B16A',
-  },
-  {
-    icon: '🤖',
-    title: 'AI Auto-Reply',
-    desc: 'AI agents respond instantly in Arabic and English. Qualify leads, answer questions, and book appointments 24/7.',
-    color: '#a78bfa',
-  },
-  {
-    icon: '📊',
-    title: 'CRM & Lead Scoring',
-    desc: 'AI scores every lead 0-100. Track contacts, conversations, and deal stages with full visibility.',
-    color: '#3b82f6',
-  },
-  {
-    icon: '📣',
-    title: 'Bulk Campaigns',
-    desc: 'Send WhatsApp and email campaigns to thousands. AI generates the copy. You just set the audience.',
-    color: '#f97316',
-  },
-  {
-    icon: '⚡',
-    title: 'Automation Builder',
-    desc: 'Build visual workflow automations. Trigger → Condition → AI Reply → Tag → Book — without code.',
-    color: '#fbbf24',
-  },
-  {
-    icon: '📅',
-    title: 'Booking System',
-    desc: 'Built-in appointment booking. Clients book via chat, you confirm in one click. Calendar sync included.',
-    color: '#06b6d4',
-  },
-]
+const FEATURES = FEATURES_CONTENT.map((f) => ({ slug: f.slug, icon: f.icon, title: f.title, desc: f.tagline, color: f.color }))
 
 const CHANNELS = [
   { icon: '💬', name: 'WhatsApp', color: '#D8B16A' },
@@ -141,7 +105,8 @@ export default function LandingPage() {
             <Reveal key={f.title} delay={(i % 3) * 80} style={{ padding: '24px', background: '#0c0f1a', border: '1px solid #1a2235', borderRadius: '10px', borderLeft: `3px solid ${f.color}` }}>
               <div style={{ fontSize: '28px', marginBottom: '12px' }}>{f.icon}</div>
               <div style={{ fontWeight: '700', fontSize: '15px', marginBottom: '8px', color: '#e2e8f0' }}>{f.title}</div>
-              <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>{f.desc}</div>
+              <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6', marginBottom: '12px' }}>{f.desc}</div>
+              <Link href={`/features/${f.slug}`} style={{ fontSize: '12px', fontWeight: '700', color: f.color, textDecoration: 'none' }}>Learn more →</Link>
             </Reveal>
           ))}
         </div>
@@ -209,6 +174,7 @@ export default function LandingPage() {
           <div style={{ fontWeight: '700', fontSize: '14px' }}>Hayya<span style={{ color: '#D8B16A' }}> AI</span></div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <Link href="/about" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>About</Link>
+            <Link href="/features" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Features</Link>
             <Link href="/developers" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Developers</Link>
             <Link href="/login" style={{ fontSize: '11px', color: '#64748b', textDecoration: 'none' }}>Log in</Link>
             <Link href="/register" style={{ fontSize: '11px', color: '#D8B16A', textDecoration: 'none' }}>Sign up free</Link>
