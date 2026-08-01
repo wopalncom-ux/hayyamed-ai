@@ -7,9 +7,9 @@ steps:
       - -f
       - apps/web/Dockerfile
       - --build-arg
-      - NEXT_PUBLIC_API_URL=https://api.hayyamedai.com/api/v1
+      - NEXT_PUBLIC_API_URL=https://api.hayyaai.com/api/v1
       - --build-arg
-      - NEXT_PUBLIC_WS_URL=wss://api.hayyamedai.com
+      - NEXT_PUBLIC_WS_URL=wss://api.hayyaai.com
       - apps/web
 
   - name: 'gcr.io/cloud-builders/docker'
