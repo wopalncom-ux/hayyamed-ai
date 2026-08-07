@@ -42,6 +42,7 @@ import { QuickRepliesModule } from './modules/quick-replies/quick-replies.module
 import { MyFatoorahModule } from './modules/myfatoorah/myfatoorah.module'
 import { UnipileModule } from './modules/unipile/unipile.module'
 import { InstagramModule } from './modules/instagram/instagram.module'
+import { FacebookModule } from './modules/facebook/facebook.module'
 import { WebhooksModule } from './modules/webhooks/webhooks.module'
 import { ApiKeysModule } from './modules/api-keys/api-keys.module'
 import { MediaModule } from './modules/media/media.module'
@@ -95,6 +96,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     MyFatoorahModule,
     UnipileModule,
     InstagramModule,
+    FacebookModule,
     WebhooksModule,
     ApiKeysModule,
   ],

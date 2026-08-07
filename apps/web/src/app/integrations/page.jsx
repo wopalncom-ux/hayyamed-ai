@@ -6,14 +6,10 @@ import NavSidebar from '@/components/NavSidebar'
 
 const INTEGRATIONS = [
   {
-    id:'meta', category:'Social & Messaging', color:'#3b82f6',
-    name:'Meta Business Suite', icon:'📘',
-    desc:'Connect Facebook Pages and Instagram accounts. Receive messages, post comments, and run campaigns via the Meta API.',
-    badge:'Official API', fields:[
-      { key:'app_id',     label:'APP ID',           placeholder:'Your Meta App ID', type:'text' },
-      { key:'app_secret', label:'APP SECRET',        placeholder:'Your App Secret',   type:'password' },
-      { key:'page_token', label:'PAGE ACCESS TOKEN', placeholder:'Long-lived page token', type:'password' },
-    ],
+    id:'meta', category:'Social & Messaging', color:'#3b82f6', setupUrl:'/integrations/facebook',
+    name:'Facebook Page Messaging', icon:'📘',
+    desc:'Connect your Facebook Page to receive and reply to Messenger DMs. Credentials are verified against Meta before saving.',
+    badge:'Official API', fields:[],
     docs:'https://developers.facebook.com',
   },
   {
@@ -63,13 +59,10 @@ const INTEGRATIONS = [
     docs:'',
   },
   {
-    id:'instagram', category:'Social & Messaging', color:'#ec4899',
+    id:'instagram', category:'Social & Messaging', color:'#ec4899', setupUrl:'/integrations/instagram',
     name:'Instagram Messaging', icon:'📸',
-    desc:'Receive and reply to Instagram DMs and story mentions directly from your inbox.',
-    badge:'Meta Graph API', fields:[
-      { key:'ig_token',  label:'INSTAGRAM TOKEN', placeholder:'Instagram Graph API token', type:'password' },
-      { key:'ig_acct',   label:'ACCOUNT ID',      placeholder:'Instagram Business Account ID', type:'text' },
-    ],
+    desc:'Receive and reply to Instagram DMs directly from your inbox. Credentials are verified against Meta before saving.',
+    badge:'Meta Graph API', fields:[],
     docs:'https://developers.facebook.com/docs/instagram-api',
   },
   {

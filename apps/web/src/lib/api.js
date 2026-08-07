@@ -566,6 +566,16 @@ export const api = {
   disconnectWhatsApp: (id) => request(`/whatsapp/channels/${id}`, { method: 'DELETE' }),
   testWhatsApp: (body) => request('/whatsapp/channels/test', { method: 'POST', body: JSON.stringify(body) }),
 
+  // Instagram (Meta Graph API — org-level)
+  getInstagramStatus: () => request('/instagram/status'),
+  connectInstagram: (body) => request('/instagram/connect', { method: 'POST', body: JSON.stringify(body) }),
+  disconnectInstagram: () => request('/instagram/disconnect', { method: 'POST' }),
+
+  // Facebook Page Messenger (Meta Graph API — org-level)
+  getFacebookStatus: () => request('/facebook/status'),
+  connectFacebook: (body) => request('/facebook/connect', { method: 'POST', body: JSON.stringify(body) }),
+  disconnectFacebook: () => request('/facebook/disconnect', { method: 'POST' }),
+
   // WhatsApp via Unipile (QR connect — no Meta approval)
   unipilePlatformStatus: () => request('/unipile/platform-status'),
   saveUnipilePlatform: (dsn, apiKey) => request('/unipile/platform-config', { method: 'POST', body: JSON.stringify({ dsn, apiKey }) }),

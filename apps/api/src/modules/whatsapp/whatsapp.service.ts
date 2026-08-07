@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import axios from 'axios'
 import { PrismaService } from '../../database/prisma.service'
@@ -43,15 +43,19 @@ export class WhatsAppService {
     businessId?: string
     webhookSecret?: string
   }) {
-    // Verify credentials with Meta before saving
-    let verified = false
+    // Verify credentials with Meta before saving — a bad/expired token must
+    // NOT be reported back to the user as a successful connection.
     let metadata: any = { businessId: data.businessId }
     try {
       const profile = await this.getBusinessProfile(data.phoneNumberId, data.accessToken)
       metadata = { ...metadata, displayPhone: profile?.data?.[0]?.display_phone_number, about: profile?.data?.[0]?.about }
-      verified = true
-    } catch {
-      // Save anyway — user may add token before Meta approval
+    } catch (e: any) {
+      const status = e?.response?.status
+      const metaMsg = e?.response?.data?.error?.message
+      if (status === 401 || status === 403 || status === 400) {
+        throw new BadRequestException(metaMsg || 'Meta rejected those WhatsApp credentials — check the Phone Number ID and access token.')
+      }
+      throw new BadRequestException('Could not verify the WhatsApp number with Meta. Check the credentials and retry.')
     }
 
     const existing = await this.prisma.channel.findFirst({
@@ -63,7 +67,7 @@ export class WhatsAppService {
     if (existing) {
       return this.prisma.channel.update({
         where: { id: existing.id },
-        data: { name: data.name, accessToken: encToken, webhookSecret: data.webhookSecret, isActive: true, isVerified: verified, metadata },
+        data: { name: data.name, accessToken: encToken, webhookSecret: data.webhookSecret, isActive: true, isVerified: true, metadata },
       })
     }
 
@@ -76,7 +80,7 @@ export class WhatsAppService {
         accessToken: encToken,
         webhookSecret: data.webhookSecret,
         isActive: true,
-        isVerified: verified,
+        isVerified: true,
         metadata,
       },
     })

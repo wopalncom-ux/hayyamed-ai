@@ -108,11 +108,7 @@ export default function WhatsAppSetupPage() {
     }
   }
 
-  const webhookUrl = typeof window !== 'undefined'
-    ? `${window.location.origin.replace('3000', '4000')}/whatsapp/webhook`
-    : 'https://api.hayyaai.com/whatsapp/webhook'
-
-  const verifyToken = 'hayyamed_webhook_2024'
+  const webhookUrl = 'https://api.hayyaai.com/api/v1/whatsapp/webhook'
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0f1a', color: '#e2e8f0' }}>
@@ -175,8 +171,8 @@ export default function WhatsAppSetupPage() {
               <div style={{ fontWeight: '700', marginBottom: '14px', fontSize: '14px' }}>📡 Webhook Configuration</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
                 {[
-                  { label: 'Webhook URL', value: 'https://api.hayyaai.com/whatsapp/webhook' },
-                  { label: 'Verify Token', value: verifyToken },
+                  { label: 'Webhook URL', value: webhookUrl },
+                  { label: 'Verify Token', value: 'the value set in WHATSAPP_WEBHOOK_TOKEN (Secret Manager)' },
                   { label: 'Subscribe Fields', value: 'messages' },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0a0f1a', borderRadius: '6px' }}>
