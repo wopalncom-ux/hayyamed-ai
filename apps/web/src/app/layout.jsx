@@ -58,11 +58,11 @@ const JSONLD = {
       url: SITE,
       logo: `${SITE}/logo.svg`,
       parentOrganization: { '@type': 'Organization', name: 'Hayya Med AI', url: 'https://hayyamed.ai' },
-      founder: { '@type': 'Person', name: 'Abbas Al Masri' },
+      founder: { '@type': 'Person', name: 'Abbas Al Masri', jobTitle: 'Founder & Chief Executive Officer' },
       foundingDate: '2025',
       email: 'abbas@hayyamed.ai',
       telephone: '+974 3367 7333',
-      address: { '@type': 'PostalAddress', addressLocality: 'Doha', addressCountry: 'QA' },
+      address: { '@type': 'PostalAddress', streetAddress: 'Zone 6, Street 970, Grand Hamad St, Building 2, 3rd Floor, Tejwaans Business Center', addressLocality: 'Doha', postalCode: '20278', addressCountry: 'QA' },
       areaServed: ['QA', 'GCC', 'MENA'],
     },
     {

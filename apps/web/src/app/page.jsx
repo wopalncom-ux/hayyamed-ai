@@ -181,7 +181,8 @@ export default function LandingPage() {
           </div>
         </div>
         <div style={{ fontSize: '11px', color: '#475569', marginTop: '16px', textAlign: 'center', lineHeight: '1.8' }}>
-          Owned and managed by <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>Hayya Med AI</strong></a> — Artificial Intelligence Solutions &amp; Enterprise Technology · Doha, Qatar<br />
+          Owned and managed by <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>Hayya Med AI</strong></a> — Artificial Intelligence Solutions &amp; Enterprise Technology<br />
+          Zone 6, Street 970, Grand Hamad St, Building 2, 3rd Floor, Tejwaans Business Center, Doha, Qatar · P.O. Box 20278<br />
           Contact: abbas@hayyamed.ai · +974 3367 7333<br />
           © {new Date().getFullYear()} Hayya AI. All rights reserved.
         </div>

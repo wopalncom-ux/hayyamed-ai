@@ -100,6 +100,10 @@ export default function About() {
               Doha, Qatar to bring practical, enterprise-grade AI to businesses in the GCC and beyond — starting with the
               conversations that win and keep customers.
             </p>
+            <p style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.8, margin: '12px 0 0' }}>
+              Zone 6, Street 970, Grand Hamad St, Building 2, 3rd Floor, Tejwaans Business Center, Doha, Qatar · P.O. Box 20278<br />
+              <a href="mailto:abbas@hayyamed.ai" style={{ color: '#94a3b8', textDecoration: 'none' }}>abbas@hayyamed.ai</a>
+            </p>
           </div>
         </Reveal>
       </section>
@@ -115,7 +119,8 @@ export default function About() {
 
       {/* Footer */}
       <footer style={{ ...wrap, padding: '28px 24px', textAlign: 'center', fontSize: '11px', color: '#475569', lineHeight: 1.9 }}>
-        Owned and managed by <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>Hayya Med AI</strong></a> — Artificial Intelligence Solutions &amp; Enterprise Technology · Doha, Qatar<br />
+        Owned and managed by <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>Hayya Med AI</strong></a> — Artificial Intelligence Solutions &amp; Enterprise Technology<br />
+        Zone 6, Street 970, Grand Hamad St, Building 2, 3rd Floor, Tejwaans Business Center, Doha, Qatar · P.O. Box 20278<br />
         Contact: abbas@hayyamed.ai · +974 3367 7333 · © {new Date().getFullYear()} Hayya AI.
       </footer>
     </div>
