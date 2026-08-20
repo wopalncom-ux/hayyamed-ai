@@ -15,7 +15,7 @@ const DEFAULT_MESSAGE = "Hi Hayya AI, I'd like to ask about the platform."
 const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`
 
 // Only the true public marketing pages — never inside the authenticated CRM app itself.
-const PUBLIC_MARKETING = new Set(['/', '/about', '/developers'])
+const PUBLIC_MARKETING = new Set(['/', '/about', '/contact', '/developers'])
 const isMarketingPath = (path) => PUBLIC_MARKETING.has(path) || path.startsWith('/features')
 
 export default function WhatsAppFloatButton() {

@@ -9,7 +9,8 @@ const NAV = [
   { label: 'AUTOMATIONS', href: '#features' },
   { label: 'WHATSAPP', href: '/register' },
   { label: 'PRICING', href: '#pricing' },
-  { label: 'CONTACT', href: 'mailto:abbas@hayyamed.ai' },
+  { label: 'ABOUT', href: '/about' },
+  { label: 'CONTACT', href: '/contact' },
 ]
 const jakarta = 'var(--font-jakarta), system-ui, sans-serif'
 const inter = 'var(--font-inter), system-ui, sans-serif'

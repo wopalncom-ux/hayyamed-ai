@@ -46,6 +46,7 @@ import { FacebookModule } from './modules/facebook/facebook.module'
 import { WebhooksModule } from './modules/webhooks/webhooks.module'
 import { ApiKeysModule } from './modules/api-keys/api-keys.module'
 import { MediaModule } from './modules/media/media.module'
+import { InquiriesModule } from './modules/inquiries/inquiries.module'
 import { DatabaseModule } from './database/database.module'
 import { GatewayModule } from './common/gateways/gateway.module'
 
@@ -99,6 +100,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
     FacebookModule,
     WebhooksModule,
     ApiKeysModule,
+    InquiriesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

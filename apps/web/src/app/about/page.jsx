@@ -19,6 +19,7 @@ export default function About() {
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '9px', fontWeight: 900, fontSize: '18px', color: '#e2e8f0', textDecoration: 'none' }}><img src="/logo.svg" alt="Hayya AI" width="28" height="28" style={{ display: 'block' }} />Hayya<span style={{ color: '#D8B16A' }}> AI</span></Link>
         <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
           <Link href="/" style={{ fontSize: '13px', color: '#94a3b8', textDecoration: 'none' }}>Home</Link>
+          <Link href="/contact" style={{ fontSize: '13px', color: '#94a3b8', textDecoration: 'none' }}>Contact</Link>
           <Link href="/register" style={{ fontSize: '13px', fontWeight: 700, color: '#070b0a', background: '#D8B16A', padding: '8px 16px', borderRadius: '8px', textDecoration: 'none' }}>Start free</Link>
         </div>
       </header>

@@ -9,7 +9,7 @@ import { getAuth } from '@/lib/auth'
 // authenticated API calls (Bearer token → 401 without a session), so an app
 // shell briefly painting before redirect exposes no real data.
 const PUBLIC = new Set([
-  '/', '/about', '/developers', '/pricing',
+  '/', '/about', '/contact', '/developers', '/pricing',
   '/login', '/register', '/forgot-password', '/reset-password',
   '/terms', '/privacy', '/legal',
 ])
