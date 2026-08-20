@@ -1,13 +1,17 @@
-import { Controller, Get, Post, Body, Query, HttpCode, Res } from '@nestjs/common'
-import { Response } from 'express'
+import { Controller, Get, Post, Body, Query, Req, Res, Logger, RawBodyRequest } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Request, Response } from 'express'
 import { InstagramService } from './instagram.service'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
 import { Public } from '../../common/decorators/public.decorator'
+import { verifyMetaSignature } from '../../common/util/meta-signature.util'
 
 @Controller('instagram')
 export class InstagramController {
-  constructor(private svc: InstagramService) {}
+  private readonly logger = new Logger(InstagramController.name)
+
+  constructor(private svc: InstagramService, private config: ConfigService) {}
 
   // Meta webhook verification (shared Meta app verify token).
   @Public()
@@ -21,9 +25,13 @@ export class InstagramController {
   // Inbound Instagram DM events — acknowledged immediately.
   @Public()
   @Post('webhook')
-  @HttpCode(200)
-  webhook(@Body() body: any) {
-    return this.svc.processWebhook(body || {})
+  webhook(@Req() req: RawBodyRequest<Request>, @Body() body: any, @Res() res: Response) {
+    const signature = req.headers['x-hub-signature-256'] as string | undefined
+    if (!verifyMetaSignature(req.rawBody, signature, this.config.get('META_APP_SECRET'))) {
+      this.logger.warn('❌ Rejected Instagram webhook: invalid or missing X-Hub-Signature-256')
+      return res.status(403).send('Forbidden')
+    }
+    return this.svc.processWebhook(body || {}).then(() => res.status(200).send({ status: 'ok' }))
   }
 
   @Get('status')

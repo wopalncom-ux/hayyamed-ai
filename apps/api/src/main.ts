@@ -13,6 +13,9 @@ import { ThrottlerExceptionFilter } from './common/filters/throttler.filter'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
+    // Needed to verify Meta's X-Hub-Signature-256 on webhook bodies — the
+    // signature is computed over the exact raw bytes, not the re-serialized JSON.
+    rawBody: true,
   })
 
   // Health check (outside global prefix — Cloud Run pings this)

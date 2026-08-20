@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Delete, Body, Param, Query, Res, Logger } from '@nestjs/common'
+import { Controller, Get, Post, Delete, Body, Param, Query, Req, Res, Logger, RawBodyRequest } from '@nestjs/common'
 import { SkipThrottle } from '@nestjs/throttler'
-import { Response } from 'express'
+import { ConfigService } from '@nestjs/config'
+import { Request, Response } from 'express'
 import { WhatsAppService } from './whatsapp.service'
 import { Public } from '../../common/decorators/public.decorator'
 import { CurrentUser } from '../../common/decorators/user.decorator'
 import { JwtPayload } from '../../common/guards/jwt.guard'
+import { verifyMetaSignature } from '../../common/util/meta-signature.util'
 
 // Meta webhook callbacks authenticate via HMAC, not rate-limit headers — skip throttle
 @SkipThrottle()
@@ -12,7 +14,7 @@ import { JwtPayload } from '../../common/guards/jwt.guard'
 export class WhatsAppController {
   private readonly logger = new Logger(WhatsAppController.name)
 
-  constructor(private whatsapp: WhatsAppService) {}
+  constructor(private whatsapp: WhatsAppService, private config: ConfigService) {}
 
   // ─── WEBHOOK VERIFICATION ───────────────────────────────────────────────
   @Public()
@@ -34,13 +36,18 @@ export class WhatsAppController {
   // ─── INCOMING MESSAGES (Meta sends here — always 200 immediately) ───────
   @Public()
   @Post('webhook')
-  async receive(@Body() body: any) {
+  async receive(@Req() req: RawBodyRequest<Request>, @Body() body: any, @Res() res: Response) {
+    const signature = req.headers['x-hub-signature-256'] as string | undefined
+    if (!verifyMetaSignature(req.rawBody, signature, this.config.get('META_APP_SECRET'))) {
+      this.logger.warn('❌ Rejected WhatsApp webhook: invalid or missing X-Hub-Signature-256')
+      return res.status(403).send('Forbidden')
+    }
     try {
       await this.whatsapp.processWebhook(body)
     } catch (err: any) {
       this.logger.error(`Webhook error: ${err?.message}`)
     }
-    return { status: 'ok' }
+    return res.status(200).send({ status: 'ok' })
   }
 
   // ─── CHANNEL MANAGEMENT ─────────────────────────────────────────────────
