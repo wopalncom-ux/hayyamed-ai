@@ -106,9 +106,15 @@ export default function HomeSections() {
           </p>
           <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="mailto:abbas@hayyamed.ai?subject=Book%20a%20Hayya%20AI%20demo&body=Hi%20Hayya%20AI%20team%2C%20I'd%20like%20to%20book%20a%20demo." style={{ padding: '15px 32px', background: GOLD, borderRadius: '999px', color: '#070b0a', textDecoration: 'none', fontSize: '14px', fontWeight: 800, letterSpacing: '0.02em' }}>Book a demo →</a>
+            <a href="https://wa.me/97433677333?text=Hi%20Hayya%20AI%2C%20I'd%20like%20to%20ask%20about%20the%20platform." target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '15px 28px', background: '#25D366', borderRadius: '999px', color: '#070b0a', textDecoration: 'none', fontSize: '14px', fontWeight: 800, letterSpacing: '0.02em' }}>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.87 9.87 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm4.52 13.94c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.48-1.39-1.73-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.25 3.74.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.19.21-.58.21-1.08.14-1.19-.06-.11-.23-.17-.48-.29z" /></svg>
+              Chat on WhatsApp
+            </a>
             <Link href="/register" style={{ padding: '15px 32px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '999px', color: '#fff', textDecoration: 'none', fontSize: '14px', fontWeight: 700 }}>Or start free</Link>
           </div>
-          <p style={{ marginTop: '18px', fontSize: '12px', color: '#475569' }}>abbas@hayyamed.ai · +974 3367 7333 · Doha, Qatar</p>
+          <p style={{ marginTop: '18px', fontSize: '12px', color: '#475569' }}>
+            Hayya AI is built and operated by <strong style={{ color: '#94a3b8' }}>Hayya Med AI</strong> · abbas@hayyamed.ai · +974 3367 7333 · Doha, Qatar
+          </p>
         </div>
       </section>
     </>

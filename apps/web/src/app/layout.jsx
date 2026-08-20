@@ -1,6 +1,7 @@
 import { Inter, Plus_Jakarta_Sans, Instrument_Serif } from 'next/font/google'
 import AuthGuard from '@/components/AuthGuard'
 import PwaProvider from '@/components/PwaProvider'
+import WhatsAppFloatButton from '@/components/WhatsAppFloatButton'
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '700', '800'], variable: '--font-inter', display: 'swap' })
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-jakarta', display: 'swap' })
@@ -134,6 +135,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthGuard>{children}</AuthGuard>
+        <WhatsAppFloatButton />
         <PwaProvider />
       </body>
     </html>

@@ -87,6 +87,33 @@ export default function About() {
         </div>
       </section>
 
+      {/* About Hayya Med AI */}
+      <section style={{ ...wrap, marginBottom: '56px' }}>
+        <Reveal style={card}>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 14px' }}>About Hayya Med AI</h2>
+          <p style={{ fontSize: '15px', color: '#94a3b8', lineHeight: 1.85, margin: '0 0 20px' }}>
+            <strong style={{ color: '#e2e8f0' }}>Hayya Med Artificial Intelligence</strong> is an Artificial Intelligence
+            Solutions &amp; Enterprise Technology company headquartered in Doha, Qatar. Our mission is to empower
+            organizations through artificial intelligence, intelligent automation, and innovative technology solutions
+            that transform challenges into opportunities and ideas into scalable digital ecosystems.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px' }}>
+            {[
+              ['Legal Name', 'Hayya Med Artificial Intelligence'],
+              ['Founded', 'June 2025 · Doha, Qatar'],
+              ['Commercial Registration', '219050'],
+              ['Website', 'hayyamed.ai'],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <div style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', color: '#D8B16A', marginBottom: '4px', textTransform: 'uppercase' }}>{label}</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#e2e8f0' }}>{value}</div>
+              </div>
+            ))}
+          </div>
+          <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '20px', fontSize: '13px', fontWeight: 700, color: '#D8B16A', textDecoration: 'none' }}>Visit hayyamed.ai ↗</a>
+        </Reveal>
+      </section>
+
       {/* Founder */}
       <section style={{ ...wrap, marginBottom: '64px' }}>
         <Reveal style={{ ...card, display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
