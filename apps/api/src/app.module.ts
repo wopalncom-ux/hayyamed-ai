@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { JwtAuthGuard } from './common/guards/jwt.guard'
+import { requireSecret } from './common/config/require-secret'
 
 import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
@@ -63,7 +64,7 @@ import { GatewayModule } from './common/gateways/gateway.module'
 
     // Core
     DatabaseModule,
-    JwtModule.register({ secret: process.env.JWT_SECRET || 'dev', signOptions: { expiresIn: '15m' } }),
+    JwtModule.register({ secret: requireSecret('JWT_SECRET', 'dev'), signOptions: { expiresIn: '15m' } }),
     AuthModule,
     UsersModule,
     ConversationsModule,

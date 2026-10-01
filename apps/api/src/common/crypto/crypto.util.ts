@@ -1,4 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'crypto'
+import { requireSecret } from '../config/require-secret'
 
 // AES-256-GCM field encryption for credentials at rest.
 // Key: ENCRYPTION_KEY (32-byte hex/base64) if set, else derived from JWT_SECRET.
@@ -16,7 +17,7 @@ function getKey(): Buffer {
     return createHash('sha256').update(raw).digest()
   }
   // Fallback: derive a stable key from JWT_SECRET (always set in prod).
-  return createHash('sha256').update(process.env.JWT_SECRET || 'dev-encryption-key').digest()
+  return createHash('sha256').update(requireSecret('JWT_SECRET', 'dev-encryption-key')).digest()
 }
 
 export function encrypt(plaintext: string): string {

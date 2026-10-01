@@ -195,7 +195,11 @@ export class BillingService {
     }
 
     if (!this.stripe) {
-      // No gateway configured — simulate activation (dev).
+      if (this.config.get('NODE_ENV') === 'production') {
+        this.logger.error(`Checkout blocked: no payment gateway configured (org=${orgId}, plan=${planId})`)
+        throw new BadRequestException('Payment is temporarily unavailable. Please contact support.')
+      }
+      // No gateway configured — simulate activation (non-production only).
       await this.activatePlan(orgId, planId)
       return { url: successUrl, simulated: true }
     }

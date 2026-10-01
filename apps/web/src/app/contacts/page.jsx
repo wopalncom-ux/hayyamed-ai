@@ -132,21 +132,45 @@ export default function Contacts() {
     }
   }
 
+  const parseCsv = (text) => {
+    const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0)
+    if (lines.length === 0) return []
+    const splitRow = (line) => line.split(',').map(cell => cell.trim().replace(/^"|"$/g, ''))
+    const header = splitRow(lines[0]).map(h => h.toLowerCase())
+    const phoneIdx = header.findIndex(h => h.includes('phone'))
+    const nameIdx = header.findIndex(h => h.includes('name'))
+    const emailIdx = header.findIndex(h => h.includes('email'))
+    const hasHeader = phoneIdx !== -1 || nameIdx !== -1 || emailIdx !== -1
+    const dataLines = hasHeader ? lines.slice(1) : lines
+    return dataLines.map(line => {
+      const cells = splitRow(line)
+      return {
+        phone: cells[hasHeader && phoneIdx !== -1 ? phoneIdx : 0] || '',
+        name: cells[hasHeader && nameIdx !== -1 ? nameIdx : 1] || '',
+        email: cells[hasHeader && emailIdx !== -1 ? emailIdx : 2] || '',
+      }
+    }).filter(c => c.phone)
+  }
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0]
     if (!file) return
     setUploadedFile(file)
-    const mockContacts = [
-      { phone:'+974 5557 1111', name:'Omar Al Kuwari', email:'' },
-      { phone:'+974 5557 2222', name:'', email:'' },
-      { phone:'+974 5551 2345', name:'Ahmed Al Rashid', email:'' }, // duplicate
-      { phone:'+974 5557 3333', name:'Lana Hassan', email:'lana@email.com' },
-      { phone:'+974 5557 4444', name:'', email:'' },
-    ]
-    const dups = mockContacts.filter(nc => contacts.find(c => c.phone === nc.phone))
-    setDuplicates(dups)
-    setPreviewContacts(mockContacts)
-    setShowImportPreview(true)
+    if (!/\.csv$/i.test(file.name)) {
+      alert('Only .csv files are supported right now. Excel (.xlsx/.xls) import is not yet implemented — please export your file as CSV and re-upload.')
+      setUploadedFile(null)
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const parsed = parseCsv(String(ev.target.result))
+      const dups = parsed.filter(nc => contacts.find(c => c.phone === nc.phone))
+      setDuplicates(dups)
+      setPreviewContacts(parsed)
+      setShowImportPreview(true)
+    }
+    reader.onerror = () => alert('❌ Could not read file.')
+    reader.readAsText(file)
   }
 
   const importContacts = async () => {
@@ -458,9 +482,9 @@ export default function Contacts() {
 
             <div style={{border:'2px dashed #1a2235', borderRadius:'4px', padding:'30px', textAlign:'center', cursor:'pointer', background:'#111622', marginBottom:'16px'}} onClick={() => document.getElementById('contactsFile').click()}>
               <div style={{fontSize:'32px', marginBottom:'8px'}}>📊</div>
-              <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'4px'}}>Upload Excel or CSV</div>
-              <div style={{fontSize:'11px', color:'#7a8fa6'}}>.xlsx, .xls, .csv supported</div>
-              <input id="contactsFile" type="file" accept=".csv,.xlsx,.xls" style={{display:'none'}} onChange={handleFileUpload}/>
+              <div style={{fontWeight:'700', fontSize:'13px', marginBottom:'4px'}}>Upload CSV</div>
+              <div style={{fontSize:'11px', color:'#7a8fa6'}}>.csv supported — columns: phone, name, email</div>
+              <input id="contactsFile" type="file" accept=".csv" style={{display:'none'}} onChange={handleFileUpload}/>
               {uploadedFile && <div style={{marginTop:'10px', fontSize:'12px', color:'#D8B16A'}}>✅ {uploadedFile.name}</div>}
             </div>
 
