@@ -5,7 +5,7 @@
 > Hayya AI منصة لخدمة العملاء والتواصل معهم بالذكاء الاصطناعي للشركات في قطر ودول الخليج: وكلاء ذكاء اصطناعي يردّون على العملاء في واتساب وإنستغرام بالعربية والإنجليزية، وصندوق وارد موحّد، ونظام CRM يقيّم العملاء المحتملين، وحملات جماعية، ومنشئ أتمتة بدون برمجة، وحجز المواعيد من داخل المحادثة. تطوّرها وتشغّلها شركة هيّا ميد للذكاء الاصطناعي في الدوحة، قطر.
 
 Key facts:
-- Channels (4): WhatsApp (WhatsApp Business API), Instagram direct messages, website chat, email.
+- Channels (5): WhatsApp (WhatsApp Business API), Instagram direct messages, Facebook Messenger, website chat, email.
 - Languages: the AI agents reply in Arabic and English; the website is available in English (https://www.hayyamed.ai) and Arabic (https://www.hayyamed.ai/ar).
 - Hosting: Google Cloud, me-central1 region (Doha, Qatar). Some processing happens at third-party providers (AI models, payments, email delivery, connected messaging platforms) as described in the privacy policy.
 - Pricing: free to sign up; paid plans are priced in Qatari riyals (QAR), billed monthly, with no annual lock-in. Current prices: https://www.hayyamed.ai/#pricing

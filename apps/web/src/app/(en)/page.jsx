@@ -4,7 +4,7 @@ import { pageOpenGraph } from '@/lib/site-shell'
 
 export const metadata = {
   title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
-  description: 'WhatsApp, Instagram, website chat and Email omnichannel CRM with AI agents, automated replies, lead scoring, and campaign management. Built for Qatar and GCC businesses.',
+  description: 'WhatsApp, Instagram, Facebook, website chat and Email omnichannel CRM with AI agents, automated replies, lead scoring, and campaign management. Built for Qatar and GCC businesses.',
   alternates: alternatesFor('en', '/'),
   openGraph: pageOpenGraph('en', {
     title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',

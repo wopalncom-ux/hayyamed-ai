@@ -4,12 +4,12 @@ export const FEATURES_CONTENT = [
     icon: '💬',
     title: 'Omnichannel Inbox',
     color: '#D8B16A',
-    tagline: 'WhatsApp, Instagram, website chat and Email — one inbox, zero missed messages.',
+    tagline: 'WhatsApp, Instagram, Facebook Messenger, website chat and Email — one inbox, zero missed messages.',
     metaTitle: 'Omnichannel Inbox — WhatsApp, Instagram & Email CRM | Hayya AI',
-    metaDescription: 'Manage WhatsApp, Instagram, website chat and Email from one unified inbox. Hayya AI\'s omnichannel CRM built for Qatar and GCC businesses.',
-    intro: 'Customers reach out on whatever channel is convenient for them — a WhatsApp message, an Instagram DM, a chat on your website, an email. Without a unified inbox, that means checking four different apps and inevitably missing something. Hayya AI brings every conversation into one place, so your team never has to context-switch between apps to respond.',
+    metaDescription: 'Manage WhatsApp, Instagram, Facebook Messenger, website chat and Email from one unified inbox. Hayya AI\'s omnichannel CRM built for Qatar and GCC businesses.',
+    intro: 'Customers reach out on whatever channel is convenient for them — a WhatsApp message, an Instagram DM, a Facebook message, a chat on your website, an email. Without a unified inbox, that means checking five different apps and inevitably missing something. Hayya AI brings every conversation into one place, so your team never has to context-switch between apps to respond.',
     capabilities: [
-      { title: 'Real Channel Coverage', desc: 'WhatsApp Business API, Instagram DMs, website chat and Email — all genuinely connected, not a partial integration.' },
+      { title: 'Real Channel Coverage', desc: 'WhatsApp Business API, Instagram DMs, Facebook Messenger, website chat and Email — all genuinely connected, not a partial integration.' },
       { title: 'Unified Conversation View', desc: 'Every customer\'s full conversation history in one thread, regardless of which channel they used to reach out.' },
       { title: 'Team Assignment & Routing', desc: 'Route conversations to the right team member automatically, with visibility into who\'s handling what.' },
       { title: 'Fast, Mobile-Ready Interface', desc: 'A genuinely fast inbox interface that works well on mobile, since customer conversations don\'t wait for you to be at a desk.' },
@@ -105,12 +105,12 @@ export function getFeatureContent(slug) {
 const FEATURES_AR = {
   'omnichannel-inbox': {
     title: 'صندوق الوارد الموحّد',
-    tagline: 'واتساب وإنستغرام ودردشة الموقع والبريد الإلكتروني في صندوق وارد واحد، بلا أي رسالة فائتة.',
+    tagline: 'واتساب وإنستغرام وماسنجر فيسبوك ودردشة الموقع والبريد الإلكتروني في صندوق وارد واحد، بلا أي رسالة فائتة.',
     metaTitle: 'صندوق وارد موحّد لواتساب وإنستغرام والبريد الإلكتروني | Hayya AI',
-    metaDescription: 'أدِر محادثات واتساب وإنستغرام ودردشة الموقع والبريد الإلكتروني من صندوق وارد واحد. نظام CRM متعدد القنوات من Hayya AI مصمَّم للشركات في قطر ودول الخليج.',
-    intro: 'يتواصل العملاء عبر القناة الأسهل لهم: رسالة واتساب، أو رسالة مباشرة على إنستغرام، أو محادثة على موقعك، أو بريد إلكتروني. ومن دون صندوق وارد موحّد، يضطر فريقك إلى متابعة أربعة تطبيقات مختلفة، فتضيع بعض الرسائل حتماً. يجمع Hayya AI كل المحادثات في مكان واحد، فلا يحتاج فريقك إلى التنقّل بين التطبيقات للرد.',
+    metaDescription: 'أدِر محادثات واتساب وإنستغرام وماسنجر فيسبوك ودردشة الموقع والبريد الإلكتروني من صندوق وارد واحد. نظام CRM متعدد القنوات من Hayya AI مصمَّم للشركات في قطر ودول الخليج.',
+    intro: 'يتواصل العملاء عبر القناة الأسهل لهم: رسالة واتساب، أو رسالة مباشرة على إنستغرام، أو رسالة على فيسبوك، أو محادثة على موقعك، أو بريد إلكتروني. ومن دون صندوق وارد موحّد، يضطر فريقك إلى متابعة خمسة تطبيقات مختلفة، فتضيع بعض الرسائل حتماً. يجمع Hayya AI كل المحادثات في مكان واحد، فلا يحتاج فريقك إلى التنقّل بين التطبيقات للرد.',
     capabilities: [
-      { title: 'تغطية حقيقية لكل القنوات', desc: 'واتساب للأعمال (WhatsApp Business API)، ورسائل إنستغرام المباشرة، ودردشة الموقع، والبريد الإلكتروني، كلها مربوطة فعلياً وليست ربطاً جزئياً.' },
+      { title: 'تغطية حقيقية لكل القنوات', desc: 'واتساب للأعمال (WhatsApp Business API)، ورسائل إنستغرام المباشرة، وماسنجر فيسبوك، ودردشة الموقع، والبريد الإلكتروني، كلها مربوطة فعلياً وليست ربطاً جزئياً.' },
       { title: 'عرض موحّد للمحادثة', desc: 'سجلّ المحادثات الكامل لكل عميل في محادثة واحدة، أياً كانت القناة التي تواصل منها.' },
       { title: 'توزيع المحادثات على الفريق', desc: 'توجيه كل محادثة تلقائياً إلى الموظف المناسب، مع معرفة من يتولّى كل محادثة.' },
       { title: 'واجهة سريعة تعمل على الجوال', desc: 'صندوق وارد سريع يعمل بسلاسة على الجوال، لأن محادثات العملاء لا تنتظر عودتك إلى المكتب.' },
