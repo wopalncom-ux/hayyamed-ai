@@ -7,6 +7,7 @@ import { FEATURES_CONTENT } from '@/lib/features-content'
 
 export const metadata = {
   title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',
+  alternates: { canonical: '/' },
   description: 'WhatsApp, Instagram, Facebook and Email omnichannel CRM with AI agents, automated replies, lead scoring, and campaign management. Built for Qatar and GCC businesses.',
   openGraph: {
     title: 'Hayya AI — AI-Powered CRM for Qatar & GCC',

@@ -14,7 +14,8 @@ export const metadata = {
   metadataBase: new URL(SITE),
   title: {
     default: 'Hayya AI — AI Agents for WhatsApp, Instagram & CRM',
-    template: '%s · Hayya AI',
+    // Child pages already end their titles with the brand name.
+    template: '%s',
   },
   description: DESC,
   keywords: [
@@ -25,7 +26,6 @@ export const metadata = {
   authors: [{ name: 'Hayya Med AI', url: 'https://hayyamed.ai' }],
   creator: 'Hayya Med AI',
   publisher: 'Hayya Med AI',
-  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -81,7 +81,6 @@ const JSONLD = {
       operatingSystem: 'Web, iOS, Android',
       description: DESC,
       offers: { '@type': 'Offer', price: '150', priceCurrency: 'QAR' },
-      aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', ratingCount: '37' },
     },
   ],
 }

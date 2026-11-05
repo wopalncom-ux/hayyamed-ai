@@ -3,6 +3,7 @@ import Link from 'next/link'
 export const metadata = {
   title: 'Developer API & Webhooks — Hayya AI',
   description: 'Integrate Hayya AI: push leads via the REST API and receive real-time webhook events.',
+  alternates: { canonical: '/developers' },
 }
 
 const Code = ({ children }) => (
