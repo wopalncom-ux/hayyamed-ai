@@ -22,8 +22,12 @@ const LABELS = {
 }
 const hrefFor = (locale) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(MESSAGES[locale])}`
 
-// Only the true public marketing pages — never inside the authenticated CRM app itself.
-const PUBLIC_MARKETING = new Set(['/', '/about', '/contact', '/developers'])
+// Every public page of the website (English and Arabic) — never inside the
+// authenticated CRM app itself. Number: +974 3367 7333.
+const PUBLIC_MARKETING = new Set([
+  '/', '/about', '/contact', '/developers', '/privacy', '/terms',
+  '/login', '/register', '/forgot-password', '/reset-password',
+])
 const isMarketingPath = (path) => {
   const p = stripLocale(path)
   return PUBLIC_MARKETING.has(p) || p.startsWith('/features')

@@ -20,7 +20,7 @@ export default function CompanyFooter({ locale = 'en', maxWidth = '900px' }) {
   const t = T[locale] || T.en
   return (
     <footer style={{ maxWidth, margin: '0 auto', padding: '28px 24px', textAlign: 'center', fontSize: '11px', color: '#475569', lineHeight: 1.9 }}>
-      {t.owned} <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>{t.company}</strong></a> — {t.tagline}<br />
+      {t.owned} <a href="https://www.hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>{t.company}</strong></a> — {t.tagline}<br />
       {t.address}<br />
       {t.contact}: <span dir="ltr">abbas@hayyamed.ai</span> · <span dir="ltr">+974 3367 7333</span> · © {new Date().getFullYear()} <span dir="ltr">Hayya AI</span>.
     </footer>

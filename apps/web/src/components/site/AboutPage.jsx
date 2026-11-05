@@ -138,7 +138,7 @@ export default function AboutPage({ locale = 'en' }) {
               </div>
             ))}
           </div>
-          <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '20px', fontSize: '13px', fontWeight: 700, color: '#D8B16A', textDecoration: 'none' }}>{t.visit}</a>
+          <a href="https://www.hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '20px', fontSize: '13px', fontWeight: 700, color: '#D8B16A', textDecoration: 'none' }}>{t.visit}</a>
         </Reveal>
       </section>
 

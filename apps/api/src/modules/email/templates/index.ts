@@ -27,7 +27,7 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;">${prehead
   <div class="body">${content}</div>
   <div class="footer">
     <p class="small">© 2026 Hayya Med AI · Doha, Qatar<br>
-    Questions? Reply to this email or visit <a href="https://hayyamed.ai" style="color:#00e5a0;">hayyamed.ai</a></p>
+    Questions? Reply to this email or visit <a href="https://www.hayyamed.ai" style="color:#00e5a0;">hayyamed.ai</a></p>
   </div>
 </div>
 </body>

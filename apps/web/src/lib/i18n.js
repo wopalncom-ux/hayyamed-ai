@@ -2,7 +2,7 @@
 // English is the primary language and lives at the root ("/about").
 // Arabic is the second language and lives under "/ar" ("/ar/about").
 
-export const SITE = 'https://hayyamed.ai'
+export const SITE = 'https://www.hayyamed.ai'
 export const LOCALES = ['en', 'ar']
 export const DEFAULT_LOCALE = 'en'
 

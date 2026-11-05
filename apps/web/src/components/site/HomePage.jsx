@@ -180,7 +180,7 @@ export default function HomePage({ locale = 'en' }) {
           {t.motto}
         </div>
         <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', fontSize: ar ? '13px' : '12px', color: '#64748b' }}>
-          <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#D8B16A', textDecoration: 'none' }}><span dir="ltr">hayyamed.ai ↗</span></a>
+          <a href="https://www.hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#D8B16A', textDecoration: 'none' }}><span dir="ltr">hayyamed.ai ↗</span></a>
           <span>{t.founded}</span>
           <span>{t.doha}</span>
         </div>
@@ -209,7 +209,7 @@ export default function HomePage({ locale = 'en' }) {
           </nav>
         </div>
         <div style={{ fontSize: small, color: '#475569', marginTop: '16px', textAlign: 'center', lineHeight: '1.8' }}>
-          {t.owned} <a href="https://hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>{t.company}</strong></a> — {t.tagline}<br />
+          {t.owned} <a href="https://www.hayyamed.ai" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}><strong>{t.company}</strong></a> — {t.tagline}<br />
           {t.address}<br />
           {t.contact}: <span dir="ltr">abbas@hayyamed.ai</span> · <span dir="ltr">+974 3367 7333</span><br />
           © {new Date().getFullYear()} <span dir="ltr">Hayya AI</span>. {t.rights}
