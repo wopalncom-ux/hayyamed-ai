@@ -14,7 +14,7 @@ export default function FeaturesPage() {
     '@type': 'CollectionPage',
     name: 'Hayya AI Features',
     description: metadata.description,
-    url: 'https://www.hayyaai.com/features',
+    url: 'https://hayyamed.ai/features',
   }
 
   return (

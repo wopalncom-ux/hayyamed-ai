@@ -32,7 +32,7 @@ export default function Privacy() {
       <section style={{ ...wrap, paddingBottom: '80px' }}>
         <p style={p}>
           <strong style={{ color: '#e2e8f0' }}>Hayya Med Artificial Intelligence</strong> (CR 219050), registered at Zone 6, Street 970,
-          Grand Hamad St, Building 2, 3rd Floor, Tejwaans Business Center, Doha, Qatar, operates Hayya AI (hayyaai.com). This policy
+          Grand Hamad St, Building 2, 3rd Floor, Tejwaans Business Center, Doha, Qatar, operates Hayya AI (hayyamed.ai). This policy
           explains what data we collect, how we use it, and your rights.
         </p>
 

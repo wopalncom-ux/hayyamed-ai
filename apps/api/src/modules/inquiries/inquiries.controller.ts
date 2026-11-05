@@ -5,7 +5,7 @@ import { EmailService } from '../email/email.service'
 const TO = 'abbas@hayyamed.ai'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Public "Contact us" inquiry from the hayyaai.com marketing site — throttled
+// Public "Contact us" inquiry from the hayyamed.ai marketing site — throttled
 // by the app's global ThrottlerGuard (100 req/min) since this route has no auth.
 @Controller('inquiries')
 export class InquiriesController {
@@ -36,7 +36,7 @@ export class InquiriesController {
         <h3 style="color:#333;margin-top:0;">Message</h3>
         <p style="color:#555;white-space:pre-wrap;">${message}</p>
         <hr style="margin:16px 0;border:none;border-top:1px solid #ddd;"/>
-        <p style="font-size:12px;color:#999;">Sent via hayyaai.com contact form</p>
+        <p style="font-size:12px;color:#999;">Sent via hayyamed.ai contact form</p>
       </div>
     `
 

@@ -7,7 +7,7 @@ export default function robots() {
         disallow: ['/dashboard', '/inbox', '/contacts', '/settings', '/admin', '/clients', '/agency', '/api/'],
       },
     ],
-    sitemap: 'https://www.hayyaai.com/sitemap.xml',
-    host: 'https://www.hayyaai.com',
+    sitemap: 'https://hayyamed.ai/sitemap.xml',
+    host: 'https://hayyamed.ai',
   }
 }

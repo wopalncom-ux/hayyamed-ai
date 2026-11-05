@@ -14,7 +14,7 @@ export async function generateMetadata({ params }) {
     title: feature.metaTitle,
     description: feature.metaDescription,
     alternates: { canonical: `/features/${feature.slug}` },
-    openGraph: { title: feature.metaTitle, description: feature.metaDescription, url: `https://www.hayyaai.com/features/${feature.slug}` },
+    openGraph: { title: feature.metaTitle, description: feature.metaDescription, url: `https://hayyamed.ai/features/${feature.slug}` },
   }
 }
 
@@ -29,15 +29,15 @@ export default async function FeatureDetailPage({ params }) {
     name: feature.title,
     description: feature.metaDescription,
     provider: { '@type': 'Organization', name: 'Hayya AI', parentOrganization: { '@type': 'Organization', name: 'Hayya Med AI' } },
-    url: `https://www.hayyaai.com/features/${feature.slug}`,
+    url: `https://hayyamed.ai/features/${feature.slug}`,
   }
 
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Features', item: 'https://www.hayyaai.com/features' },
-      { '@type': 'ListItem', position: 2, name: feature.title, item: `https://www.hayyaai.com/features/${feature.slug}` },
+      { '@type': 'ListItem', position: 1, name: 'Features', item: 'https://hayyamed.ai/features' },
+      { '@type': 'ListItem', position: 2, name: feature.title, item: `https://hayyamed.ai/features/${feature.slug}` },
     ],
   }
 

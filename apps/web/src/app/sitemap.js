@@ -1,6 +1,6 @@
 import { FEATURES_CONTENT } from '@/lib/features-content'
 
-const SITE = 'https://www.hayyaai.com'
+const SITE = 'https://hayyamed.ai'
 
 export default function sitemap() {
   const now = new Date()

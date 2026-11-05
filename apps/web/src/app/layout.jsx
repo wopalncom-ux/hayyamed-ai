@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '700', '800'], 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-jakarta', display: 'swap' })
 const serif = Instrument_Serif({ subsets: ['latin'], weight: '400', style: 'italic', variable: '--font-serif', display: 'swap' })
 
-const SITE = 'https://www.hayyaai.com'
+const SITE = 'https://hayyamed.ai'
 const DESC = 'Hayya AI is an AI customer-engagement platform: WhatsApp & Instagram AI agents, an omnichannel inbox, CRM, and automation. Built & operated by Hayya Med AI in Doha, Qatar.'
 
 export const metadata = {

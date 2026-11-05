@@ -48,7 +48,7 @@ export default function OG() {
 
         {/* footer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 22, color: 'rgba(255,255,255,0.6)' }}>
-          <span style={{ color: GOLD, fontWeight: 700 }}>hayyaai.com</span>
+          <span style={{ color: GOLD, fontWeight: 700 }}>hayyamed.ai</span>
           <span>Built and operated by Hayya Med AI · Doha, Qatar</span>
         </div>
       </div>

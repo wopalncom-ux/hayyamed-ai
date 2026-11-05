@@ -30,7 +30,7 @@ export default function Terms() {
 
       <section style={{ ...wrap, paddingBottom: '80px' }}>
         <p style={p}>
-          These Terms of Service ("Terms") govern your access to and use of Hayya AI (the "Service"), available at hayyaai.com,
+          These Terms of Service ("Terms") govern your access to and use of Hayya AI (the "Service"), available at hayyamed.ai,
           provided by <strong style={{ color: '#e2e8f0' }}>Hayya Med Artificial Intelligence</strong> ("Hayya Med AI," "we," "us," "our"),
           a company registered in Qatar (CR 219050), with its registered office at Zone 6, Street 970, Grand Hamad St, Building 2,
           3rd Floor, Tejwaans Business Center, Doha, Qatar. By creating an account or using the Service, you agree to these Terms.
