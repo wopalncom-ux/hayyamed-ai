@@ -11,9 +11,7 @@ import { lp } from '@/lib/i18n'
 const CHANNELS = [
   { icon: '💬', en: 'WhatsApp', ar: 'واتساب', color: '#D8B16A' },
   { icon: '📸', en: 'Instagram', ar: 'إنستغرام', color: '#ec4899' },
-  { icon: '👤', en: 'Facebook', ar: 'فيسبوك', color: '#3b82f6' },
   { icon: '📧', en: 'Email', ar: 'البريد الإلكتروني', color: '#fbbf24' },
-  { icon: '✈️', en: 'Telegram', ar: 'تيليغرام', color: '#f97316' },
   { icon: '💻', en: 'Web Chat', ar: 'دردشة الموقع', color: '#06b6d4' },
 ]
 
@@ -21,7 +19,7 @@ const T = {
   en: {
     channels: 'CONNECT ALL YOUR CHANNELS',
     stats: [
-      { value: '6+', label: 'Channels Connected' },
+      { value: '4', label: 'Channels Connected' },
       { value: '24/7', label: 'AI Auto-Reply' },
       { value: '4', label: 'AI Providers' },
       { value: 'QAR', label: 'Qatar-Priced Plans' },
@@ -55,7 +53,7 @@ const T = {
   ar: {
     channels: 'اربط جميع قنواتك',
     stats: [
-      { value: '+6', label: 'قنوات مربوطة' },
+      { value: '4', label: 'قنوات مربوطة' },
       { value: '24/7', label: 'رد آلي بالذكاء الاصطناعي' },
       { value: '4', label: 'مزوّدين للذكاء الاصطناعي' },
       { value: 'ر.ق', label: 'باقات بالريال القطري' },

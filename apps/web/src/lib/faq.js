@@ -10,7 +10,7 @@ export const FAQ = {
     },
     {
       q: 'Which channels does Hayya AI connect?',
-      a: 'WhatsApp (through the WhatsApp Business API), Instagram direct messages, Facebook Messenger, Telegram, email and website chat — all in one shared inbox.',
+      a: 'Four channels: WhatsApp (through the WhatsApp Business API), Instagram direct messages, website chat and email — all in one shared inbox.',
     },
     {
       q: 'Does the AI reply in Arabic?',
@@ -40,7 +40,7 @@ export const FAQ = {
     },
     {
       q: 'ما القنوات التي يربطها Hayya AI؟',
-      a: 'واتساب (عبر واجهة WhatsApp Business API)، ورسائل إنستغرام المباشرة، وماسنجر فيسبوك، وتيليغرام، والبريد الإلكتروني، والدردشة على موقعك، وكلها في صندوق وارد واحد.',
+      a: 'أربع قنوات: واتساب (عبر واجهة WhatsApp Business API)، ورسائل إنستغرام المباشرة، والدردشة على موقعك، والبريد الإلكتروني، وكلها في صندوق وارد واحد.',
     },
     {
       q: 'هل يردّ الذكاء الاصطناعي باللغة العربية؟',
