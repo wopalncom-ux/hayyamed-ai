@@ -1,6 +1,7 @@
 'use client'
 import { useEffect } from 'react'
 import { getAuth } from '@/lib/auth'
+import { stripLocale } from '@/lib/i18n'
 
 // Public routes must server-render for SEO (and for everyone). Everything else
 // is an authenticated app route. We ALWAYS render children so the HTML is
@@ -13,7 +14,11 @@ const PUBLIC = new Set([
   '/login', '/register', '/forgot-password', '/reset-password',
   '/terms', '/privacy', '/legal',
 ])
-const isPublic = (p) => PUBLIC.has(p) || p.startsWith('/blog') || p.startsWith('/legal') || p.startsWith('/features')
+// Arabic pages (/ar/...) are public whenever their English twin is.
+const isPublic = (path) => {
+  const p = stripLocale(path)
+  return PUBLIC.has(p) || p.startsWith('/blog') || p.startsWith('/legal') || p.startsWith('/features')
+}
 
 export default function AuthGuard({ children }) {
   useEffect(() => {

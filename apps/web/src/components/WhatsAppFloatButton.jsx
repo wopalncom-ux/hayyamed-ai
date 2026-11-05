@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { stripLocale, localeOf } from '@/lib/i18n'
 
 // lucide-react v1.16+ dropped brand/logo icons (trademark concerns) — inline SVG instead.
 const WhatsAppIcon = (props) => (
@@ -11,25 +12,36 @@ const WhatsAppIcon = (props) => (
 
 // WhatsApp number/link pattern matches the one already used on hayyamed.ai's own site footer.
 const WHATSAPP_NUMBER = '97433677333'
-const DEFAULT_MESSAGE = "Hi Hayya AI, I'd like to ask about the platform."
-const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`
+const MESSAGES = {
+  en: "Hi Hayya AI, I'd like to ask about the platform.",
+  ar: 'مرحباً Hayya AI، أودّ الاستفسار عن المنصة.',
+}
+const LABELS = {
+  en: 'Chat with Hayya AI on WhatsApp',
+  ar: 'تواصل مع Hayya AI عبر واتساب',
+}
+const hrefFor = (locale) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(MESSAGES[locale])}`
 
 // Only the true public marketing pages — never inside the authenticated CRM app itself.
 const PUBLIC_MARKETING = new Set(['/', '/about', '/contact', '/developers'])
-const isMarketingPath = (path) => PUBLIC_MARKETING.has(path) || path.startsWith('/features')
+const isMarketingPath = (path) => {
+  const p = stripLocale(path)
+  return PUBLIC_MARKETING.has(p) || p.startsWith('/features')
+}
 
 export default function WhatsAppFloatButton() {
   const pathname = usePathname()
   if (!isMarketingPath(pathname)) return null
+  const locale = localeOf(pathname)
 
   return (
     <a
-      href={WHATSAPP_HREF}
+      href={hrefFor(locale)}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat with Hayya AI on WhatsApp"
+      aria-label={LABELS[locale]}
       style={{
-        position: 'fixed', bottom: '22px', right: '22px', zIndex: 50,
+        position: 'fixed', bottom: '22px', insetInlineEnd: '22px', zIndex: 50,
         width: '56px', height: '56px', borderRadius: '50%',
         background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 8px 24px rgba(0,0,0,.35)', textDecoration: 'none',

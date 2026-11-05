@@ -1,3 +1,7 @@
+import { SITE } from '@/lib/i18n'
+
+// Public marketing pages (English and Arabic) are open to every crawler,
+// including AI answer engines; the signed-in app and the API are not.
 export default function robots() {
   return {
     rules: [
@@ -7,7 +11,7 @@ export default function robots() {
         disallow: ['/dashboard', '/inbox', '/contacts', '/settings', '/admin', '/clients', '/agency', '/api/'],
       },
     ],
-    sitemap: 'https://hayyamed.ai/sitemap.xml',
-    host: 'https://hayyamed.ai',
+    sitemap: `${SITE}/sitemap.xml`,
+    host: SITE,
   }
 }

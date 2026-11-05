@@ -8,22 +8,24 @@ const jakarta = 'var(--font-jakarta), system-ui, sans-serif'
 const GOLD = '#D8B16A'
 
 // Client island: the mobile hamburger + full-screen overlay menu only.
-export default function HeroMenu({ nav = [] }) {
+export default function HeroMenu({ nav = [], locale = 'en', startLabel = 'Start Building', menuLabel = 'Menu', closeLabel = 'Close' }) {
+  const ar = locale === 'ar'
   const [open, setOpen] = useState(false)
   return (
     <>
-      <button aria-label="Menu" onClick={() => setOpen(true)} className="hai-burger"
+      <button aria-label={menuLabel} onClick={() => setOpen(true)} className="hai-burger"
         style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex' }}><Menu /></button>
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(7,11,10,0.97)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '24px' }}>
-            <button aria-label="Close" onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X /></button>
+            <button aria-label={closeLabel} onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X /></button>
           </div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '28px' }}>
             {nav.map(n => (
               <a key={n.label} href={n.href} onClick={() => setOpen(false)} style={{ fontFamily: jakarta, fontWeight: 800, fontSize: '22px', letterSpacing: '0.06em', color: '#fff', textDecoration: 'none' }}>{n.label}</a>
             ))}
-            <a href="/register" onClick={() => setOpen(false)} style={{ fontFamily: jakarta, fontWeight: 800, fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase', background: GOLD, color: '#070b0a', padding: '14px 28px', borderRadius: '999px', textDecoration: 'none', marginTop: '12px' }}>Start Building</a>
+            <a href={ar ? '/' : '/ar'} hrefLang={ar ? 'en' : 'ar'} lang={ar ? 'en' : 'ar'} onClick={() => setOpen(false)} style={{ fontFamily: jakarta, fontWeight: 800, fontSize: '18px', color: GOLD, textDecoration: 'none' }}>{ar ? 'English' : 'العربية'}</a>
+            <a href={ar ? '/ar/register' : '/register'} onClick={() => setOpen(false)} style={{ fontFamily: jakarta, fontWeight: 800, fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase', background: GOLD, color: '#070b0a', padding: '14px 28px', borderRadius: '999px', textDecoration: 'none', marginTop: '12px' }}>{startLabel}</a>
           </div>
         </div>
       )}

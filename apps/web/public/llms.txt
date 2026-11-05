@@ -1,0 +1,45 @@
+# Hayya AI (هيّا AI)
+
+> Hayya AI is an AI customer-engagement platform for businesses in Qatar and the GCC: AI agents that answer customers on WhatsApp and Instagram in Arabic and English, an omnichannel inbox, a CRM with AI lead scoring, bulk campaigns, a no-code automation builder and in-chat booking. It is built and operated by Hayya Med Artificial Intelligence (Hayya Med AI), Doha, Qatar.
+
+> Hayya AI منصة لخدمة العملاء والتواصل معهم بالذكاء الاصطناعي للشركات في قطر ودول الخليج: وكلاء ذكاء اصطناعي يردّون على العملاء في واتساب وإنستغرام بالعربية والإنجليزية، وصندوق وارد موحّد، ونظام CRM يقيّم العملاء المحتملين، وحملات جماعية، ومنشئ أتمتة بدون برمجة، وحجز المواعيد من داخل المحادثة. تطوّرها وتشغّلها شركة هيّا ميد للذكاء الاصطناعي في الدوحة، قطر.
+
+Key facts:
+- Channels: WhatsApp (WhatsApp Business API), Instagram direct messages, Facebook Messenger, Telegram, email, website chat.
+- Languages: the AI agents reply in Arabic and English; the website is available in English (https://hayyamed.ai) and Arabic (https://hayyamed.ai/ar).
+- Hosting: Google Cloud, me-central1 region (Doha, Qatar). Some processing happens at third-party providers (AI models, payments, email delivery, connected messaging platforms) as described in the privacy policy.
+- Pricing: free to sign up; paid plans are priced in Qatari riyals (QAR), billed monthly, with no annual lock-in. Current prices: https://hayyamed.ai/#pricing
+- Company: Hayya Med Artificial Intelligence, commercial registration 219050, founded June 2025 in Doha, Qatar, by Abbas Al Masri.
+- Contact: abbas@hayyamed.ai · +974 3367 7333 · WhatsApp https://wa.me/97433677333
+
+## Pages (English)
+
+- [Home](https://hayyamed.ai/): overview, pricing and FAQ
+- [Features](https://hayyamed.ai/features): all core features
+- [Omnichannel Inbox](https://hayyamed.ai/features/omnichannel-inbox)
+- [AI Auto-Reply](https://hayyamed.ai/features/ai-auto-reply)
+- [CRM & Lead Scoring](https://hayyamed.ai/features/crm-lead-scoring)
+- [Bulk Campaigns](https://hayyamed.ai/features/bulk-campaigns)
+- [Automation Builder](https://hayyamed.ai/features/automation-builder)
+- [Booking System](https://hayyamed.ai/features/booking-system)
+- [About](https://hayyamed.ai/about): company and founder
+- [Developers](https://hayyamed.ai/developers): REST API and webhooks
+- [Contact](https://hayyamed.ai/contact)
+- [Privacy Policy](https://hayyamed.ai/privacy)
+- [Terms of Service](https://hayyamed.ai/terms)
+
+## الصفحات (العربية)
+
+- [الرئيسية](https://hayyamed.ai/ar): نظرة عامة والباقات والأسئلة الشائعة
+- [المزايا](https://hayyamed.ai/ar/features)
+- [صندوق الوارد الموحّد](https://hayyamed.ai/ar/features/omnichannel-inbox)
+- [الرد الآلي بالذكاء الاصطناعي](https://hayyamed.ai/ar/features/ai-auto-reply)
+- [نظام CRM وتقييم العملاء المحتملين](https://hayyamed.ai/ar/features/crm-lead-scoring)
+- [الحملات الجماعية](https://hayyamed.ai/ar/features/bulk-campaigns)
+- [منشئ الأتمتة](https://hayyamed.ai/ar/features/automation-builder)
+- [نظام الحجوزات](https://hayyamed.ai/ar/features/booking-system)
+- [من نحن](https://hayyamed.ai/ar/about)
+- [للمطوّرين](https://hayyamed.ai/ar/developers)
+- [تواصل معنا](https://hayyamed.ai/ar/contact)
+- [سياسة الخصوصية](https://hayyamed.ai/ar/privacy)
+- [شروط الخدمة](https://hayyamed.ai/ar/terms)
