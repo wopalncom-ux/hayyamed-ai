@@ -6,6 +6,7 @@ const GOLD = '#D8B16A'
 const inputStyle = {
   width: '100%', padding: '12px 14px', borderRadius: '8px', fontSize: '14px',
   background: '#0c0f1a', border: '1px solid #1a2235', color: '#e2e8f0', outline: 'none',
+  boxSizing: 'border-box',
 }
 const label = { display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '6px' }
 
